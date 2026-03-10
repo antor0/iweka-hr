@@ -13,6 +13,7 @@
     "docker:up": "docker-compose up -d --build",
     "docker:down": "docker-compose down",
     "seed:performance": "tsx prisma/seed-performance.ts",
+    "seed:recruitment": "tsx prisma/seed-recruitment.ts",
     "seed:sample": "tsx prisma/seed-sample-data.ts"
   },
   "dependencies": {

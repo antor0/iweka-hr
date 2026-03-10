@@ -26,6 +26,9 @@ echo "🌱 Seeding the database with base configuration and all sample data..."
 # 4. seed-sample-data.ts (Comprehensive employee & HR dummy data)
 npx prisma db seed
 
+echo "🔒 Updating admin user password to default..."
+npx tsx prisma/update-password.ts
+
 echo "🏗️ Building the Next.js application..."
 npm run build
 

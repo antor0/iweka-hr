@@ -54,8 +54,16 @@ RUN chown nextjs:nodejs .next
 # Copy built artifacts from the builder stage
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
+
+# Install tsx globally and copy start script
+RUN npm install -g tsx prisma
+RUN npm install dotenv
+COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./
+RUN chmod +x start.sh
 
 USER nextjs
 
@@ -64,6 +72,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Run Prisma migrations before starting the app (optional, usually done separately)
-# We will just start the Next.js server.
-CMD ["node", "server.js"]
+# Run migrations, seed, and start the app
+CMD ["./start.sh"]
