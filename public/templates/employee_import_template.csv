@@ -1,0 +1,3 @@
+employeeNumber,nik,fullName,email,phone,gender,maritalStatus,hireDate,employmentStatus,employmentType
+EMP-9001,3171234567890123,Budi Santoso,budi.s@company.co.id,081234567890,MALE,K_1,2024-01-15,ACTIVE,PERMANENT
+EMP-9002,3179876543210987,Siti Aminah,siti.a@company.co.id,081987654321,FEMALE,TK_0,2025-06-01,PROBATION,CONTRACT

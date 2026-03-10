@@ -1,0 +1,45 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hris-app
+    restart: always
+    ports:
+      - "3020:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://hris:hris_password@db:5432/hris_db?schema=public
+      - SESSION_SECRET=production_super_secret_key_change_me_later_for_security_reasons
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hris-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: hris-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: hris
+      POSTGRES_PASSWORD: hris_password
+      POSTGRES_DB: hris_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - hris-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U hris -d hris_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hris-network
+
+networks:
+  hris-network:
+    driver: bridge
+
+volumes:
+  hris-pgdata:

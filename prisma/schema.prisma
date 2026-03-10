@@ -1,0 +1,723 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum MaritalStatus {
+  TK_0 // Tidak Kawin, 0 tanggungan
+  TK_1
+  TK_2
+  TK_3
+  K_0 // Kawin, 0 tanggungan
+  K_1
+  K_2
+  K_3
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  PROBATION
+  RESIGNED
+  TERMINATED
+}
+
+enum EmploymentType {
+  PERMANENT
+  CONTRACT
+  INTERN
+}
+
+enum EmployeeChangeType {
+  PROMOTION
+  TRANSFER
+  GRADE_CHANGE
+  STATUS_CHANGE
+}
+
+enum FamilyRelationship {
+  SPOUSE
+  CHILD
+  PARENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  LEAVE
+  HOLIDAY
+}
+
+enum AttendanceSource {
+  WEB
+  BIOMETRIC
+  MOBILE
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum PayrollStatus {
+  DRAFT
+  CALCULATING
+  REVIEW
+  APPROVED
+  FINALIZED
+  DISBURSED
+}
+
+enum ComponentType {
+  EARNING
+  DEDUCTION
+  BENEFIT
+}
+
+enum CalculationType {
+  FIXED
+  PERCENTAGE
+  FORMULA
+}
+
+enum TaxMethod {
+  TER
+  PROGRESSIVE
+}
+
+enum UserRole {
+  SYSTEM_ADMIN
+  HR_ADMIN
+  HR_MANAGER
+  PAYROLL_SPECIALIST
+  FINANCE
+  LINE_MANAGER
+  EMPLOYEE
+}
+
+// ---------------------------------------------------------
+// CORE HR
+// ---------------------------------------------------------
+
+model Employee {
+  id               String           @id @default(uuid())
+  employeeNumber   String           @unique @map("employee_number")
+  nik              String // Encrypted
+  fullName         String           @map("full_name")
+  email            String           @unique
+  phone            String?
+  dateOfBirth      DateTime?        @map("date_of_birth") @db.Date
+  gender           Gender?
+  maritalStatus    MaritalStatus?   @map("marital_status")
+  npwp             String? // Encrypted
+  bpjsKesNumber    String?          @map("bpjs_kes_number") // Encrypted
+  bpjsTkNumber     String?          @map("bpjs_tk_number") // Encrypted
+  hireDate         DateTime         @map("hire_date") @db.Date
+  employmentStatus EmploymentStatus @map("employment_status")
+  employmentType   EmploymentType   @map("employment_type")
+
+  departmentId String? @map("department_id")
+  positionId   String? @map("position_id")
+  gradeId      String? @map("grade_id")
+  managerId    String? @map("manager_id")
+
+  bankName    String? @map("bank_name")
+  bankAccount String? @map("bank_account") // Encrypted
+  photoUrl    String? @map("photo_url")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  department   Department? @relation("EmployeeDepartment", fields: [departmentId], references: [id])
+  position     Position?   @relation("EmployeePosition", fields: [positionId], references: [id])
+  grade        Grade?      @relation(fields: [gradeId], references: [id])
+  manager      Employee?   @relation("EmployeeToManager", fields: [managerId], references: [id])
+  subordinates Employee[]  @relation("EmployeeToManager")
+
+  // Inverse relations for other models
+  departmentHeaded  Department[]        @relation("DepartmentHead")
+  families          FamilyMember[]
+  employmentHistory EmploymentHistory[] @relation("EmployeeHistory")
+  approvedHistory   EmploymentHistory[] @relation("ApprovedHistory")
+  attendances       Attendance[]
+  overtimeRequests  OvertimeRequest[]   @relation("EmployeeOvertime")
+  approvedOvertime  OvertimeRequest[]   @relation("ApprovedOvertime")
+  leaveRequests     LeaveRequest[]      @relation("EmployeeLeave")
+  approvedLeave     LeaveRequest[]      @relation("ApprovedLeave")
+  leaveBalances     LeaveBalance[]
+  payrollItems      PayrollItem[]
+  monthlyTax        MonthlyTax[]
+  user              User?
+
+  // Recruitment inverses
+  requestedRequisitions JobRequisition[] @relation("RequisitionRequestor")
+  approvedRequisitions  JobRequisition[] @relation("RequisitionApprover")
+  interviewsConducted   Interview[]      @relation("InterviewInterviewer")
+
+  // Performance inverses
+  appraisalsAsEmployee  Appraisal[]      @relation("AppraisalEmployee")
+  appraisalsAsManager   Appraisal[]      @relation("AppraisalManager")
+
+  @@map("hr_employees")
+}
+
+model Department {
+  id       String  @id @default(uuid())
+  name     String
+  code     String  @unique
+  parentId String? @map("parent_id")
+  headId   String? @map("head_id")
+  isActive Boolean @default(true) @map("is_active")
+
+  // Relations
+  parent       Department?      @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children     Department[]     @relation("DepartmentHierarchy")
+  head         Employee?        @relation("DepartmentHead", fields: [headId], references: [id])
+  employees    Employee[]       @relation("EmployeeDepartment")
+  positions    Position[]
+  requisitions JobRequisition[]
+
+  @@map("hr_departments")
+}
+
+model Position {
+  id           String  @id @default(uuid())
+  title        String
+  code         String  @unique
+  departmentId String? @map("department_id")
+  gradeId      String? @map("grade_id")
+  isActive     Boolean @default(true) @map("is_active")
+
+  // Relations
+  department   Department?      @relation(fields: [departmentId], references: [id])
+  grade        Grade?           @relation(fields: [gradeId], references: [id])
+  employees    Employee[]       @relation("EmployeePosition")
+  requisitions JobRequisition[]
+
+  @@map("hr_positions")
+}
+
+model Grade {
+  id        String  @id @default(uuid())
+  name      String
+  level     Int     @unique
+  minSalary Decimal @map("min_salary") @db.Decimal(15, 2)
+  maxSalary Decimal @map("max_salary") @db.Decimal(15, 2)
+
+  // Relations
+  positions Position[]
+  employees Employee[]
+
+  @@map("hr_grades")
+}
+
+model EmploymentHistory {
+  id            String             @id @default(uuid())
+  employeeId    String             @map("employee_id")
+  changeType    EmployeeChangeType @map("change_type")
+  effectiveDate DateTime           @map("effective_date") @db.Date
+  oldValue      Json               @map("old_value")
+  newValue      Json               @map("new_value")
+  reason        String?            @db.Text
+  approvedById  String?            @map("approved_by_id")
+
+  // Relations
+  employee   Employee  @relation("EmployeeHistory", fields: [employeeId], references: [id])
+  approvedBy Employee? @relation("ApprovedHistory", fields: [approvedById], references: [id])
+
+  @@map("hr_employment_history")
+}
+
+model FamilyMember {
+  id              String             @id @default(uuid())
+  employeeId      String             @map("employee_id")
+  relationship    FamilyRelationship
+  fullName        String             @map("full_name")
+  dateOfBirth     DateTime?          @map("date_of_birth") @db.Date
+  nik             String? // Encrypted
+  isBpjsDependent Boolean            @default(false) @map("is_bpjs_dependent")
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("hr_employee_family")
+}
+
+// ---------------------------------------------------------
+// TIME & ATTENDANCE
+// ---------------------------------------------------------
+
+model Attendance {
+  id            String           @id @default(uuid())
+  employeeId    String           @map("employee_id")
+  date          DateTime         @db.Date
+  clockIn       DateTime?        @map("clock_in")
+  clockOut      DateTime?        @map("clock_out")
+  status        AttendanceStatus
+  workHours     Decimal?         @map("work_hours") @db.Decimal(5, 2)
+  overtimeHours Decimal?         @map("overtime_hours") @db.Decimal(5, 2)
+  source        AttendanceSource @default(WEB)
+  notes         String?          @db.Text
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, date])
+  @@map("ta_attendances")
+}
+
+model Shift {
+  id           String  @id @default(uuid())
+  name         String
+  startTime    String  @map("start_time") // HH:mm format
+  endTime      String  @map("end_time") // HH:mm format
+  breakMinutes Int     @default(60) @map("break_minutes")
+  isDefault    Boolean @default(false) @map("is_default")
+
+  @@map("ta_shifts")
+}
+
+model OvertimeRequest {
+  id           String        @id @default(uuid())
+  employeeId   String        @map("employee_id")
+  date         DateTime      @db.Date
+  plannedHours Decimal       @map("planned_hours") @db.Decimal(5, 2)
+  actualHours  Decimal?      @map("actual_hours") @db.Decimal(5, 2)
+  reason       String        @db.Text
+  status       RequestStatus @default(PENDING)
+  approvedById String?       @map("approved_by_id")
+
+  // Relations
+  employee   Employee  @relation("EmployeeOvertime", fields: [employeeId], references: [id])
+  approvedBy Employee? @relation("ApprovedOvertime", fields: [approvedById], references: [id])
+
+  @@map("ta_overtime_requests")
+}
+
+// ---------------------------------------------------------
+// LEAVE MANAGEMENT
+// ---------------------------------------------------------
+
+model LeaveType {
+  id                 String  @id @default(uuid())
+  name               String
+  code               String  @unique
+  annualEntitlement  Int     @map("annual_entitlement")
+  isPaid             Boolean @default(true) @map("is_paid")
+  requiresAttachment Boolean @default(false) @map("requires_attachment")
+  isCarryOver        Boolean @default(false) @map("is_carry_over")
+  maxCarryOverDays   Int     @default(0) @map("max_carry_over_days")
+  isActive           Boolean @default(true) @map("is_active")
+
+  // Relations
+  requests LeaveRequest[]
+  balances LeaveBalance[]
+
+  @@map("lv_leave_types")
+}
+
+model LeaveRequest {
+  id            String        @id @default(uuid())
+  employeeId    String        @map("employee_id")
+  leaveTypeId   String        @map("leave_type_id")
+  startDate     DateTime      @map("start_date") @db.Date
+  endDate       DateTime      @map("end_date") @db.Date
+  totalDays     Decimal       @map("total_days") @db.Decimal(5, 1)
+  reason        String        @db.Text
+  status        RequestStatus @default(PENDING)
+  approvedById  String?       @map("approved_by_id")
+  attachmentUrl String?       @map("attachment_url")
+
+  // Relations
+  employee   Employee  @relation("EmployeeLeave", fields: [employeeId], references: [id])
+  leaveType  LeaveType @relation(fields: [leaveTypeId], references: [id])
+  approvedBy Employee? @relation("ApprovedLeave", fields: [approvedById], references: [id])
+
+  @@map("lv_leave_requests")
+}
+
+model LeaveBalance {
+  id          String  @id @default(uuid())
+  employeeId  String  @map("employee_id")
+  leaveTypeId String  @map("leave_type_id")
+  year        Int
+  entitlement Decimal @db.Decimal(5, 1)
+  used        Decimal @default(0) @db.Decimal(5, 1)
+  carryOver   Decimal @default(0) @map("carry_over") @db.Decimal(5, 1)
+
+  // Relations
+  employee  Employee  @relation(fields: [employeeId], references: [id])
+  leaveType LeaveType @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@map("lv_leave_balances")
+}
+
+// ---------------------------------------------------------
+// PAYROLL
+// ---------------------------------------------------------
+
+model PayrollRun {
+  id                String        @id @default(uuid())
+  periodMonth       Int           @map("period_month")
+  periodYear        Int           @map("period_year")
+  status            PayrollStatus @default(DRAFT)
+  totalGross        Decimal       @default(0) @map("total_gross") @db.Decimal(15, 2)
+  totalDeductions   Decimal       @default(0) @map("total_deductions") @db.Decimal(15, 2)
+  totalNet          Decimal       @default(0) @map("total_net") @db.Decimal(15, 2)
+  totalTax          Decimal       @default(0) @map("total_tax") @db.Decimal(15, 2)
+  totalBpjsCompany  Decimal       @default(0) @map("total_bpjs_company") @db.Decimal(15, 2)
+  totalBpjsEmployee Decimal       @default(0) @map("total_bpjs_employee") @db.Decimal(15, 2)
+  runById           String?       @map("run_by_id")
+  approvedById      String?       @map("approved_by_id")
+  finalizedAt       DateTime?     @map("finalized_at")
+  configSnapshot    Json?         @map("config_snapshot") // Snapshot of tax/BPJS rates used
+
+  // Relations
+  runBy      User?         @relation("PayrollRunner", fields: [runById], references: [id])
+  approvedBy User?         @relation("PayrollApprover", fields: [approvedById], references: [id])
+  items      PayrollItem[]
+
+  @@unique([periodMonth, periodYear])
+  @@map("pay_payroll_runs")
+}
+
+model PayrollItem {
+  id              String  @id @default(uuid())
+  payrollRunId    String  @map("payroll_run_id")
+  employeeId      String  @map("employee_id")
+  basicSalary     Decimal @map("basic_salary") @db.Decimal(15, 2)
+  totalAllowances Decimal @map("total_allowances") @db.Decimal(15, 2)
+  totalOvertime   Decimal @map("total_overtime") @db.Decimal(15, 2)
+  grossIncome     Decimal @map("gross_income") @db.Decimal(15, 2)
+  pph21Amount     Decimal @map("pph21_amount") @db.Decimal(15, 2)
+
+  bpjsKesEmployee   Decimal @map("bpjs_kes_employee") @db.Decimal(15, 2)
+  bpjsKesCompany    Decimal @map("bpjs_kes_company") @db.Decimal(15, 2)
+  bpjsTkJhtEmployee Decimal @map("bpjs_tk_jht_employee") @db.Decimal(15, 2)
+  bpjsTkJhtCompany  Decimal @map("bpjs_tk_jht_company") @db.Decimal(15, 2)
+  bpjsTkJpEmployee  Decimal @map("bpjs_tk_jp_employee") @db.Decimal(15, 2)
+  bpjsTkJpCompany   Decimal @map("bpjs_tk_jp_company") @db.Decimal(15, 2)
+  bpjsTkJkkCompany  Decimal @map("bpjs_tk_jkk_company") @db.Decimal(15, 2)
+  bpjsTkJkmCompany  Decimal @map("bpjs_tk_jkm_company") @db.Decimal(15, 2)
+
+  totalDeductions Decimal @map("total_deductions") @db.Decimal(15, 2)
+  netSalary       Decimal @map("net_salary") @db.Decimal(15, 2)
+  components      Json // Detailed breakdown
+
+  // Relations
+  payrollRun PayrollRun  @relation(fields: [payrollRunId], references: [id])
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+  monthlyTax MonthlyTax? // 1-to-1 if needed, or many to one
+
+  @@unique([payrollRunId, employeeId])
+  @@map("pay_payroll_items")
+}
+
+model SalaryComponent {
+  id              String          @id @default(uuid())
+  name            String
+  code            String          @unique
+  type            ComponentType
+  isTaxable       Boolean         @default(true) @map("is_taxable")
+  isBpjsBase      Boolean         @default(true) @map("is_bpjs_base")
+  calculationType CalculationType @map("calculation_type")
+  defaultAmount   Decimal?        @map("default_amount") @db.Decimal(15, 2)
+  isActive        Boolean         @default(true) @map("is_active")
+
+  @@map("pay_salary_components")
+}
+
+// ---------------------------------------------------------
+// TAX PPH 21
+// ---------------------------------------------------------
+
+model TaxConfig {
+  id            String    @id @default(uuid())
+  effectiveDate DateTime  @map("effective_date") @db.Date
+  endDate       DateTime? @map("end_date") @db.Date
+  method        TaxMethod @default(TER)
+  brackets      Json // Rate brackets array
+  ptkpValues    Json      @map("ptkp_values") // {TK0, K0, etc}
+  terRates      Json?     @map("ter_rates") // TER rate tables
+  isActive      Boolean   @default(true) @map("is_active")
+
+  // Relations
+  monthlyTaxes MonthlyTax[]
+
+  @@map("tax_pph21_config")
+}
+
+model MonthlyTax {
+  id            String  @id @default(uuid())
+  employeeId    String  @map("employee_id")
+  payrollItemId String  @unique @map("payroll_item_id")
+  month         Int
+  year          Int
+  grossIncome   Decimal @map("gross_income") @db.Decimal(15, 2)
+  ptkpStatus    String  @map("ptkp_status") // e.g. "K/1"
+  taxableIncome Decimal @map("taxable_income") @db.Decimal(15, 2)
+  taxAmount     Decimal @map("tax_amount") @db.Decimal(15, 2)
+  ytdGross      Decimal @map("ytd_gross") @db.Decimal(15, 2)
+  ytdTax        Decimal @map("ytd_tax") @db.Decimal(15, 2)
+  configId      String  @map("config_id") // Which config was used
+
+  // Relations
+  employee    Employee    @relation(fields: [employeeId], references: [id])
+  payrollItem PayrollItem @relation(fields: [payrollItemId], references: [id])
+  config      TaxConfig   @relation(fields: [configId], references: [id])
+
+  @@unique([employeeId, month, year])
+  @@map("tax_pph21_monthly")
+}
+
+// ---------------------------------------------------------
+// BPJS CONFIG
+// ---------------------------------------------------------
+
+model BpjsConfig {
+  id              String    @id @default(uuid())
+  effectiveDate   DateTime  @map("effective_date") @db.Date
+  endDate         DateTime? @map("end_date") @db.Date
+  kesEmployeeRate Decimal   @map("kes_employee_rate") @db.Decimal(5, 4) // e.g., 0.01
+  kesCompanyRate  Decimal   @map("kes_company_rate") @db.Decimal(5, 4) // e.g., 0.04
+  kesSalaryCap    Decimal   @map("kes_salary_cap") @db.Decimal(15, 2)
+  jhtEmployeeRate Decimal   @map("jht_employee_rate") @db.Decimal(5, 4) // e.g., 0.02
+  jhtCompanyRate  Decimal   @map("jht_company_rate") @db.Decimal(5, 4) // e.g., 0.037
+  jkkCompanyRate  Decimal   @map("jkk_company_rate") @db.Decimal(5, 4) // Risk-group based
+  jkmCompanyRate  Decimal   @map("jkm_company_rate") @db.Decimal(5, 4) // e.g., 0.003
+  jpEmployeeRate  Decimal   @map("jp_employee_rate") @db.Decimal(5, 4) // e.g., 0.01
+  jpCompanyRate   Decimal   @map("jp_company_rate") @db.Decimal(5, 4) // e.g., 0.02
+  jpSalaryCap     Decimal   @map("jp_salary_cap") @db.Decimal(15, 2)
+  isActive        Boolean   @default(true) @map("is_active")
+
+  @@map("bpjs_rate_config")
+}
+
+// ---------------------------------------------------------
+// SYSTEM & AUTH
+// ---------------------------------------------------------
+
+model User {
+  id               String    @id @default(uuid())
+  employeeId       String?   @unique @map("employee_id")
+  email            String    @unique
+  passwordHash     String    @map("password_hash")
+  role             UserRole  @default(EMPLOYEE)
+  isActive         Boolean   @default(true) @map("is_active")
+  lastLogin        DateTime? @map("last_login")
+  twoFactorEnabled Boolean   @default(false) @map("two_factor_enabled")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  employee         Employee?    @relation(fields: [employeeId], references: [id])
+  auditLogs        AuditLog[]
+  runPayrolls      PayrollRun[] @relation("PayrollRunner")
+  approvedPayrolls PayrollRun[] @relation("PayrollApprover")
+
+  @@map("sys_users")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  oldValues  Json?    @map("old_values")
+  newValues  Json?    @map("new_values")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("sys_audit_logs")
+}
+
+// ---------------------------------------------------------
+// RECRUITMENT / ATS
+// ---------------------------------------------------------
+
+enum RequisitionStatus {
+  DRAFT
+  PENDING_APPROVAL
+  OPEN
+  ON_HOLD
+  CLOSED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  NEW
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+model JobRequisition {
+  id            String            @id @default(uuid())
+  title         String
+  departmentId  String            @map("department_id")
+  positionId    String            @map("position_id")
+  headcount     Int               @default(1)
+  location      String?
+  targetDate    DateTime?         @map("target_date") @db.Date
+  status        RequisitionStatus @default(DRAFT)
+  description   String            @db.Text
+  requirements  String            @db.Text
+  requestedById String            @map("requested_by_id")
+  approvedById  String?           @map("approved_by_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  department   Department    @relation(fields: [departmentId], references: [id])
+  position     Position      @relation(fields: [positionId], references: [id])
+  requestedBy  Employee      @relation("RequisitionRequestor", fields: [requestedById], references: [id])
+  approvedBy   Employee?     @relation("RequisitionApprover", fields: [approvedById], references: [id])
+  applications Application[]
+
+  @@map("rec_job_requisitions")
+}
+
+model Candidate {
+  id           String   @id @default(uuid())
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  email        String   @unique
+  phone        String?
+  resumeUrl    String?  @map("resume_url")
+  portfolioUrl String?  @map("portfolio_url")
+  source       String?
+  status       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  applications Application[]
+
+  @@map("rec_candidates")
+}
+
+model Application {
+  id             String            @id @default(uuid())
+  requisitionId  String            @map("requisition_id")
+  candidateId    String            @map("candidate_id")
+  status         ApplicationStatus @default(NEW)
+  appliedDate    DateTime          @default(now()) @map("applied_date") @db.Date
+  notes          String?           @db.Text
+  expectedSalary Decimal?          @map("expected_salary") @db.Decimal(15, 2)
+
+  // Relations
+  requisition JobRequisition @relation(fields: [requisitionId], references: [id])
+  candidate   Candidate      @relation(fields: [candidateId], references: [id])
+  interviews  Interview[]
+
+  @@unique([requisitionId, candidateId])
+  @@map("rec_applications")
+}
+
+model Interview {
+  id              String   @id @default(uuid())
+  applicationId   String   @map("application_id")
+  interviewerId   String   @map("interviewer_id")
+  scheduledDate   DateTime @map("scheduled_date")
+  durationMinutes Int      @default(60) @map("duration_minutes")
+  type            String
+  result          String?
+  feedback        String?  @db.Text
+
+  // Relations
+  application Application @relation(fields: [applicationId], references: [id])
+  interviewer Employee    @relation("InterviewInterviewer", fields: [interviewerId], references: [id])
+
+  @@map("rec_interviews")
+}
+
+// ---------------------------------------------------------
+// PERFORMANCE MANAGEMENT
+// ---------------------------------------------------------
+
+enum AppraisalStatus {
+  DRAFT
+  SELF_ASSESSMENT
+  MANAGER_ASSESSMENT
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+model PerformanceCycle {
+  id          String    @id @default(uuid())
+  name        String
+  description String?   @db.Text
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime  @map("end_date") @db.Date
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  appraisals  Appraisal[]
+
+  @@map("perf_cycles")
+}
+
+model Appraisal {
+  id              String          @id @default(uuid())
+  cycleId         String          @map("cycle_id")
+  employeeId      String          @map("employee_id")
+  managerId       String          @map("manager_id")
+  status          AppraisalStatus @default(DRAFT)
+  selfScore       Decimal?        @map("self_score") @db.Decimal(5, 2)
+  managerScore    Decimal?        @map("manager_score") @db.Decimal(5, 2)
+  finalScore      Decimal?        @map("final_score") @db.Decimal(5, 2)
+  summaryFeedback String?         @map("summary_feedback") @db.Text
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  cycle    PerformanceCycle @relation(fields: [cycleId], references: [id])
+  employee Employee         @relation("AppraisalEmployee", fields: [employeeId], references: [id])
+  manager  Employee         @relation("AppraisalManager", fields: [managerId], references: [id])
+  goals    Goal[]
+
+  @@unique([cycleId, employeeId])
+  @@map("perf_appraisals")
+}
+
+model Goal {
+  id            String   @id @default(uuid())
+  appraisalId   String   @map("appraisal_id")
+  title         String
+  description   String   @db.Text
+  weight        Decimal  @default(100) @db.Decimal(5, 2)
+  status        String   @default("NOT_STARTED")
+  selfRating    Int?     @map("self_rating")
+  managerRating Int?   @map("manager_rating")
+  feedback      String?  @db.Text
+
+  // Relations
+  appraisal Appraisal @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
+
+  @@map("perf_goals")
+}

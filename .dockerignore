@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.next
+.git
+.env*.local
+.vercel
+*.pem
+.DS_Store
+coverage/
+cypress/
+.npm
+dist
+build
+.husky
