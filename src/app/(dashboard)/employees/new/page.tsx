@@ -296,6 +296,20 @@ export default function AddEmployeePage() {
                                     <Label htmlFor="npwp">NPWP (Tax Number)</Label>
                                     <Input id="npwp" placeholder="00.000.000.0-000.000" {...form.register("npwp")} />
                                 </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="baseSalary">Basic Salary Override <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                                    <Input
+                                        id="baseSalary"
+                                        type="number"
+                                        min="0"
+                                        step="1000"
+                                        placeholder="e.g. 8000000"
+                                        {...form.register("baseSalary")}
+                                    />
+                                    <p className="text-xs text-muted-foreground">If set, this overrides the grade midpoint during payroll calculation.</p>
+                                    {form.formState.errors.baseSalary && <p className="text-sm text-destructive">{form.formState.errors.baseSalary.message as string}</p>}
+                                </div>
                             </div>
                         </div>
 

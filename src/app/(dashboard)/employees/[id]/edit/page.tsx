@@ -118,6 +118,7 @@ export default function EditEmployeePage() {
                         employmentType: emp.employmentType,
                         departmentId: emp.departmentId || "",
                         positionId: emp.positionId || "",
+                        baseSalary: emp.baseSalary ? Number(emp.baseSalary) : undefined,
                     });
                 }
             } catch (error) {
@@ -340,6 +341,21 @@ export default function EditEmployeePage() {
                             </div>
 
                         </div>
+
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="baseSalary">Basic Salary Override <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                            <Input
+                                id="baseSalary"
+                                type="number"
+                                min="0"
+                                step="1000"
+                                placeholder="e.g. 8000000"
+                                {...form.register("baseSalary")}
+                            />
+                            <p className="text-xs text-muted-foreground">If set, this overrides the grade midpoint during payroll calculation.</p>
+                            {form.formState.errors.baseSalary && <p className="text-xs text-destructive">{form.formState.errors.baseSalary.message as string}</p>}
+                        </div>
+
                     </CardContent>
                 </Card>
 

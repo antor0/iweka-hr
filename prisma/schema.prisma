@@ -109,6 +109,25 @@ enum UserRole {
   EMPLOYEE
 }
 
+enum ClaimStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum ClaimCategory {
+  TRAVEL
+  MEALS
+  ACCOMMODATION
+  TRANSPORT
+  PARKING_TOLLS
+  OFFICE_SUPPLIES
+  COMMUNICATION
+  OTHER
+}
+
 // ---------------------------------------------------------
 // CORE HR
 // ---------------------------------------------------------
@@ -134,6 +153,8 @@ model Employee {
   positionId   String? @map("position_id")
   gradeId      String? @map("grade_id")
   managerId    String? @map("manager_id")
+
+  baseSalary  Decimal? @map("base_salary") @db.Decimal(15, 2) // Override grade midpoint if set
 
   bankName    String? @map("bank_name")
   bankAccount String? @map("bank_account") // Encrypted
@@ -172,6 +193,10 @@ model Employee {
   // Performance inverses
   appraisalsAsEmployee  Appraisal[]      @relation("AppraisalEmployee")
   appraisalsAsManager   Appraisal[]      @relation("AppraisalManager")
+
+  // Claims inverses
+  claims          Claim[]          @relation("EmployeeClaims")
+  approvedClaims  Claim[]          @relation("ApprovedClaims")
 
   @@map("hr_employees")
 }
@@ -720,4 +745,50 @@ model Goal {
   appraisal Appraisal @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
 
   @@map("perf_goals")
+}
+
+// ---------------------------------------------------------
+// CLAIMS / EXPENSE REIMBURSEMENT
+// ---------------------------------------------------------
+
+model Claim {
+  id           String      @id @default(uuid())
+  employeeId   String      @map("employee_id")
+  claimNumber  String      @unique @map("claim_number")
+  title        String
+  description  String?     @db.Text
+  status       ClaimStatus @default(DRAFT)
+  totalAmount  Decimal     @default(0) @map("total_amount") @db.Decimal(15, 2)
+  submittedAt  DateTime?   @map("submitted_at")
+  approvedById String?     @map("approved_by_id")
+  approvedAt   DateTime?   @map("approved_at")
+  paidAt       DateTime?   @map("paid_at")
+  rejectReason String?     @map("reject_reason") @db.Text
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  employee   Employee    @relation("EmployeeClaims", fields: [employeeId], references: [id])
+  approvedBy Employee?   @relation("ApprovedClaims", fields: [approvedById], references: [id])
+  items      ClaimItem[]
+
+  @@map("clm_claims")
+}
+
+model ClaimItem {
+  id          String        @id @default(uuid())
+  claimId     String        @map("claim_id")
+  category    ClaimCategory
+  description String
+  amount      Decimal       @db.Decimal(15, 2)
+  receiptDate DateTime      @map("receipt_date") @db.Date
+  receiptUrl  String?       @map("receipt_url")
+  ocrRawText  String?       @map("ocr_raw_text") @db.Text
+  merchant    String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@map("clm_claim_items")
 }

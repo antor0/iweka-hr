@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const employee = await EmployeeService.createEmployee(parsed.data, session.employeeId || undefined);
+        const employee = await EmployeeService.createEmployee(parsed.data, session.userId);
         return NextResponse.json({ success: true, data: employee }, { status: 201 });
     } catch (error: any) {
         console.error("POST /api/v1/employees error:", error);

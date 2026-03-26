@@ -90,9 +90,11 @@ export class PayrollService {
         let rTotalBpjsEmp = 0;
 
         for (const emp of employees) {
-            // 1. Basic Salary (Midpoint of grade, or 0)
+            // 1. Basic Salary — use per-employee override if set, else grade midpoint
             let basicSalary = 0;
-            if (emp.grade && emp.grade.minSalary && emp.grade.maxSalary) {
+            if (emp.baseSalary) {
+                basicSalary = Number(emp.baseSalary);
+            } else if (emp.grade && emp.grade.minSalary && emp.grade.maxSalary) {
                 basicSalary = (Number(emp.grade.minSalary) + Number(emp.grade.maxSalary)) / 2;
             }
 

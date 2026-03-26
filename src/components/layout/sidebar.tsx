@@ -25,6 +25,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Briefcase,
+    FileText,
 } from "lucide-react";
 
 interface NavItem {
@@ -59,6 +60,11 @@ const navItems: NavItem[] = [
         title: "Leave",
         href: "/leave",
         icon: <CalendarDays className="h-5 w-5" />,
+    },
+    {
+        title: "Claims",
+        href: "/claims",
+        icon: <FileText className="h-5 w-5" />,
     },
     {
         title: "Payroll",

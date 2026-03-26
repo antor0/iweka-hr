@@ -10,10 +10,9 @@ export async function GET(request: NextRequest) {
         }
 
         const { searchParams } = new URL(request.url);
-        // By default use the exact seeder date for demonstration consistency if no date is passed
-        const dateParam = searchParams.get("date") || "2026-02-25";
+        const period = (searchParams.get("period") || "today") as 'today' | '30d' | '365d';
 
-        const result = await AttendanceService.getDailyDashboard(dateParam);
+        const result = await AttendanceService.getDashboard(period);
         return NextResponse.json(result);
     } catch (error: any) {
         console.error("GET /api/v1/attendance/dashboard error:", error);

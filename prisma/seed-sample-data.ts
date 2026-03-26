@@ -279,6 +279,15 @@ async function main() {
     const salaryByGrade: Record<number, number> = { 1: 5000000, 2: 7000000, 3: 10000000, 4: 15000000, 5: 20000000, 6: 30000000 };
 
     for (const [month, status] of [[1, PayrollStatus.FINALIZED], [2, PayrollStatus.REVIEW]] as const) {
+        const existingRun = await prisma.payrollRun.findUnique({
+            where: { periodMonth_periodYear: { periodMonth: month, periodYear: 2026 } }
+        });
+
+        if (existingRun) {
+            console.log(`  ⏩ Skipping Payroll Run for ${month}/2026 (Already exists)`);
+            continue;
+        }
+
         const run = await prisma.payrollRun.create({
             data: {
                 periodMonth: month, periodYear: 2026, status,
@@ -360,20 +369,23 @@ async function main() {
     ];
     const reqIds: string[] = [];
     for (const r of reqs) {
-        const jr = await prisma.jobRequisition.create({
-            data: {
-                title: r.title,
-                departmentId: deptMap[r.dept]!.id,
-                positionId: posMap[r.pos],
-                headcount: r.head,
-                location: r.loc,
-                status: r.status,
-                description: r.desc,
-                requirements: r.req,
-                requestedById: adminEmployee.id,
-                targetDate: new Date('2026-04-01'),
-            },
-        });
+        let jr = await prisma.jobRequisition.findFirst({ where: { title: r.title, departmentId: deptMap[r.dept]!.id } });
+        if (!jr) {
+            jr = await prisma.jobRequisition.create({
+                data: {
+                    title: r.title,
+                    departmentId: deptMap[r.dept]!.id,
+                    positionId: posMap[r.pos],
+                    headcount: r.head,
+                    location: r.loc,
+                    status: r.status,
+                    description: r.desc,
+                    requirements: r.req,
+                    requestedById: adminEmployee.id,
+                    targetDate: new Date('2026-04-01'),
+                },
+            });
+        }
         reqIds.push(jr.id);
     }
 
@@ -389,9 +401,12 @@ async function main() {
     ];
     const candIds: string[] = [];
     for (const c of candidates) {
-        const cand = await prisma.candidate.create({
-            data: { firstName: c.first, lastName: c.last, email: c.email, phone: c.phone, source: c.source },
-        });
+        let cand = await prisma.candidate.findUnique({ where: { email: c.email } });
+        if (!cand) {
+            cand = await prisma.candidate.create({
+                data: { firstName: c.first, lastName: c.last, email: c.email, phone: c.phone, source: c.source },
+            });
+        }
         candIds.push(cand.id);
     }
 
@@ -407,9 +422,14 @@ async function main() {
     ];
     const appIds: string[] = [];
     for (const a of apps) {
-        const app = await prisma.application.create({
-            data: { requisitionId: reqIds[a.req], candidateId: candIds[a.cand], status: a.status, expectedSalary: a.salary, notes: 'Reviewed by HR team.' },
+        let app = await prisma.application.findUnique({
+            where: { requisitionId_candidateId: { requisitionId: reqIds[a.req], candidateId: candIds[a.cand] } }
         });
+        if (!app) {
+            app = await prisma.application.create({
+                data: { requisitionId: reqIds[a.req], candidateId: candIds[a.cand], status: a.status, expectedSalary: a.salary, notes: 'Reviewed by HR team.' },
+            });
+        }
         appIds.push(app.id);
     }
 
@@ -422,21 +442,29 @@ async function main() {
         { app: 0, interviewer: 'EMP-0001', date: '2026-02-24T13:00:00', type: 'HR Interview', result: null, feedback: null },
     ];
     for (const iv of interviews) {
-        await prisma.interview.create({
-            data: {
-                applicationId: appIds[iv.app], interviewerId: employeeIds[iv.interviewer],
-                scheduledDate: new Date(iv.date), type: iv.type,
-                result: iv.result, feedback: iv.feedback, durationMinutes: 60,
-            },
+        const existingIv = await prisma.interview.findFirst({
+            where: { applicationId: appIds[iv.app], type: iv.type }
         });
+        if (!existingIv) {
+            await prisma.interview.create({
+                data: {
+                    applicationId: appIds[iv.app], interviewerId: employeeIds[iv.interviewer],
+                    scheduledDate: new Date(iv.date), type: iv.type,
+                    result: iv.result, feedback: iv.feedback, durationMinutes: 60,
+                },
+            });
+        }
     }
     console.log('  ✅ Recruitment data created (3 requisitions, 8 candidates, 8 applications, 5 interviews)');
 
     // ── 10. Performance management ──
     console.log('📈 Creating performance data...');
-    const cycle = await prisma.performanceCycle.create({
-        data: { name: 'Annual Review 2025', description: 'Annual performance review for all staff', startDate: new Date('2025-12-01'), endDate: new Date('2026-02-28'), isActive: true },
-    });
+    let cycle = await prisma.performanceCycle.findFirst({ where: { name: 'Annual Review 2025' } });
+    if (!cycle) {
+        cycle = await prisma.performanceCycle.create({
+            data: { name: 'Annual Review 2025', description: 'Annual performance review for all staff', startDate: new Date('2025-12-01'), endDate: new Date('2026-02-28'), isActive: true },
+        });
+    }
 
     const goalTemplates = [
         { title: 'Achieve Q1 KPI Targets', desc: 'Meet or exceed assigned quarterly KPI targets', weight: 40 },
@@ -460,28 +488,40 @@ async function main() {
         const mgrScore = st === AppraisalStatus.COMPLETED ? 3 + Math.random() * 1.5 : null;
         const finalScore = st === AppraisalStatus.COMPLETED ? (((selfScore || 0) + (mgrScore || 0)) / 2) : null;
 
-        const appraisal = await prisma.appraisal.create({
-            data: {
-                cycleId: cycle.id, employeeId: employeeIds[empNum], managerId: getManager(empNum),
-                status: st, selfScore: selfScore ? parseFloat(selfScore.toFixed(2)) : null,
-                managerScore: mgrScore ? parseFloat(mgrScore.toFixed(2)) : null,
-                finalScore: finalScore ? parseFloat(finalScore.toFixed(2)) : null,
-                summaryFeedback: st === AppraisalStatus.COMPLETED ? 'Good performance overall. Keep up the excellent work.' : null,
-            },
+        const existingAppraisal = await prisma.appraisal.findUnique({
+            where: { cycleId_employeeId: { cycleId: cycle.id, employeeId: employeeIds[empNum] } }
         });
+
+        let appraisal = existingAppraisal;
+        if (!appraisal) {
+            appraisal = await prisma.appraisal.create({
+                data: {
+                    cycleId: cycle.id, employeeId: employeeIds[empNum], managerId: getManager(empNum),
+                    status: st, selfScore: selfScore ? parseFloat(selfScore.toFixed(2)) : null,
+                    managerScore: mgrScore ? parseFloat(mgrScore.toFixed(2)) : null,
+                    finalScore: finalScore ? parseFloat(finalScore.toFixed(2)) : null,
+                    summaryFeedback: st === AppraisalStatus.COMPLETED ? 'Good performance overall. Keep up the excellent work.' : null,
+                },
+            });
+        }
 
         for (const gt of goalTemplates) {
             const hasSelf = st !== AppraisalStatus.DRAFT;
             const hasMgr = st === AppraisalStatus.COMPLETED;
-            await prisma.goal.create({
-                data: {
-                    appraisalId: appraisal.id, title: gt.title, description: gt.desc,
-                    weight: gt.weight,
-                    status: st === AppraisalStatus.COMPLETED ? 'COMPLETED' : st === AppraisalStatus.DRAFT ? 'NOT_STARTED' : 'ON_TRACK',
-                    selfRating: hasSelf ? 3 + Math.floor(Math.random() * 2) : null,
-                    managerRating: hasMgr ? 3 + Math.floor(Math.random() * 2) : null,
-                },
+            const existingGoal = await prisma.goal.findFirst({
+                where: { appraisalId: appraisal.id, title: gt.title }
             });
+            if (!existingGoal) {
+                await prisma.goal.create({
+                    data: {
+                        appraisalId: appraisal.id, title: gt.title, description: gt.desc,
+                        weight: gt.weight,
+                        status: st === AppraisalStatus.COMPLETED ? 'COMPLETED' : st === AppraisalStatus.DRAFT ? 'NOT_STARTED' : 'ON_TRACK',
+                        selfRating: hasSelf ? 3 + Math.floor(Math.random() * 2) : null,
+                        managerRating: hasMgr ? 3 + Math.floor(Math.random() * 2) : null,
+                    },
+                });
+            }
         }
     }
     console.log('  ✅ Performance data created (1 cycle, 10 appraisals, 30 goals)');

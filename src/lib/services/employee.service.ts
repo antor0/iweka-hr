@@ -83,9 +83,13 @@ export class EmployeeService {
         }
 
         let validApproverId: string | undefined = undefined;
+        let validUserId: string | undefined = undefined;
         if (currentUserId) {
-            const approver = await prisma.employee.findUnique({ select: { id: true }, where: { id: currentUserId } });
-            if (approver) validApproverId = currentUserId;
+            const user = await prisma.user.findUnique({ select: { id: true, employeeId: true }, where: { id: currentUserId } });
+            if (user) {
+                validUserId = user.id;
+                if (user.employeeId) validApproverId = user.employeeId;
+            }
         }
 
         // Use transaction to create employee and initial employment history log
@@ -106,10 +110,10 @@ export class EmployeeService {
                 }
             });
 
-            if (validApproverId) {
+            if (validUserId) {
                 // Background async logging
                 AuditService.log(
-                    validApproverId,
+                    validUserId,
                     "CREATE",
                     "Employee",
                     employee.id,
@@ -129,9 +133,13 @@ export class EmployeeService {
         }
 
         let validApproverId: string | undefined = undefined;
+        let validUserId: string | undefined = undefined;
         if (currentUserId) {
-            const approver = await prisma.employee.findUnique({ select: { id: true }, where: { id: currentUserId } });
-            if (approver) validApproverId = currentUserId;
+            const user = await prisma.user.findUnique({ select: { id: true, employeeId: true }, where: { id: currentUserId } });
+            if (user) {
+                validUserId = user.id;
+                if (user.employeeId) validApproverId = user.employeeId;
+            }
         }
 
         return prisma.$transaction(async (tx) => {
@@ -153,9 +161,9 @@ export class EmployeeService {
                 }
             });
 
-            if (validApproverId) {
+            if (validUserId) {
                 AuditService.log(
-                    validApproverId,
+                    validUserId,
                     "UPDATE",
                     "Employee",
                     employee.id,

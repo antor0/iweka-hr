@@ -138,13 +138,19 @@ export class AttendanceService {
         });
     }
 
-    static async getDailyDashboard(dateString?: string) {
-        // Default to today if not provided
-        const targetDate = dateString ? new Date(dateString) : new Date();
+    static async getDashboard(period: 'today' | '30d' | '365d' = 'today') {
+        const targetDate = new Date();
         targetDate.setHours(0, 0, 0, 0);
 
-        const nextDate = new Date(targetDate);
-        nextDate.setDate(targetDate.getDate() + 1);
+        let startDate = new Date(targetDate);
+        let endDate = new Date(targetDate);
+        endDate.setDate(endDate.getDate() + 1);
+
+        if (period === '30d') {
+            startDate.setDate(startDate.getDate() - 30);
+        } else if (period === '365d') {
+            startDate.setDate(startDate.getDate() - 365);
+        }
 
         // Fetch all active employees
         const activeEmployees = await prisma.employee.findMany({
@@ -157,8 +163,8 @@ export class AttendanceService {
         const attendances = await prisma.attendance.findMany({
             where: {
                 date: {
-                    gte: targetDate,
-                    lt: nextDate
+                    gte: startDate,
+                    lt: endDate
                 }
             },
             include: {
@@ -168,7 +174,8 @@ export class AttendanceService {
                         department: { select: { name: true } }
                     }
                 }
-            }
+            },
+            orderBy: [{ date: 'desc' }, { clockIn: 'desc' }]
         });
 
         const presentCount = attendances.filter(a => a.status === 'PRESENT').length;
@@ -181,20 +188,21 @@ export class AttendanceService {
             return (hours > 8) || (hours === 8 && mins > 0);
         }).length;
 
-        // Count Approved leaves for this specific date
         const leaves = await prisma.leaveRequest.count({
             where: {
                 status: 'APPROVED',
-                startDate: { lte: targetDate },
-                endDate: { gte: targetDate }
+                startDate: { lte: endDate },
+                endDate: { gte: startDate }
             }
         });
 
-        const absentCount = totalActive - presentCount - leaves;
+        const absentCount = period === 'today' ? totalActive - presentCount - leaves : 0;
 
         const formatTime = (d: Date | null) => {
             if (!d) return "-";
-            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            if (period === 'today') return timeStr;
+            return `${d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} ${timeStr}`;
         };
 
         const todayList = attendances.map(a => {

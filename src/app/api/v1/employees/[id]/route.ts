@@ -52,7 +52,7 @@ export async function PUT(
             }, { status: 400 });
         }
 
-        const employee = await EmployeeService.updateEmployee(resolvedParams.id, parsed.data, session.employeeId || undefined);
+        const employee = await EmployeeService.updateEmployee(resolvedParams.id, parsed.data, session.userId);
         return NextResponse.json({ success: true, data: employee });
     } catch (error: any) {
         console.error("PUT /api/v1/employees/[id] error:", error);

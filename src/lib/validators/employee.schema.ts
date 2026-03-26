@@ -20,6 +20,10 @@ export const CreateEmployeeSchema = z.object({
     positionId: z.string().optional(),
     gradeId: z.string().optional(),
     managerId: z.string().optional(),
+    baseSalary: z.preprocess(
+        (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
+        z.number().positive("Salary must be a positive number").optional()
+    ),
     bankName: z.string().optional(),
     bankAccount: z.string().optional(),
 });

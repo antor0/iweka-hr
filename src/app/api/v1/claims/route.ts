@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LeaveService } from "@/lib/services/leave.service";
-import { CreateLeaveRequestSchema } from "@/lib/validators/leave.schema";
+import { ClaimsService } from "@/lib/services/claims.service";
+import { CreateClaimSchema } from "@/lib/validators/claims.schema";
 import { getSession } from "@/lib/auth/session";
-import { RequestStatus } from "@prisma/client";
-import { prisma } from "@/lib/db/prisma";
+import { ClaimStatus } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
     try {
@@ -15,19 +14,23 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get("limit") || "10", 10);
 
         let employeeId = searchParams.get("employeeId") || undefined;
-        // Non-admins can only see their own
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER") {
+        // Non-admin users can only see their own claims
+        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER" && session.role !== "FINANCE") {
             employeeId = session.employeeId || undefined;
         }
 
         const statusStr = searchParams.get("status");
-        let status: RequestStatus | undefined = undefined;
-        if (statusStr && Object.values(RequestStatus).includes(statusStr as RequestStatus)) {
-            status = statusStr as RequestStatus;
+        let status: ClaimStatus | undefined = undefined;
+        if (statusStr && Object.values(ClaimStatus).includes(statusStr as ClaimStatus)) {
+            status = statusStr as ClaimStatus;
         }
 
-        const data = await LeaveService.getLeaveRequests(page, limit, employeeId, status);
-        return NextResponse.json(data);
+        const data = await ClaimsService.getClaims(page, limit, employeeId, status);
+
+        // Also fetch stats
+        const stats = await ClaimsService.getClaimStats(employeeId);
+
+        return NextResponse.json({ ...data, stats });
     } catch (error: any) {
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
@@ -42,28 +45,20 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { employeeId: true } });
-        const realEmployeeId = user?.employeeId;
-
-        if (!realEmployeeId) {
-            return NextResponse.json({ error: "Your user account is not linked to a valid employee profile" }, { status: 400 });
-        }
-
-        // Force the employeeId to be the logged-in user unless it's an admin creating on behalf
+        // Force employeeId for non-admins
         if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
-            body.employeeId = realEmployeeId;
+            body.employeeId = session.employeeId;
         } else if (!body.employeeId) {
-            body.employeeId = realEmployeeId;
+            body.employeeId = session.employeeId;
         }
 
-        const parsed = CreateLeaveRequestSchema.safeParse(body);
-
+        const parsed = CreateClaimSchema.safeParse(body);
         if (!parsed.success) {
             return NextResponse.json({ error: "Validation failed", details: parsed.error.format() }, { status: 400 });
         }
 
-        const record = await LeaveService.createLeaveRequest(parsed.data);
-        return NextResponse.json({ success: true, data: record }, { status: 201 });
+        const claim = await ClaimsService.createClaim(parsed.data);
+        return NextResponse.json({ success: true, data: claim }, { status: 201 });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 400 });
     }

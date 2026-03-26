@@ -46,6 +46,15 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Leave Balance Enforcement** | Transactional deduction on approval; carry-over support |
 | **Leave Types** | Annual (12 days), Sick, Maternity (90 days), Marriage (3 days) |
 
+### Claims / Expense Reimbursement
+| Feature | Description |
+|---------|-------------|
+| **Expense Claims** | Submit reimbursement claims with multiple receipt items |
+| **Receipt OCR** | Auto-extract amount and merchant from receipt images using Tesseract.js |
+| **Claim Categories** | Travel, Meals, Transport, Parking/Tolls, Accommodation, Office Supplies, Communication |
+| **Approval Workflow** | Draft → Submitted → Approved/Rejected → Paid status flow |
+| **Running Totals** | Automatic total calculation across all receipt items |
+
 ### Payroll Engine
 | Feature | Description |
 |---------|-------------|
@@ -101,6 +110,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Database** | PostgreSQL |
 | **Auth** | `jose` (JWT), `bcryptjs` (password hashing) |
 | **Validation** | Zod 4 |
+| **OCR** | Tesseract.js (receipt text extraction) |
 | **Runtime** | Node.js / Docker |
 
 ---
@@ -115,6 +125,7 @@ src/
 │   │   ├── bpjs/             # BPJS configuration
 │   │   ├── employees/        # Employee management
 │   │   ├── leave/            # Leave requests
+│   │   ├── claims/           # Expense claims & receipts
 │   │   ├── organization/     # Department hierarchy
 │   │   ├── payroll/          # Payroll runs
 │   │   ├── performance/      # KPIs & appraisals
@@ -128,6 +139,7 @@ src/
 │   │   ├── employees/        # Employee CRUD
 │   │   ├── attendance/       # Attendance management
 │   │   ├── leave/            # Leave management
+│   │   ├── claims/           # Claims CRUD & OCR
 │   │   ├── payroll/          # Payroll generation
 │   │   ├── performance/      # Cycles, appraisals, goals
 │   │   ├── recruitment/      # Requisitions & candidates
@@ -247,6 +259,7 @@ The Prisma schema contains **25+ models** covering all HRIS domains:
 | **Auth** | `User`, `AuditLog` |
 | **Attendance** | `Attendance`, `Shift` |
 | **Leave** | `LeaveType`, `LeaveRequest`, `LeaveBalance` |
+| **Claims** | `Claim`, `ClaimItem` |
 | **Payroll** | `PayrollRun`, `PayrollItem`, `SalaryComponent`, `EmployeeSalary` |
 | **Compliance** | `TaxConfig`, `TaxBracket`, `BpjsConfig` |
 | **Recruitment** | `JobRequisition`, `Candidate`, `Application`, `Interview` |
@@ -277,6 +290,11 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 | `PUT` | `/performance/goals/:id` | Update a goal rating |
 | `GET/POST` | `/recruitment/requisitions` | List / create job postings |
 | `POST` | `/reports/custom` | Generate a custom data export |
+| `GET/POST` | `/claims` | List / create expense claims |
+| `GET/PATCH` | `/claims/:id` | Get claim detail / submit / approve / reject |
+| `POST` | `/claims/:id/items` | Add receipt item with image upload + OCR |
+| `DELETE` | `/claims/:id/items/:itemId` | Remove receipt item |
+| `POST` | `/claims/ocr` | Standalone OCR on a receipt image |
 
 ---
 

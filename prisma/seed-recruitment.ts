@@ -23,6 +23,12 @@ async function main() {
         throw new Error("No departments or positions found.");
     }
 
+    const existingCandidate = await prisma.candidate.findUnique({ where: { email: "john.doe@example.com" } });
+    if (existingCandidate) {
+        console.log("✅ Recruitment data already seeded. Skipping.");
+        return;
+    }
+
     // 1. Create Job Requisitions
     const req1 = await prisma.jobRequisition.create({
         data: {

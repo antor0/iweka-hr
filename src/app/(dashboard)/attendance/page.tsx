@@ -17,6 +17,8 @@ import {
     Loader2
 } from "lucide-react";
 import { GlassStatCard } from "@/components/liquid-glass/glass-stat-card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ClockInOutModal } from "./components/clock-in-out-modal";
 
 const statusConfig: Record<string, { label: string; variant: "success" | "warning" | "destructive" | "secondary" }> = {
     ontime: { label: "On Time", variant: "success" },
@@ -29,23 +31,26 @@ export default function AttendancePage() {
     const [stats, setStats] = useState<any>(null);
     const [recap, setRecap] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [period, setPeriod] = useState("today");
+
+    const fetchDashboard = async () => {
+        setIsLoading(true);
+        try {
+            const res = await fetch(`/api/v1/attendance/dashboard?period=${period}`);
+            const data = await res.json();
+            if (data.stats) setStats(data.stats);
+            if (data.recap) setRecap(data.recap);
+        } catch (error) {
+            console.error("Failed to fetch attendance dashboard", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchDashboard = async () => {
-            try {
-                // Testing with the seeder date to ensure data populates
-                const res = await fetch('/api/v1/attendance/dashboard');
-                const data = await res.json();
-                if (data.stats) setStats(data.stats);
-                if (data.recap) setRecap(data.recap);
-            } catch (error) {
-                console.error("Failed to fetch attendance dashboard", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchDashboard();
-    }, []);
+    }, [period]);
 
     const attendanceStats = stats ? [
         {
@@ -87,12 +92,24 @@ export default function AttendancePage() {
                         Attendance
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Monitor employee attendance today — Tuesday, 25 February 2026
+                        Monitor employee attendance
                     </p>
                 </div>
-                <Button size="sm">
-                    <Clock className="h-4 w-4 mr-1.5" /> Clock In / Out
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Select value={period} onValueChange={setPeriod}>
+                        <SelectTrigger className="w-[140px] h-9">
+                            <SelectValue placeholder="Period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="30d">Last 30 Days</SelectItem>
+                            <SelectItem value="365d">Last 1 Year</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Button size="sm" onClick={() => setIsModalOpen(true)}>
+                        <Clock className="h-4 w-4 mr-1.5" /> Clock In / Out
+                    </Button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -180,6 +197,7 @@ export default function AttendancePage() {
                     </div>
                 </CardContent>
             </Card>
+            <ClockInOutModal open={isModalOpen} onOpenChange={setIsModalOpen} onSuccess={fetchDashboard} />
         </div>
     );
 }
