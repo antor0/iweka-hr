@@ -37,7 +37,7 @@ RUN npm run build
 # 3. Production Runner Stage
 # ==========================================
 FROM node:22-alpine AS runner
-WORKdir /app
+WORKDIR /app
 
 RUN apk add --no-cache openssl
 
@@ -53,6 +53,8 @@ RUN chown nextjs:nodejs .next
 
 # Copy built artifacts from the builder stage
 COPY --from=builder /app/public ./public
+# Create uploads directory and set permissions for dynamic image storage
+RUN mkdir -p /app/public/uploads && chown -R nextjs:nodejs /app/public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static

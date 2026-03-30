@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GlassStatCard } from "@/components/liquid-glass/glass-stat-card";
 import { formatIDR } from "@/lib/utils";
+import { IncentivesTab } from "./components/incentives-tab";
 import {
     Wallet,
     Play,
@@ -20,6 +21,7 @@ import {
     Users,
     TrendingUp,
     Banknote,
+    Gift,
 } from "lucide-react";
 
 const payrollStats = [
@@ -74,92 +76,111 @@ export default function PayrollPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {payrollStats.map((stat) => (
-                    <GlassStatCard key={stat.title} title={stat.title} value={stat.value} subtitle={stat.subtitle} icon={stat.icon} accentColor={stat.accent} />
-                ))}
-            </div>
+            <Tabs defaultValue="overview" className="w-full space-y-6">
+                <TabsList className="bg-muted/50 w-full sm:w-auto overflow-x-auto inline-flex justify-start sm:justify-center px-1.5 py-1.5 rounded-2xl p-1 shadow-sm border border-border/10">
+                    <TabsTrigger value="overview" className="rounded-xl flex gap-2 w-full sm:w-auto font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                        <Wallet className="h-4 w-4" />
+                        Overview
+                    </TabsTrigger>
+                    <TabsTrigger value="incentives" className="rounded-xl flex gap-2 w-full sm:w-auto font-medium transition-all data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm">
+                        <Gift className="h-4 w-4" />
+                        Incentives & Bonuses
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Payroll Pipeline */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        February 2026 Payroll Pipeline
-                    </CardTitle>
-                    <CardDescription>This month's payroll process status</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2">
-                        {payrollSteps.map((step, i) => (
-                            <div key={step.step} className="flex items-center gap-2 min-w-0">
-                                <div className="flex flex-col items-center gap-2 min-w-[120px]">
-                                    <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${stepStatus[step.status].color} transition-all`}>
-                                        {stepStatus[step.status].icon}
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-xs font-semibold text-foreground">{step.title}</p>
-                                        <p className="text-[10px] text-muted-foreground">{step.description}</p>
-                                    </div>
-                                </div>
-                                {i < payrollSteps.length - 1 && (
-                                    <div className={`h-0.5 w-8 shrink-0 ${step.status === "completed" ? "bg-success" : "bg-border"} rounded-full transition-colors`} />
-                                )}
-                            </div>
+                <TabsContent value="overview" className="space-y-6 mt-0 animate-fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {payrollStats.map((stat) => (
+                            <GlassStatCard key={stat.title} title={stat.title} value={stat.value} subtitle={stat.subtitle} icon={stat.icon} accentColor={stat.accent} />
                         ))}
                     </div>
-                    <div className="mt-4 flex items-center gap-4">
-                        <Progress value={40} className="flex-1" />
-                        <span className="text-sm text-muted-foreground font-medium">40% completed</span>
-                    </div>
-                </CardContent>
-            </Card>
 
-            {/* Payroll History */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-primary" />
-                        Payroll History
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-border">
-                                    <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Period</th>
-                                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Employees</th>
-                                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Gross Salary</th>
-                                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Tax</th>
-                                    <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Net Salary</th>
-                                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
-                                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {payrollHistory.map((item, i) => (
-                                    <tr key={i} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                                        <td className="px-4 py-3 text-sm font-medium text-foreground">{item.period}</td>
-                                        <td className="px-4 py-3 text-center text-sm">{item.employees}</td>
-                                        <td className="px-4 py-3 text-right text-sm font-mono">{formatIDR(item.gross)}</td>
-                                        <td className="px-4 py-3 text-right text-sm font-mono text-destructive">{formatIDR(item.tax)}</td>
-                                        <td className="px-4 py-3 text-right text-sm font-mono font-medium text-success">{formatIDR(item.net)}</td>
-                                        <td className="px-4 py-3 text-center">
-                                            <Badge variant="success">Completed</Badge>
-                                        </td>
-                                        <td className="px-4 py-3 text-center">
-                                            <Button variant="ghost" size="sm">
-                                                <FileText className="h-3.5 w-3.5 mr-1" /> Details
-                                            </Button>
-                                        </td>
-                                    </tr>
+                    {/* Payroll Pipeline */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-primary" />
+                                February 2026 Payroll Pipeline
+                            </CardTitle>
+                            <CardDescription>This month's payroll process status</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                                {payrollSteps.map((step, i) => (
+                                    <div key={step.step} className="flex items-center gap-2 min-w-0">
+                                        <div className="flex flex-col items-center gap-2 min-w-[120px]">
+                                            <div className={`flex items-center justify-center h-10 w-10 rounded-xl ${stepStatus[step.status].color} transition-all`}>
+                                                {stepStatus[step.status].icon}
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-xs font-semibold text-foreground">{step.title}</p>
+                                                <p className="text-[10px] text-muted-foreground">{step.description}</p>
+                                            </div>
+                                        </div>
+                                        {i < payrollSteps.length - 1 && (
+                                            <div className={`h-0.5 w-8 shrink-0 ${step.status === "completed" ? "bg-success" : "bg-border"} rounded-full transition-colors`} />
+                                        )}
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+                            </div>
+                            <div className="mt-4 flex items-center gap-4">
+                                <Progress value={40} className="flex-1" />
+                                <span className="text-sm text-muted-foreground font-medium">40% completed</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Payroll History */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <Calendar className="h-5 w-5 text-primary" />
+                                Payroll History
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-border">
+                                            <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Period</th>
+                                            <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Employees</th>
+                                            <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Gross Salary</th>
+                                            <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Tax</th>
+                                            <th className="text-right text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Net Salary</th>
+                                            <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
+                                            <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {payrollHistory.map((item, i) => (
+                                            <tr key={i} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                                                <td className="px-4 py-3 text-sm font-medium text-foreground">{item.period}</td>
+                                                <td className="px-4 py-3 text-center text-sm">{item.employees}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-mono">{formatIDR(item.gross)}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-mono text-destructive">{formatIDR(item.tax)}</td>
+                                                <td className="px-4 py-3 text-right text-sm font-mono font-medium text-success">{formatIDR(item.net)}</td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <Badge variant="success">Completed</Badge>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <Button variant="ghost" size="sm">
+                                                        <FileText className="h-3.5 w-3.5 mr-1" /> Details
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                <TabsContent value="incentives" className="mt-0 animate-fade-in space-y-4">
+                    <IncentivesTab />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

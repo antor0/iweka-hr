@@ -16,6 +16,8 @@ services:
         condition: service_healthy
     networks:
       - hris-network
+    volumes:
+      - hris-uploads:/app/public/uploads
 
   db:
     image: postgres:15-alpine
@@ -43,3 +45,4 @@ networks:
 
 volumes:
   hris-pgdata:
+  hris-uploads:

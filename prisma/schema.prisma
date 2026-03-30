@@ -183,6 +183,7 @@ model Employee {
   leaveBalances     LeaveBalance[]
   payrollItems      PayrollItem[]
   monthlyTax        MonthlyTax[]
+  monthlyIncentives MonthlyIncentive[]
   user              User?
 
   // Recruitment inverses
@@ -441,6 +442,7 @@ model PayrollItem {
   bpjsTkJkkCompany  Decimal @map("bpjs_tk_jkk_company") @db.Decimal(15, 2)
   bpjsTkJkmCompany  Decimal @map("bpjs_tk_jkm_company") @db.Decimal(15, 2)
 
+  totalIncentives Decimal @default(0) @map("total_incentives") @db.Decimal(15, 2)
   totalDeductions Decimal @map("total_deductions") @db.Decimal(15, 2)
   netSalary       Decimal @map("net_salary") @db.Decimal(15, 2)
   components      Json // Detailed breakdown
@@ -452,6 +454,24 @@ model PayrollItem {
 
   @@unique([payrollRunId, employeeId])
   @@map("pay_payroll_items")
+}
+
+model MonthlyIncentive {
+  id           String   @id @default(uuid())
+  employeeId   String   @map("employee_id")
+  month        Int      // 1-12
+  year         Int
+  incentive    Decimal  @default(0) @db.Decimal(15, 2)
+  bonus        Decimal  @default(0) @db.Decimal(15, 2)
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, month, year])
+  @@map("pay_monthly_incentives")
 }
 
 model SalaryComponent {
