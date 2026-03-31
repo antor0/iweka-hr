@@ -220,20 +220,25 @@ async function main() {
             else if (rand > 0.82) { status = AttendanceStatus.LATE; clockIn = new Date(2026, 1, day, 8, 15 + Math.floor(Math.random() * 45)); workHours = 7; }
             else if (rand > 0.75) { overtime = 1 + Math.floor(Math.random() * 3); clockOut = new Date(2026, 1, day, 18 + overtime, 0); workHours = 8 + overtime; }
 
-            try {
-                await prisma.attendance.create({
-                    data: {
+            await prisma.attendance.upsert({
+                where: {
+                    employeeId_date: {
                         employeeId: employeeIds[empNum],
                         date: new Date(2026, 1, day),
-                        clockIn, clockOut,
-                        status,
-                        workHours: workHours || null,
-                        overtimeHours: overtime || null,
-                        source: AttendanceSource.WEB,
-                        notes: status === AttendanceStatus.ABSENT ? 'Sakit / Izin' : null,
                     },
-                });
-            } catch { /* skip duplicates */ }
+                },
+                update: {},
+                create: {
+                    employeeId: employeeIds[empNum],
+                    date: new Date(2026, 1, day),
+                    clockIn, clockOut,
+                    status,
+                    workHours: workHours || null,
+                    overtimeHours: overtime || null,
+                    source: AttendanceSource.WEB,
+                    notes: status === AttendanceStatus.ABSENT ? 'Sakit / Izin' : null,
+                },
+            });
         }
     }
     console.log('  ✅ Attendance records created');
@@ -249,13 +254,18 @@ async function main() {
         { emp: 'EMP-0006', date: '2026-02-08', planned: 2, actual: 2, status: RequestStatus.APPROVED, approver: 'EMP-0012' },
     ];
     for (const ot of otRequests) {
-        await prisma.overtimeRequest.create({
-            data: {
-                employeeId: employeeIds[ot.emp], date: new Date(ot.date),
-                plannedHours: ot.planned, actualHours: ot.actual, reason: 'Project deadline / urgent task',
-                status: ot.status, approvedById: ot.approver ? employeeIds[ot.approver] : null,
-            },
+        const existingOt = await prisma.overtimeRequest.findFirst({
+            where: { employeeId: employeeIds[ot.emp], date: new Date(ot.date) },
         });
+        if (!existingOt) {
+            await prisma.overtimeRequest.create({
+                data: {
+                    employeeId: employeeIds[ot.emp], date: new Date(ot.date),
+                    plannedHours: ot.planned, actualHours: ot.actual, reason: 'Project deadline / urgent task',
+                    status: ot.status, approvedById: ot.approver ? employeeIds[ot.approver] : null,
+                },
+            });
+        }
     }
     console.log('  ✅ Overtime requests created');
 
@@ -263,15 +273,21 @@ async function main() {
     console.log('🏖️ Creating leave balances & requests...');
     for (const empNum of allEmpNums) {
         for (const lt of leaveTypes) {
-            try {
-                await prisma.leaveBalance.create({
-                    data: {
-                        employeeId: employeeIds[empNum], leaveTypeId: lt.id,
-                        year: 2026, entitlement: lt.annualEntitlement,
-                        used: Math.floor(Math.random() * 3), carryOver: lt.code === 'LV-ANNUAL' ? Math.floor(Math.random() * 4) : 0,
+            await prisma.leaveBalance.upsert({
+                where: {
+                    employeeId_leaveTypeId_year: {
+                        employeeId: employeeIds[empNum],
+                        leaveTypeId: lt.id,
+                        year: 2026,
                     },
-                });
-            } catch { /* skip duplicates */ }
+                },
+                update: {},
+                create: {
+                    employeeId: employeeIds[empNum], leaveTypeId: lt.id,
+                    year: 2026, entitlement: lt.annualEntitlement,
+                    used: Math.floor(Math.random() * 3), carryOver: lt.code === 'LV-ANNUAL' ? Math.floor(Math.random() * 4) : 0,
+                },
+            });
         }
     }
 
@@ -289,14 +305,19 @@ async function main() {
             { emp: 'EMP-0014', type: sickLeave.id, start: '2026-02-03', end: '2026-02-03', days: 1, status: RequestStatus.APPROVED, approver: 'EMP-0009', reason: 'Dental appointment' },
         ];
         for (const lr of leaveReqs) {
-            await prisma.leaveRequest.create({
-                data: {
-                    employeeId: employeeIds[lr.emp], leaveTypeId: lr.type,
-                    startDate: new Date(lr.start), endDate: new Date(lr.end),
-                    totalDays: lr.days, reason: lr.reason, status: lr.status,
-                    approvedById: lr.approver ? employeeIds[lr.approver] : null,
-                },
+            const existingLr = await prisma.leaveRequest.findFirst({
+                where: { employeeId: employeeIds[lr.emp], leaveTypeId: lr.type, startDate: new Date(lr.start) },
             });
+            if (!existingLr) {
+                await prisma.leaveRequest.create({
+                    data: {
+                        employeeId: employeeIds[lr.emp], leaveTypeId: lr.type,
+                        startDate: new Date(lr.start), endDate: new Date(lr.end),
+                        totalDays: lr.days, reason: lr.reason, status: lr.status,
+                        approvedById: lr.approver ? employeeIds[lr.approver] : null,
+                    },
+                });
+            }
         }
     }
     console.log('  ✅ Leave balances & requests created');
