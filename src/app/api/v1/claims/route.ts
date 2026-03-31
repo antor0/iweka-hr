@@ -3,6 +3,7 @@ import { ClaimsService } from "@/lib/services/claims.service";
 import { CreateClaimSchema } from "@/lib/validators/claims.schema";
 import { getSession } from "@/lib/auth/session";
 import { ClaimStatus } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
 
 export async function GET(request: NextRequest) {
     try {
@@ -45,12 +46,28 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json();
 
-        // Force employeeId for non-admins
+        // Determine which employeeId to use
+        let targetEmployeeId: string;
         if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
-            body.employeeId = session.employeeId;
-        } else if (!body.employeeId) {
-            body.employeeId = session.employeeId;
+            targetEmployeeId = session.employeeId;
+        } else {
+            targetEmployeeId = body.employeeId || session.employeeId;
         }
+
+        // Verify the target employee actually exists (guards against stale sessions after DB resets)
+        const employee = await prisma.employee.findUnique({
+            where: { id: targetEmployeeId },
+            select: { id: true },
+        });
+
+        if (!employee) {
+            return NextResponse.json(
+                { error: "Employee not found. Your session may be outdated — please log out and log back in." },
+                { status: 400 }
+            );
+        }
+
+        body.employeeId = employee.id;
 
         const parsed = CreateClaimSchema.safeParse(body);
         if (!parsed.success) {
@@ -60,6 +77,7 @@ export async function POST(request: NextRequest) {
         const claim = await ClaimsService.createClaim(parsed.data);
         return NextResponse.json({ success: true, data: claim }, { status: 201 });
     } catch (error: any) {
+        console.error("Admin claims POST error:", error);
         return NextResponse.json({ error: error.message }, { status: 400 });
     }
 }

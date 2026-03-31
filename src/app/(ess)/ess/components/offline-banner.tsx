@@ -37,7 +37,7 @@ export function OfflineBanner() {
             justifyContent: "center",
         }}>
             <span>📡</span>
-            <span>Tidak ada koneksi internet. Beberapa fitur tidak tersedia.</span>
+            <span>No internet connection. Some features may be unavailable.</span>
         </div>
     );
 }

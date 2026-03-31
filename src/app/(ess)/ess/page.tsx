@@ -52,7 +52,7 @@ export default function EssLoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!employeeNumber.trim() || !pin.trim()) {
-            setError("Masukkan Employee ID dan PIN Anda");
+            setError("Please enter your Employee ID and PIN");
             return;
         }
         setIsLoading(true);
@@ -68,7 +68,7 @@ export default function EssLoginPage() {
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || "Login gagal");
+                setError(data.error || "Login failed");
                 return;
             }
 
@@ -78,7 +78,7 @@ export default function EssLoginPage() {
                 router.push("/ess/home");
             }
         } catch {
-            setError("Tidak dapat terhubung ke server");
+            setError("Could not connect to the server");
         } finally {
             setIsLoading(false);
         }
@@ -95,7 +95,7 @@ export default function EssLoginPage() {
             {isOffline && (
                 <div style={styles.offlineBanner}>
                     <span style={{ fontSize: 14 }}>⚡</span>
-                    <span>Anda sedang offline — beberapa fitur mungkin tidak tersedia</span>
+                    <span>You are offline — some features may not be available</span>
                 </div>
             )}
 
@@ -117,8 +117,8 @@ export default function EssLoginPage() {
 
                 {/* Login Card */}
                 <div style={styles.card}>
-                    <h2 style={styles.cardTitle}>Masuk ke Akun Anda</h2>
-                    <p style={styles.cardSubtitle}>Gunakan Employee ID dan PIN Anda</p>
+                    <h2 style={styles.cardTitle}>Login to Your Account</h2>
+                    <p style={styles.cardSubtitle}>Use your Employee ID and PIN</p>
 
                     {error && (
                         <div style={styles.errorBox}>
@@ -132,7 +132,7 @@ export default function EssLoginPage() {
                             <input
                                 id="employee-number"
                                 type="text"
-                                placeholder="Contoh: EMP-0001"
+                                placeholder="Example: EMP-0001"
                                 value={employeeNumber}
                                 onChange={(e) => setEmployeeNumber(e.target.value)}
                                 style={styles.input}
@@ -143,7 +143,7 @@ export default function EssLoginPage() {
                         </div>
 
                         <div style={styles.fieldGroup}>
-                            <label style={styles.label}>PIN (6 digit)</label>
+                            <label style={styles.label}>PIN (6 digits)</label>
                             <input
                                 id="pin-input"
                                 type="password"
@@ -171,14 +171,14 @@ export default function EssLoginPage() {
                             {isLoading ? (
                                 <span style={styles.loadingSpinner} />
                             ) : (
-                                "Masuk"
+                                "Login"
                             )}
                         </button>
                     </form>
 
                     <p style={styles.helpText}>
-                        PIN default: <strong style={{ color: "#a5b4fc" }}>123456</strong>
-                        {" "}&mdash; Anda akan diminta menggantinya saat pertama masuk.
+                        Default PIN: <strong style={{ color: "#a5b4fc" }}>123456</strong>
+                        {" "}&mdash; You will be asked to change it upon first login.
                     </p>
                 </div>
 
@@ -190,7 +190,7 @@ export default function EssLoginPage() {
                                 📲 Install MyHRIS
                             </p>
                             <p style={{ margin: "2px 0 0", fontSize: 12, color: "#a5b4fc" }}>
-                                Pasang di layar utama untuk akses cepat
+                                Install on main screen for quick access
                             </p>
                         </div>
                         <button
@@ -206,13 +206,13 @@ export default function EssLoginPage() {
                 {/* Install instructions for iOS */}
                 <div style={styles.iosInstallHint}>
                     <p style={{ margin: 0, fontSize: 12, color: "#64748b", textAlign: "center" }}>
-                        Di iPhone/iPad: tekan{" "}
+                        On iPhone/iPad: press{" "}
                         <span style={{ color: "#6366f1" }}>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ verticalAlign: "middle" }}>
                                 <path d="M12 2L8 6h3v8h2V6h3L12 2zm-8 11v7h16v-7h-2v5H6v-5H4z" />
                             </svg>
                         </span>{" "}
-                        lalu <strong style={{ color: "#a5b4fc" }}>Tambah ke Layar Utama</strong>
+                        then <strong style={{ color: "#a5b4fc" }}>Add to Home Screen</strong>
                     </p>
                 </div>
 

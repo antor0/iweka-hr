@@ -16,11 +16,11 @@ interface AttendanceRecord {
 }
 
 const statusColors: Record<string, { bg: string; color: string; label: string }> = {
-    PRESENT: { bg: "rgba(16,185,129,0.15)", color: "#34d399", label: "Hadir" },
-    LATE: { bg: "rgba(245,158,11,0.15)", color: "#fbbf24", label: "Terlambat" },
-    ABSENT: { bg: "rgba(239,68,68,0.15)", color: "#f87171", label: "Absen" },
-    LEAVE: { bg: "rgba(99,102,241,0.15)", color: "#818cf8", label: "Cuti" },
-    HOLIDAY: { bg: "rgba(168,85,247,0.15)", color: "#c084fc", label: "Libur" },
+    PRESENT: { bg: "rgba(16,185,129,0.15)", color: "#34d399", label: "Present" },
+    LATE: { bg: "rgba(245,158,11,0.15)", color: "#fbbf24", label: "Late" },
+    ABSENT: { bg: "rgba(239,68,68,0.15)", color: "#f87171", label: "Absent" },
+    LEAVE: { bg: "rgba(99,102,241,0.15)", color: "#818cf8", label: "Leave" },
+    HOLIDAY: { bg: "rgba(168,85,247,0.15)", color: "#c084fc", label: "Holiday" },
 };
 
 export default function EssAttendancePage() {
@@ -62,20 +62,20 @@ export default function EssAttendancePage() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: action === "clock-in" ? "✅ Clock In berhasil!" : "✅ Clock Out berhasil!" });
+                setMessage({ type: "success", text: action === "clock-in" ? "✅ Clock In successful!" : "✅ Clock Out successful!" });
                 await fetchData();
             } else {
-                setMessage({ type: "error", text: data.error || "Gagal melakukan absensi" });
+                setMessage({ type: "error", text: data.error || "Attendance failed" });
             }
         } catch {
-            setMessage({ type: "error", text: "Tidak dapat terhubung ke server" });
+            setMessage({ type: "error", text: "Could not connect to the server" });
         } finally { setIsActing(false); }
     };
 
-    const fmt = (d: string) => new Date(d).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    const fmtDate = (d: string) => new Date(d).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" });
-    const fmtFullDate = (d: Date) => d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
-    const fmtTime = (d: Date) => d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const fmt = (d: string) => new Date(d).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
+    const fmtFullDate = (d: Date) => d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" });
+    const fmtTime = (d: Date) => d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
     const canClockIn = !today || !today.clockIn;
     const canClockOut = today && today.clockIn && !today.clockOut;
@@ -97,7 +97,7 @@ export default function EssAttendancePage() {
             <div style={s.orb} />
 
             <div style={s.page}>
-                <h1 style={s.pageTitle}>Absensi</h1>
+                <h1 style={s.pageTitle}>Attendance</h1>
                 <p style={s.pageDate}>{fmtFullDate(currentTime)}</p>
 
                 {/* Main Clock Card */}
@@ -111,7 +111,7 @@ export default function EssAttendancePage() {
                             </span>
                             {today.workHours && (
                                 <span style={s.workHoursChip}>
-                                    ⏱ {Number(today.workHours).toFixed(1)} jam
+                                    ⏱ {Number(today.workHours).toFixed(1)} hours
                                 </span>
                             )}
                         </div>
@@ -119,12 +119,12 @@ export default function EssAttendancePage() {
 
                     <div style={s.timePair}>
                         <div style={s.timeBox}>
-                            <p style={s.timeLabel}>Masuk</p>
+                            <p style={s.timeLabel}>In</p>
                             <p style={s.timeValue}>{today?.clockIn ? fmt(today.clockIn) : "--:--"}</p>
                         </div>
                         <div style={s.timeSep}>→</div>
                         <div style={s.timeBox}>
-                            <p style={s.timeLabel}>Keluar</p>
+                            <p style={s.timeLabel}>Out</p>
                             <p style={s.timeValue}>{today?.clockOut ? fmt(today.clockOut) : "--:--"}</p>
                         </div>
                     </div>
@@ -139,8 +139,8 @@ export default function EssAttendancePage() {
                     {isDone ? (
                         <div style={s.doneBox}>
                             <span style={{ fontSize: 32 }}>🎉</span>
-                            <p style={{ margin: 0, color: "#34d399", fontWeight: 700 }}>Absensi hari ini selesai</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>Sampai jumpa besok!</p>
+                            <p style={{ margin: 0, color: "#34d399", fontWeight: 700 }}>Attendance complete for today</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>See you tomorrow!</p>
                         </div>
                     ) : (
                         <button
@@ -168,13 +168,13 @@ export default function EssAttendancePage() {
                         </button>
                     )}
 
-                    <p style={s.sourceNote}>📱 Sumber: Mobile ESS</p>
+                    <p style={s.sourceNote}>📱 Source: Mobile ESS</p>
                 </div>
 
                 {/* History */}
                 {history.length > 0 && (
                     <div style={s.historySection}>
-                        <h2 style={s.sectionTitle}>Riwayat 7 Hari Terakhir</h2>
+                        <h2 style={s.sectionTitle}>History for Last 7 Days</h2>
                         <div style={s.historyList}>
                             {history.map((rec) => {
                                 const sc = statusColors[rec.status] || statusColors.ABSENT;

@@ -50,16 +50,29 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Verify the employee still exists (guards against stale sessions after DB resets)
+        const employee = await prisma.employee.findUnique({
+            where: { id: session.employeeId },
+            select: { id: true, employeeNumber: true },
+        });
+
+        if (!employee) {
+            return NextResponse.json(
+                { error: "Session expired or employee not found. Please log in again." },
+                { status: 401 }
+            );
+        }
+
         const totalAmount = items.reduce((sum: number, item: any) => sum + Number(item.amount), 0);
 
-        // Generate claim number
-        const count = await prisma.claim.count({ where: { employeeId: session.employeeId } });
-        const empNum = session.employeeNumber.replace("EMP-", "");
+        // Generate claim number using verified employee number
+        const count = await prisma.claim.count({ where: { employeeId: employee.id } });
+        const empNum = employee.employeeNumber.replace("EMP-", "");
         const claimNumber = `CLM-${empNum}-${String(count + 1).padStart(4, "0")}`;
 
         const claim = await prisma.claim.create({
             data: {
-                employeeId: session.employeeId,
+                employeeId: employee.id,
                 claimNumber,
                 title: title.trim(),
                 description: description?.trim() || null,

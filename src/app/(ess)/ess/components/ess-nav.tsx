@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 const navItems = [
     {
         id: "nav-home",
-        label: "Beranda",
+        label: "Home",
         href: "/ess/home",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -16,7 +16,7 @@ const navItems = [
     },
     {
         id: "nav-attendance",
-        label: "Absensi",
+        label: "Attendance",
         href: "/ess/attendance",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -27,7 +27,7 @@ const navItems = [
     },
     {
         id: "nav-payslip",
-        label: "Slip Gaji",
+        label: "Payslip",
         href: "/ess/payslip",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -40,7 +40,7 @@ const navItems = [
     },
     {
         id: "nav-leave",
-        label: "Cuti",
+        label: "Leave",
         href: "/ess/leave",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -53,7 +53,7 @@ const navItems = [
     },
     {
         id: "nav-more",
-        label: "Lainnya",
+        label: "Claims",
         href: "/ess/claims",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

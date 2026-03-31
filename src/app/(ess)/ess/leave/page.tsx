@@ -82,19 +82,21 @@ export default function EssLeavePage() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: "✅ Permohonan cuti berhasil diajukan!" });
+                setMessage({ type: "success", text: "✅ Leave request submitted successfully!" });
                 setShowForm(false);
                 setForm({ leaveTypeId: "", startDate: "", endDate: "", totalDays: 1, reason: "" });
                 await fetchData();
             } else {
-                setMessage({ type: "error", text: data.error || "Gagal mengajukan cuti" });
+                setMessage({ type: "error", text: data.error || "Failed to submit leave request" });
             }
         } catch {
-            setMessage({ type: "error", text: "Tidak dapat terhubung ke server" });
-        } finally { setIsSubmitting(false); }
+            setMessage({ type: "error", text: "Could not connect to the server" });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const fmtDate = (d: string) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+    const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
     if (isLoading) {
         return <div style={s.root}><div style={s.center}><div style={s.spinner} /></div></div>;
@@ -108,11 +110,11 @@ export default function EssLeavePage() {
             <div style={s.page}>
                 <div style={s.headerRow}>
                     <div>
-                        <h1 style={s.pageTitle}>Cuti</h1>
-                        <p style={s.pageSub}>Kelola permohonan cuti kamu</p>
+                        <h1 style={s.pageTitle}>Leave</h1>
+                        <p style={s.pageSub}>Manage your leave requests</p>
                     </div>
                     <button id="new-leave-btn" onClick={() => { setShowForm(!showForm); setMessage(null); }} style={s.newBtn}>
-                        {showForm ? "✕ Tutup" : "+ Ajukan"}
+                        {showForm ? "✕ Close" : "+ Request"}
                     </button>
                 </div>
 
@@ -125,12 +127,12 @@ export default function EssLeavePage() {
                 {/* Submit Form */}
                 {showForm && (
                     <div style={s.formCard}>
-                        <h2 style={s.formTitle}>Permohonan Cuti Baru</h2>
+                        <h2 style={s.formTitle}>New Leave Request</h2>
                         <form onSubmit={handleSubmit} style={s.form}>
                             <div style={s.field}>
-                                <label style={s.label}>Jenis Cuti</label>
+                                <label style={s.label}>Leave Type</label>
                                 <select id="leave-type-select" value={form.leaveTypeId} onChange={e => setForm(f => ({ ...f, leaveTypeId: e.target.value }))} style={s.select} required>
-                                    <option value="">Pilih jenis cuti...</option>
+                                    <option value="">Select leave type...</option>
                                     {leaveTypes.map(lt => (
                                         <option key={lt.id} value={lt.id}>{lt.name}</option>
                                     ))}
@@ -138,24 +140,24 @@ export default function EssLeavePage() {
                             </div>
                             <div style={s.dateRow}>
                                 <div style={{ ...s.field, flex: 1 }}>
-                                    <label style={s.label}>Tanggal Mulai</label>
+                                    <label style={s.label}>Start Date</label>
                                     <input id="leave-start-date" type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={s.input} required />
                                 </div>
                                 <div style={{ ...s.field, flex: 1 }}>
-                                    <label style={s.label}>Tanggal Selesai</label>
+                                    <label style={s.label}>End Date</label>
                                     <input id="leave-end-date" type="date" value={form.endDate} min={form.startDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={s.input} required />
                                 </div>
                             </div>
                             <div style={s.field}>
-                                <label style={s.label}>Total Hari Kerja</label>
-                                <div style={s.daysDisplay}>{form.totalDays} hari kerja</div>
+                                <label style={s.label}>Total Working Days</label>
+                                <div style={s.daysDisplay}>{form.totalDays} working days</div>
                             </div>
                             <div style={s.field}>
-                                <label style={s.label}>Alasan</label>
-                                <textarea id="leave-reason" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} style={{ ...s.input, minHeight: 80, resize: "vertical" }} placeholder="Jelaskan alasan pengajuan cuti..." required />
+                                <label style={s.label}>Reason</label>
+                                <textarea id="leave-reason" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} style={{ ...s.input, minHeight: 80, resize: "vertical" }} placeholder="Explain the reason for leave..." required />
                             </div>
                             <button id="submit-leave-btn" type="submit" disabled={isSubmitting} style={{ ...s.submitBtn, opacity: isSubmitting ? 0.7 : 1 }}>
-                                {isSubmitting ? <span style={s.btnSpinner} /> : "Kirim Permohonan"}
+                                {isSubmitting ? <span style={s.btnSpinner} /> : "Submit Request"}
                             </button>
                         </form>
                     </div>
@@ -164,7 +166,7 @@ export default function EssLeavePage() {
                 {/* Leave Balances */}
                 {balances.length > 0 && (
                     <div style={s.section}>
-                        <h2 style={s.sectionTitle}>Saldo Cuti {new Date().getFullYear()}</h2>
+                        <h2 style={s.sectionTitle}>Leave Balance {new Date().getFullYear()}</h2>
                         <div style={s.balanceGrid}>
                             {balances.map((b) => {
                                 const remaining = Number(b.entitlement) + Number(b.carryOver) - Number(b.used);
@@ -179,7 +181,7 @@ export default function EssLeavePage() {
                                         <div style={s.progressBg}>
                                             <div style={{ ...s.progressFill, width: `${pct}%` }} />
                                         </div>
-                                        <p style={s.balanceSub}>Sisa hari</p>
+                                        <p style={s.balanceSub}>Days remaining</p>
                                     </div>
                                 );
                             })}
@@ -189,11 +191,11 @@ export default function EssLeavePage() {
 
                 {/* Request History */}
                 <div style={s.section}>
-                    <h2 style={s.sectionTitle}>Riwayat Pengajuan</h2>
+                    <h2 style={s.sectionTitle}>Request History</h2>
                     {requests.length === 0 ? (
                         <div style={s.emptyState}>
                             <span style={{ fontSize: 40 }}>📭</span>
-                            <p style={{ color: "#64748b", margin: "8px 0 0" }}>Belum ada pengajuan cuti</p>
+                            <p style={{ color: "#64748b", margin: "8px 0 0" }}>No leave requests yet</p>
                         </div>
                     ) : (
                         <div style={s.requestList}>
@@ -205,7 +207,7 @@ export default function EssLeavePage() {
                                             <p style={s.reqType}>{req.leaveType.name}</p>
                                             <span style={{ ...s.reqStatus, background: sc.bg, color: sc.color }}>{req.status}</span>
                                         </div>
-                                        <p style={s.reqDates}>{fmtDate(req.startDate)} – {fmtDate(req.endDate)} · <strong style={{ color: "#a5b4fc" }}>{req.totalDays} hari</strong></p>
+                                        <p style={s.reqDates}>{fmtDate(req.startDate)} – {fmtDate(req.endDate)} · <strong style={{ color: "#a5b4fc" }}>{req.totalDays} days</strong></p>
                                         <p style={s.reqReason}>{req.reason}</p>
                                     </div>
                                 );

@@ -68,11 +68,11 @@ export default function EssHomePage() {
     }, [fetchData]);
 
     const formatTime = (date: Date) => {
-        return date.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     };
 
     const formatDate = (date: Date) => {
-        return date.toLocaleDateString("id-ID", {
+        return date.toLocaleDateString("en-US", {
             weekday: "long",
             day: "numeric",
             month: "long",
@@ -82,10 +82,10 @@ export default function EssHomePage() {
 
     const getGreeting = () => {
         const h = currentTime.getHours();
-        if (h < 11) return "Selamat Pagi";
-        if (h < 15) return "Selamat Siang";
-        if (h < 18) return "Selamat Sore";
-        return "Selamat Malam";
+        if (h < 11) return "Good Morning";
+        if (h < 15) return "Good Afternoon";
+        if (h < 18) return "Good Afternoon";
+        return "Good Evening";
     };
 
     const getInitials = (name: string) => {
@@ -93,10 +93,10 @@ export default function EssHomePage() {
     };
 
     const quickActions = [
-        { id: "qa-payslip", label: "Slip Gaji", icon: "📄", href: "/ess/payslip", color: "rgba(99,102,241,0.2)", border: "rgba(99,102,241,0.3)" },
-        { id: "qa-leave", label: "Ajukan Cuti", icon: "📅", href: "/ess/leave", color: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)" },
-        { id: "qa-claims", label: "Klaim", icon: "💰", href: "/ess/claims", color: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.3)" },
-        { id: "qa-settings", label: "Pengaturan", icon: "⚙️", href: "/ess/settings", color: "rgba(168,85,247,0.15)", border: "rgba(168,85,247,0.3)" },
+        { id: "qa-payslip", label: "Payslip", icon: "📄", href: "/ess/payslip", color: "rgba(99,102,241,0.2)", border: "rgba(99,102,241,0.3)" },
+        { id: "qa-leave", label: "Request Leave", icon: "📅", href: "/ess/leave", color: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)" },
+        { id: "qa-claims", label: "Claims", icon: "💰", href: "/ess/claims", color: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.3)" },
+        { id: "qa-settings", label: "Settings", icon: "⚙️", href: "/ess/settings", color: "rgba(168,85,247,0.15)", border: "rgba(168,85,247,0.3)" },
     ];
 
     if (isLoading) {
@@ -104,7 +104,7 @@ export default function EssHomePage() {
             <div style={styles.root}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 16 }}>
                     <div style={styles.spinner} />
-                    <p style={{ color: "#64748b", fontSize: 14 }}>Memuat...</p>
+                    <p style={{ color: "#64748b", fontSize: 14 }}>Loading...</p>
                 </div>
             </div>
         );
@@ -121,7 +121,7 @@ export default function EssHomePage() {
                 <div style={styles.header}>
                     <div>
                         <p style={styles.greeting}>{getGreeting()},</p>
-                        <h1 style={styles.name}>{employee?.fullName?.split(" ")[0] || "Karyawan"} 👋</h1>
+                        <h1 style={styles.name}>{employee?.fullName?.split(" ")[0] || "Employee"} 👋</h1>
                         <p style={styles.role}>{employee?.position?.title || "—"} · {employee?.department?.name || "—"}</p>
                     </div>
                     <div style={styles.avatar}>
@@ -141,22 +141,22 @@ export default function EssHomePage() {
                     {todayAttendance ? (
                         <div style={styles.attendStatus}>
                             <div style={styles.attendChip(todayAttendance.status)}>
-                                {todayAttendance.status === "LATE" ? "🕐 Terlambat" :
-                                 todayAttendance.status === "PRESENT" ? "✅ Hadir" :
-                                 todayAttendance.status === "ABSENT" ? "❌ Absen" : "📋 " + todayAttendance.status}
+                                {todayAttendance.status === "LATE" ? "🕐 Late" :
+                                 todayAttendance.status === "PRESENT" ? "✅ Present" :
+                                 todayAttendance.status === "ABSENT" ? "❌ Absent" : "📋 " + todayAttendance.status}
                             </div>
                             <div style={styles.attendTimes}>
                                 {todayAttendance.clockIn && (
-                                    <span>Masuk: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockIn).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</strong></span>
+                                    <span>In: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockIn).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</strong></span>
                                 )}
                                 {todayAttendance.clockOut && (
-                                    <span>Keluar: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockOut).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</strong></span>
+                                    <span>Out: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockOut).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</strong></span>
                                 )}
                             </div>
                         </div>
                     ) : (
                         <div style={styles.attendStatus}>
-                            <p style={{ margin: 0, fontSize: 13, color: "#ef4444" }}>⚠ Belum absen hari ini</p>
+                            <p style={{ margin: 0, fontSize: 13, color: "#ef4444" }}>⚠ Not clocked in today</p>
                         </div>
                     )}
 
@@ -166,16 +166,16 @@ export default function EssHomePage() {
                         style={styles.clockBtn}
                     >
                         {!todayAttendance || !todayAttendance.clockIn
-                            ? "🟢 Clock In Sekarang"
+                            ? "🟢 Clock In Now"
                             : !todayAttendance.clockOut
                             ? "🔴 Clock Out"
-                            : "✅ Absensi Selesai"}
+                            : "✅ Attendance Complete"}
                     </button>
                 </div>
 
                 {/* Quick Actions */}
                 <div style={styles.section}>
-                    <h2 style={styles.sectionTitle}>Aksi Cepat</h2>
+                    <h2 style={styles.sectionTitle}>Quick Actions</h2>
                     <div style={styles.quickGrid}>
                         {quickActions.map((qa) => (
                             <button

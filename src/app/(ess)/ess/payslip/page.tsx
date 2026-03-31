@@ -39,10 +39,10 @@ interface PayslipDetail {
     };
 }
 
-const MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 function formatIDR(num: number) {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(num);
 }
 
 export default function EssPayslipPage() {
@@ -89,7 +89,7 @@ export default function EssPayslipPage() {
         const printContent = `
             <html>
             <head>
-                <title>Slip Gaji – ${periodLabel}</title>
+                <title>Payslip – ${periodLabel}</title>
                 <style>
                     body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a2e; margin: 0; padding: 24px; }
                     .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #6366f1; padding-bottom: 16px; margin-bottom: 20px; }
@@ -115,51 +115,51 @@ export default function EssPayslipPage() {
                         <p style="margin:4px 0 0; color:#64748b; font-size:11px;">Human Resource Information System</p>
                     </div>
                     <div style="text-align:right">
-                        <div class="slip-title">SLIP GAJI KARYAWAN</div>
-                        <div class="period">Periode: ${periodLabel}</div>
+                        <div class="slip-title">EMPLOYEE PAYSLIP</div>
+                        <div class="period">Period: ${periodLabel}</div>
                     </div>
                 </div>
 
                 <div class="info-grid">
-                    <div class="info-item"><label>Nama Karyawan</label><p>${emp.fullName}</p></div>
+                    <div class="info-item"><label>Employee Name</label><p>${emp.fullName}</p></div>
                     <div class="info-item"><label>Employee ID</label><p>${emp.employeeNumber}</p></div>
-                    <div class="info-item"><label>Jabatan</label><p>${emp.position?.title || "—"}</p></div>
-                    <div class="info-item"><label>Departemen</label><p>${emp.department?.name || "—"}</p></div>
+                    <div class="info-item"><label>Position</label><p>${emp.position?.title || "—"}</p></div>
+                    <div class="info-item"><label>Department</label><p>${emp.department?.name || "—"}</p></div>
                     <div class="info-item"><label>Bank</label><p>${emp.bankName || "—"}</p></div>
-                    <div class="info-item"><label>No. Rekening</label><p>${emp.bankAccount ? "****" + emp.bankAccount.slice(-4) : "—"}</p></div>
+                    <div class="info-item"><label>Account Number</label><p>${emp.bankAccount ? "****" + emp.bankAccount.slice(-4) : "—"}</p></div>
                 </div>
 
                 <table>
-                    <thead><tr><th>Komponen Penghasilan</th><th class="amount">Jumlah</th></tr></thead>
+                    <thead><tr><th>Earnings Component</th><th class="amount">Amount</th></tr></thead>
                     <tbody>
-                        <tr><td>Gaji Pokok</td><td class="amount">${formatIDR(Number(item.basicSalary))}</td></tr>
-                        <tr><td>Tunjangan</td><td class="amount">${formatIDR(Number(item.totalAllowances))}</td></tr>
-                        <tr><td>Lembur</td><td class="amount">${formatIDR(Number(item.totalOvertime))}</td></tr>
-                        ${Number(item.totalIncentives) > 0 ? `<tr><td>Insentif & Bonus</td><td class="amount">${formatIDR(Number(item.totalIncentives))}</td></tr>` : ""}
-                        <tr class="total-row"><td>Total Penghasilan Bruto</td><td class="amount">${formatIDR(Number(item.grossIncome))}</td></tr>
+                        <tr><td>Basic Salary</td><td class="amount">${formatIDR(Number(item.basicSalary))}</td></tr>
+                        <tr><td>Allowances</td><td class="amount">${formatIDR(Number(item.totalAllowances))}</td></tr>
+                        <tr><td>Overtime</td><td class="amount">${formatIDR(Number(item.totalOvertime))}</td></tr>
+                        ${Number(item.totalIncentives) > 0 ? `<tr><td>Incentives & Bonuses</td><td class="amount">${formatIDR(Number(item.totalIncentives))}</td></tr>` : ""}
+                        <tr class="total-row"><td>Total Gross Earnings</td><td class="amount">${formatIDR(Number(item.grossIncome))}</td></tr>
                     </tbody>
                 </table>
 
                 <table>
-                    <thead><tr><th>Potongan</th><th class="amount">Jumlah</th></tr></thead>
+                    <thead><tr><th>Deductions</th><th class="amount">Amount</th></tr></thead>
                     <tbody>
-                        <tr><td>PPh 21</td><td class="amount">${formatIDR(Number(item.pph21Amount))}</td></tr>
-                        <tr><td>BPJS Kesehatan (Karyawan)</td><td class="amount">${formatIDR(Number(item.bpjsKesEmployee))}</td></tr>
-                        <tr><td>BPJS TK JHT (Karyawan)</td><td class="amount">${formatIDR(Number(item.bpjsTkJhtEmployee))}</td></tr>
-                        <tr><td>BPJS TK JP (Karyawan)</td><td class="amount">${formatIDR(Number(item.bpjsTkJpEmployee))}</td></tr>
-                        <tr class="total-row"><td>Total Potongan</td><td class="amount">${formatIDR(Number(item.totalDeductions))}</td></tr>
+                        <tr><td>PPh 21 (Income Tax)</td><td class="amount">${formatIDR(Number(item.pph21Amount))}</td></tr>
+                        <tr><td>BPJS Health (Employee)</td><td class="amount">${formatIDR(Number(item.bpjsKesEmployee))}</td></tr>
+                        <tr><td>BPJS JHT (Employee)</td><td class="amount">${formatIDR(Number(item.bpjsTkJhtEmployee))}</td></tr>
+                        <tr><td>BPJS JP (Employee)</td><td class="amount">${formatIDR(Number(item.bpjsTkJpEmployee))}</td></tr>
+                        <tr class="total-row"><td>Total Deductions</td><td class="amount">${formatIDR(Number(item.totalDeductions))}</td></tr>
                     </tbody>
                 </table>
 
                 <table>
                     <tbody>
-                        <tr class="net-row"><td>GAJI BERSIH (TAKE HOME PAY)</td><td class="amount">${formatIDR(Number(item.netSalary))}</td></tr>
+                        <tr class="net-row"><td>NET SALARY (TAKE HOME PAY)</td><td class="amount">${formatIDR(Number(item.netSalary))}</td></tr>
                     </tbody>
                 </table>
 
                 <div class="footer">
-                    Dokumen ini dibuat secara digital oleh sistem HRIS Pro. Tidak memerlukan tanda tangan fisik.<br>
-                    Dicetak pada: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                    This document was digitally generated by the HRIS Pro system. Physical signature is not required.<br>
+                    Printed on: ${new Date().toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}
                 </div>
             </body>
             </html>
@@ -188,13 +188,13 @@ export default function EssPayslipPage() {
             <div style={s.orb} />
 
             <div style={s.page}>
-                <h1 style={s.pageTitle}>Slip Gaji</h1>
-                <p style={s.pageSub}>Pilih periode untuk melihat slip gaji</p>
+                <h1 style={s.pageTitle}>Payslip</h1>
+                <p style={s.pageSub}>Select a period to view the payslip</p>
 
                 {periods.length === 0 ? (
                     <div style={s.emptyCard}>
                         <span style={{ fontSize: 48 }}>📭</span>
-                        <p style={{ color: "#64748b", margin: "12px 0 0", textAlign: "center" as const }}>Belum ada slip gaji yang tersedia</p>
+                        <p style={{ color: "#64748b", margin: "12px 0 0", textAlign: "center" as const }}>No payslip available</p>
                     </div>
                 ) : (
                     <>
@@ -234,7 +234,7 @@ export default function EssPayslipPage() {
                                     <>
                                         <div style={s.detailHeader}>
                                             <div>
-                                                <p style={s.detailTitle}>Slip Gaji</p>
+                                                <p style={s.detailTitle}>Payslip</p>
                                                 <p style={s.detailPeriod}>{MONTHS[selected.month - 1]} {selected.year}</p>
                                             </div>
                                             <button
@@ -242,7 +242,7 @@ export default function EssPayslipPage() {
                                                 onClick={handlePrint}
                                                 style={s.downloadBtn}
                                             >
-                                                ⬇ Unduh PDF
+                                                ⬇ Download PDF
                                             </button>
                                         </div>
 
@@ -253,12 +253,12 @@ export default function EssPayslipPage() {
 
                                         <div style={s.divider} />
 
-                                        <p style={s.secLabel}>Penghasilan</p>
+                                        <p style={s.secLabel}>Earnings</p>
                                         {[
-                                            { label: "Gaji Pokok", value: detail.payrollItem.basicSalary },
-                                            { label: "Tunjangan", value: detail.payrollItem.totalAllowances },
-                                            { label: "Lembur", value: detail.payrollItem.totalOvertime },
-                                            ...(Number(detail.payrollItem.totalIncentives) > 0 ? [{ label: "Insentif & Bonus", value: detail.payrollItem.totalIncentives }] : []),
+                                            { label: "Basic Salary", value: detail.payrollItem.basicSalary },
+                                            { label: "Allowances", value: detail.payrollItem.totalAllowances },
+                                            { label: "Overtime", value: detail.payrollItem.totalOvertime },
+                                            ...(Number(detail.payrollItem.totalIncentives) > 0 ? [{ label: "Incentives & Bonuses", value: detail.payrollItem.totalIncentives }] : []),
                                         ].map((row) => (
                                             <div key={row.label} style={s.row}>
                                                 <span style={s.rowLabel}>{row.label}</span>
@@ -266,16 +266,16 @@ export default function EssPayslipPage() {
                                             </div>
                                         ))}
                                         <div style={{ ...s.row, ...s.totalRow }}>
-                                            <span>Bruto</span>
+                                            <span>Gross</span>
                                             <span>{formatIDR(Number(detail.payrollItem.grossIncome))}</span>
                                         </div>
 
                                         <div style={s.divider} />
 
-                                        <p style={s.secLabel}>Potongan</p>
+                                        <p style={s.secLabel}>Deductions</p>
                                         {[
                                             { label: "PPh 21", value: detail.payrollItem.pph21Amount },
-                                            { label: "BPJS Kesehatan", value: detail.payrollItem.bpjsKesEmployee },
+                                            { label: "BPJS Health", value: detail.payrollItem.bpjsKesEmployee },
                                             { label: "BPJS JHT", value: detail.payrollItem.bpjsTkJhtEmployee },
                                             { label: "BPJS JP", value: detail.payrollItem.bpjsTkJpEmployee },
                                         ].map((row) => (
@@ -293,7 +293,7 @@ export default function EssPayslipPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <p style={{ color: "#64748b", textAlign: "center" as const }}>Gagal memuat detail slip gaji</p>
+                                    <p style={{ color: "#64748b", textAlign: "center" as const }}>Failed to load payslip details</p>
                                 )}
                             </div>
                         )}

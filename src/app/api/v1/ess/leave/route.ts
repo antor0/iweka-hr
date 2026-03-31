@@ -50,6 +50,18 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Reason must be at least 5 characters" }, { status: 400 });
         }
 
+        // Verify the employee still exists (guards against stale sessions after DB resets)
+        const employee = await prisma.employee.findUnique({
+            where: { id: session.employeeId },
+            select: { id: true },
+        });
+        if (!employee) {
+            return NextResponse.json(
+                { error: "Session expired or employee not found. Please log in again." },
+                { status: 401 }
+            );
+        }
+
         const leaveType = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } });
         if (!leaveType) {
             return NextResponse.json({ error: "Invalid leave type" }, { status: 400 });
@@ -60,7 +72,7 @@ export async function POST(request: NextRequest) {
         const balance = await prisma.leaveBalance.findUnique({
             where: {
                 employeeId_leaveTypeId_year: {
-                    employeeId: session.employeeId,
+                    employeeId: employee.id,
                     leaveTypeId,
                     year: currentYear,
                 },
@@ -79,7 +91,7 @@ export async function POST(request: NextRequest) {
 
         const leaveRequest = await prisma.leaveRequest.create({
             data: {
-                employeeId: session.employeeId,
+                employeeId: employee.id,
                 leaveTypeId,
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),

@@ -31,11 +31,11 @@ function SettingsContent() {
     const handleChangePin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPin !== confirmPin) {
-            setMessage({ type: "error", text: "PIN baru dan konfirmasi tidak cocok" });
+            setMessage({ type: "error", text: "New PIN and confirmation do not match" });
             return;
         }
         if (!/^\d{6}$/.test(newPin)) {
-            setMessage({ type: "error", text: "PIN harus terdiri dari 6 digit angka" });
+            setMessage({ type: "error", text: "PIN must consist of 6 digits" });
             return;
         }
 
@@ -49,16 +49,16 @@ function SettingsContent() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: "✅ PIN berhasil diubah!" });
+                setMessage({ type: "success", text: "✅ PIN updated successfully!" });
                 setCurrentPin(""); setNewPin(""); setConfirmPin("");
                 if (isFirstTime) {
                     setTimeout(() => router.push("/ess/home"), 1500);
                 }
             } else {
-                setMessage({ type: "error", text: data.error || "Gagal mengubah PIN" });
+                setMessage({ type: "error", text: data.error || "Failed to update PIN" });
             }
         } catch {
-            setMessage({ type: "error", text: "Tidak dapat terhubung ke server" });
+            setMessage({ type: "error", text: "Could not connect to the server" });
         } finally { setIsSubmitting(false); }
     };
 
@@ -84,8 +84,8 @@ function SettingsContent() {
                     <div style={s.firstTimeBanner}>
                         <span style={{ fontSize: 20 }}>🔐</span>
                         <div>
-                            <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#fbbf24" }}>Ganti PIN Sekarang!</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#d97706" }}>Untuk keamanan akun, silakan ganti PIN default Anda sebelum melanjutkan.</p>
+                            <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#fbbf24" }}>Change PIN Now!</p>
+                            <p style={{ margin: 0, fontSize: 12, color: "#d97706" }}>For account security, please change your default PIN before continuing.</p>
                         </div>
                     </div>
                 )}
@@ -106,9 +106,9 @@ function SettingsContent() {
                 <div style={s.card}>
                     <div style={s.cardHeader}>
                         <span style={{ fontSize: 20 }}>🔐</span>
-                        <h2 style={s.cardTitle}>Ganti PIN</h2>
+                        <h2 style={s.cardTitle}>Change PIN</h2>
                     </div>
-                    <p style={s.cardDesc}>PIN digunakan untuk masuk ke aplikasi MyHRIS. Pastikan PIN Anda mudah diingat namun tidak mudah ditebak.</p>
+                    <p style={s.cardDesc}>PIN is used to access the MyHRIS application. Ensure your PIN is easy to remember but not easy to guess.</p>
 
                     {message && (
                         <div style={{ ...s.msgBox, background: message.type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.12)", borderColor: message.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.25)", color: message.type === "success" ? "#34d399" : "#fca5a5" }}>
@@ -118,7 +118,7 @@ function SettingsContent() {
 
                     <form onSubmit={handleChangePin} style={s.form}>
                         <div style={s.field}>
-                            <label style={s.label}>PIN Saat Ini</label>
+                            <label style={s.label}>Current PIN</label>
                             <div style={s.pinWrapper}>
                                 <input
                                     id="current-pin"
@@ -135,7 +135,7 @@ function SettingsContent() {
                             </div>
                         </div>
                         <div style={s.field}>
-                            <label style={s.label}>PIN Baru</label>
+                            <label style={s.label}>New PIN</label>
                             <div style={s.pinWrapper}>
                                 <input
                                     id="new-pin"
@@ -144,7 +144,7 @@ function SettingsContent() {
                                     value={newPin}
                                     onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
                                     style={{ ...s.pinInput, letterSpacing: newPin ? "0.4em" : "normal", fontSize: newPin ? 22 : 16 }}
-                                    placeholder="••••••"
+                                    placeholder="•••••"
                                     maxLength={6}
                                     disabled={isSubmitting}
                                 />
@@ -152,7 +152,7 @@ function SettingsContent() {
                             </div>
                         </div>
                         <div style={s.field}>
-                            <label style={s.label}>Konfirmasi PIN Baru</label>
+                            <label style={s.label}>Confirm New PIN</label>
                             <div style={s.pinWrapper}>
                                 <input
                                     id="confirm-pin"
@@ -188,14 +188,14 @@ function SettingsContent() {
                                 cursor: isSubmitting || currentPin.length < 6 ? "not-allowed" : "pointer",
                             }}
                         >
-                            {isSubmitting ? <span style={s.btnSpinner} /> : isFirstTime ? "✅ Simpan PIN & Lanjutkan" : "Ganti PIN"}
+                            {isSubmitting ? <span style={s.btnSpinner} /> : isFirstTime ? "✅ Save PIN & Continue" : "Change PIN"}
                         </button>
                     </form>
                 </div>
 
                 {/* Info Card */}
                 <div style={s.infoCard}>
-                    <h3 style={{ ...s.cardTitle, fontSize: 14 }}>ℹ️ Informasi Akun</h3>
+                    <h3 style={{ ...s.cardTitle, fontSize: 14 }}>ℹ️ Account Information</h3>
                     <div style={s.infoRow}>
                         <span style={s.infoLabel}>Employee ID</span>
                         <span style={s.infoValue}>{profile?.employeeNumber || "—"}</span>
@@ -218,7 +218,7 @@ function SettingsContent() {
                         disabled={isLoggingOut}
                         style={{ ...s.logoutBtn, opacity: isLoggingOut ? 0.7 : 1 }}
                     >
-                        {isLoggingOut ? "Keluar..." : "🚪 Keluar dari Akun"}
+                        {isLoggingOut ? "Exiting..." : "🚪 Logout from Account"}
                     </button>
                 )}
 

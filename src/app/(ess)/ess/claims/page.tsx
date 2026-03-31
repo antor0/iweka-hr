@@ -26,14 +26,14 @@ interface Claim {
 }
 
 const CATEGORIES = [
-    { value: "TRAVEL", label: "🚗 Perjalanan Dinas" },
-    { value: "MEALS", label: "🍽 Makan" },
-    { value: "ACCOMMODATION", label: "🏨 Penginapan" },
-    { value: "TRANSPORT", label: "🚌 Transportasi" },
-    { value: "PARKING_TOLLS", label: "🅿 Parkir & Tol" },
-    { value: "OFFICE_SUPPLIES", label: "📎 Perlengkapan Kantor" },
-    { value: "COMMUNICATION", label: "📱 Komunikasi" },
-    { value: "OTHER", label: "📋 Lainnya" },
+    { value: "TRAVEL", label: "🚗 Business Travel" },
+    { value: "MEALS", label: "🍽 Meals" },
+    { value: "ACCOMMODATION", label: "🏨 Accommodation" },
+    { value: "TRANSPORT", label: "🚌 Transport" },
+    { value: "PARKING_TOLLS", label: "🅿 Parking & Tolls" },
+    { value: "OFFICE_SUPPLIES", label: "📎 Office Supplies" },
+    { value: "COMMUNICATION", label: "📱 Communication" },
+    { value: "OTHER", label: "📋 Other" },
 ];
 
 const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
@@ -45,7 +45,7 @@ const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
 };
 
 function formatIDR(n: number) {
-    return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
+    return new Intl.NumberFormat("en-US", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(n);
 }
 
 export default function EssClaimsPage() {
@@ -109,12 +109,12 @@ export default function EssClaimsPage() {
                         merchant: data.data.merchant || item.merchant,
                     };
                 }));
-                setMessage({ type: "success", text: "Struk berhasil diunggah!" });
+                setMessage({ type: "success", text: "Receipt uploaded successfully!" });
             } else {
-                setMessage({ type: "error", text: data.error || "Gagal mengunggah struk" });
+                setMessage({ type: "error", text: data.error || "Failed to upload receipt" });
             }
         } catch {
-            setMessage({ type: "error", text: "Terjadi kesalahan saat upload" });
+            setMessage({ type: "error", text: "An error occurred during upload" });
         } finally {
             setUploadingItemIdx(null);
             e.target.value = "";
@@ -123,8 +123,8 @@ export default function EssClaimsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.title.trim()) { setMessage({ type: "error", text: "Judul klaim wajib diisi" }); return; }
-        if (items.some(i => !i.description || !i.amount)) { setMessage({ type: "error", text: "Lengkapi semua detail item klaim" }); return; }
+        if (!form.title.trim()) { setMessage({ type: "error", text: "Claim title is required" }); return; }
+        if (items.some(i => !i.description || !i.amount)) { setMessage({ type: "error", text: "Complete all claim item details" }); return; }
 
         setIsSubmitting(true);
         setMessage(null);
@@ -135,17 +135,21 @@ export default function EssClaimsPage() {
                 body: JSON.stringify({ ...form, items }),
             });
             const data = await res.json();
+            if (res.status === 401) {
+                router.push("/ess");
+                return;
+            }
             if (res.ok) {
-                setMessage({ type: "success", text: `✅ Klaim ${data.data.claimNumber} berhasil diajukan!` });
+                setMessage({ type: "success", text: `✅ Claim ${data.data.claimNumber} submitted successfully!` });
                 setShowForm(false);
                 setForm({ title: "", description: "" });
                 setItems([{ category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "", receiptUrl: "" }]);
                 await fetchClaims();
             } else {
-                setMessage({ type: "error", text: data.error || "Gagal mengajukan klaim" });
+                setMessage({ type: "error", text: data.error || "Failed to submit claim" });
             }
         } catch {
-            setMessage({ type: "error", text: "Tidak dapat terhubung ke server" });
+            setMessage({ type: "error", text: "Could not connect to the server" });
         } finally { setIsSubmitting(false); }
     };
 
@@ -159,11 +163,11 @@ export default function EssClaimsPage() {
             <div style={s.page}>
                 <div style={s.headerRow}>
                     <div>
-                        <h1 style={s.pageTitle}>Klaim</h1>
-                        <p style={s.pageSub}>Ajukan reimbursement pengeluaran</p>
+                        <h1 style={s.pageTitle}>Claims</h1>
+                        <p style={s.pageSub}>Submit expense reimbursement</p>
                     </div>
                     <button id="new-claim-btn" onClick={() => { setShowForm(!showForm); setMessage(null); }} style={s.newBtn}>
-                        {showForm ? "✕ Tutup" : "+ Klaim Baru"}
+                        {showForm ? "✕ Close" : "+ New Claim"}
                     </button>
                 </div>
 
@@ -176,21 +180,21 @@ export default function EssClaimsPage() {
                 {/* Form */}
                 {showForm && (
                     <div style={s.formCard}>
-                        <h2 style={s.formTitle}>Pengajuan Klaim Baru</h2>
+                        <h2 style={s.formTitle}>New Claim Submission</h2>
                         <form onSubmit={handleSubmit} style={s.form}>
                             <div style={s.field}>
-                                <label style={s.label}>Judul Klaim</label>
-                                <input id="claim-title" type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={s.input} placeholder="Misal: Klaim Perjalanan Dinas Surabaya" required />
+                                <label style={s.label}>Claim Title</label>
+                                <input id="claim-title" type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} style={s.input} placeholder="Example: Surabaya Business Trip Claim" required />
                             </div>
                             <div style={s.field}>
-                                <label style={s.label}>Deskripsi (opsional)</label>
-                                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...s.input, minHeight: 60, resize: "vertical" }} placeholder="Keterangan tambahan..." />
+                                <label style={s.label}>Description (optional)</label>
+                                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...s.input, minHeight: 60, resize: "vertical" }} placeholder="Additional notes..." />
                             </div>
 
                             <div style={s.itemsSection}>
                                 <div style={s.itemsHeader}>
-                                    <span style={s.label}>ITEM PENGELUARAN</span>
-                                    <button type="button" id="add-item-btn" onClick={addItem} style={s.addItemBtn}>+ Tambah Item</button>
+                                    <span style={s.label}>EXPENSE ITEMS</span>
+                                    <button type="button" id="add-item-btn" onClick={addItem} style={s.addItemBtn}>+ Add Item</button>
                                 </div>
 
                                 {items.map((item, idx) => (
@@ -202,48 +206,48 @@ export default function EssClaimsPage() {
                                             )}
                                         </div>
                                         <div style={s.field}>
-                                            <label style={s.label}>Kategori</label>
+                                            <label style={s.label}>Category</label>
                                             <select value={item.category} onChange={e => updateItem(idx, "category", e.target.value)} style={s.select}>
                                                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                                             </select>
                                         </div>
                                         <div style={s.field}>
-                                            <label style={s.label}>Deskripsi</label>
-                                            <input type="text" value={item.description} onChange={e => updateItem(idx, "description", e.target.value)} style={s.input} placeholder="Penjelasan pengeluaran..." required />
+                                            <label style={s.label}>Description</label>
+                                            <input type="text" value={item.description} onChange={e => updateItem(idx, "description", e.target.value)} style={s.input} placeholder="Expense explanation..." required />
                                         </div>
                                         <div style={s.twoCol}>
                                             <div style={{ ...s.field, flex: 1 }}>
-                                                <label style={s.label}>Jumlah (Rp)</label>
+                                                <label style={s.label}>Amount (Rp)</label>
                                                 <input type="number" value={item.amount || ""} onChange={e => updateItem(idx, "amount", Number(e.target.value))} style={s.input} placeholder="0" min="0" required />
                                             </div>
                                             <div style={{ ...s.field, flex: 1 }}>
-                                                <label style={s.label}>Tanggal Nota</label>
+                                                <label style={s.label}>Receipt Date</label>
                                                 <input type="date" value={item.receiptDate} onChange={e => updateItem(idx, "receiptDate", e.target.value)} style={s.input} required />
                                             </div>
                                         </div>
                                         <div style={s.field}>
-                                            <label style={s.label}>Merchant (opsional)</label>
-                                            <input type="text" value={item.merchant || ""} onChange={e => updateItem(idx, "merchant", e.target.value)} style={s.input} placeholder="Nama toko/vendor..." />
+                                            <label style={s.label}>Merchant (optional)</label>
+                                            <input type="text" value={item.merchant || ""} onChange={e => updateItem(idx, "merchant", e.target.value)} style={s.input} placeholder="Store/vendor name..." />
                                         </div>
                                         <div style={s.field}>
-                                            <label style={s.label}>Foto Struk (Opsional / OCR)</label>
+                                            <label style={s.label}>Receipt Photo (Optional / OCR)</label>
                                             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
                                                 <input type="file" accept="image/*" capture="environment" onChange={(e) => handleUploadReceipt(idx, e)} disabled={uploadingItemIdx === idx} style={{...s.input, padding: "8px"}} />
                                                 {uploadingItemIdx === idx && <span style={{ ...s.btnSpinner, width: 14, height: 14 }} />}
                                             </div>
-                                            {item.receiptUrl && <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#818cf8", marginTop: 4 }}>Lihat Struk Terlampir</a>}
+                                            {item.receiptUrl && <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#818cf8", marginTop: 4 }}>View Attached Receipt</a>}
                                         </div>
                                     </div>
                                 ))}
 
                                 <div style={s.totalBox}>
-                                    <span style={{ color: "#94a3b8", fontSize: 13 }}>Total Klaim</span>
+                                    <span style={{ color: "#94a3b8", fontSize: 13 }}>Total Claim</span>
                                     <span style={{ color: "#e0e7ff", fontWeight: 800, fontSize: 18, fontFamily: "monospace" }}>{formatIDR(totalAmount)}</span>
                                 </div>
                             </div>
 
                             <button id="submit-claim-btn" type="submit" disabled={isSubmitting} style={{ ...s.submitBtn, opacity: isSubmitting ? 0.7 : 1 }}>
-                                {isSubmitting ? <span style={s.btnSpinner} /> : `Kirim Klaim · ${formatIDR(totalAmount)}`}
+                                {isSubmitting ? <span style={s.btnSpinner} /> : `Submit Claim · ${formatIDR(totalAmount)}`}
                             </button>
                         </form>
                     </div>
@@ -251,11 +255,11 @@ export default function EssClaimsPage() {
 
                 {/* Claims History */}
                 <div style={s.section}>
-                    <h2 style={s.sectionTitle}>Riwayat Klaim</h2>
+                    <h2 style={s.sectionTitle}>Claim History</h2>
                     {claims.length === 0 ? (
                         <div style={s.emptyState}>
                             <span style={{ fontSize: 40 }}>💳</span>
-                            <p style={{ color: "#64748b", margin: "8px 0 0" }}>Belum ada pengajuan klaim</p>
+                            <p style={{ color: "#64748b", margin: "8px 0 0" }}>No claims submitted yet</p>
                         </div>
                     ) : (
                         <div style={s.claimList}>
@@ -272,7 +276,7 @@ export default function EssClaimsPage() {
                                         </div>
                                         <div style={s.claimBottom}>
                                             <span style={s.claimAmount}>{formatIDR(Number(claim.totalAmount))}</span>
-                                            <span style={s.claimItems}>{claim.items.length} item</span>
+                                            <span style={s.claimItems}>{claim.items.length} item{claim.items.length > 1 ? "s" : ""}</span>
                                         </div>
                                     </div>
                                 );
