@@ -11,6 +11,7 @@ interface ClaimItem {
     amount: number;
     receiptDate: string;
     merchant?: string;
+    receiptUrl?: string;
 }
 
 interface Claim {
@@ -53,11 +54,12 @@ export default function EssClaimsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadingItemIdx, setUploadingItemIdx] = useState<number | null>(null);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     const [form, setForm] = useState({ title: "", description: "" });
     const [items, setItems] = useState<ClaimItem[]>([
-        { category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "" }
+        { category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "", receiptUrl: "" }
     ]);
 
     const fetchClaims = useCallback(async () => {
@@ -71,7 +73,7 @@ export default function EssClaimsPage() {
     useEffect(() => { fetchClaims(); }, [fetchClaims]);
 
     const addItem = () => {
-        setItems(prev => [...prev, { category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "" }]);
+        setItems(prev => [...prev, { category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "", receiptUrl: "" }]);
     };
     const removeItem = (idx: number) => setItems(prev => prev.filter((_, i) => i !== idx));
     const updateItem = (idx: number, field: keyof ClaimItem, value: any) => {
@@ -79,6 +81,45 @@ export default function EssClaimsPage() {
     };
 
     const totalAmount = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    const handleUploadReceipt = async (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingItemIdx(idx);
+        setMessage(null);
+
+        const formData = new FormData();
+        formData.append("receipt", file);
+
+        try {
+            const res = await fetch("/api/v1/ess/claims/ocr", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                setItems(prev => prev.map((item, i) => {
+                    if (i !== idx) return item;
+                    return {
+                        ...item,
+                        receiptUrl: data.data.receiptUrl,
+                        amount: data.data.extractedAmount || item.amount,
+                        merchant: data.data.merchant || item.merchant,
+                    };
+                }));
+                setMessage({ type: "success", text: "Struk berhasil diunggah!" });
+            } else {
+                setMessage({ type: "error", text: data.error || "Gagal mengunggah struk" });
+            }
+        } catch {
+            setMessage({ type: "error", text: "Terjadi kesalahan saat upload" });
+        } finally {
+            setUploadingItemIdx(null);
+            e.target.value = "";
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -98,7 +139,7 @@ export default function EssClaimsPage() {
                 setMessage({ type: "success", text: `✅ Klaim ${data.data.claimNumber} berhasil diajukan!` });
                 setShowForm(false);
                 setForm({ title: "", description: "" });
-                setItems([{ category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "" }]);
+                setItems([{ category: "OTHER", description: "", amount: 0, receiptDate: new Date().toISOString().split("T")[0], merchant: "", receiptUrl: "" }]);
                 await fetchClaims();
             } else {
                 setMessage({ type: "error", text: data.error || "Gagal mengajukan klaim" });
@@ -183,6 +224,14 @@ export default function EssClaimsPage() {
                                         <div style={s.field}>
                                             <label style={s.label}>Merchant (opsional)</label>
                                             <input type="text" value={item.merchant || ""} onChange={e => updateItem(idx, "merchant", e.target.value)} style={s.input} placeholder="Nama toko/vendor..." />
+                                        </div>
+                                        <div style={s.field}>
+                                            <label style={s.label}>Foto Struk (Opsional / OCR)</label>
+                                            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                                                <input type="file" accept="image/*" capture="environment" onChange={(e) => handleUploadReceipt(idx, e)} disabled={uploadingItemIdx === idx} style={{...s.input, padding: "8px"}} />
+                                                {uploadingItemIdx === idx && <span style={{ ...s.btnSpinner, width: 14, height: 14 }} />}
+                                            </div>
+                                            {item.receiptUrl && <a href={item.receiptUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: "#818cf8", marginTop: 4 }}>Lihat Struk Terlampir</a>}
                                         </div>
                                     </div>
                                 ))}
