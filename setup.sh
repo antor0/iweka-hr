@@ -34,4 +34,4 @@ npm run build
 
 echo "✅ Setup successful! 🎉"
 echo "👉 You can now start the application by running: npm run start"
-echo "👉 Default login: wisesa@company.co.id / Password123!"
+echo "👉 Default login: andiko@company.co.id / Password123!"

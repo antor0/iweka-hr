@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Pencil, User, Mail, Phone, Building2, Briefcase, Calendar, FileText, Loader2 } from "lucide-react";
+import { ChevronLeft, Pencil, User, Mail, Phone, Building2, Briefcase, Calendar, FileText, Loader2, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -14,6 +14,27 @@ export default function ViewEmployeePage() {
     const router = useRouter();
     const [employee, setEmployee] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isResettingPin, setIsResettingPin] = useState(false);
+    const [pinResetMsg, setPinResetMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    const handleResetPin = async () => {
+        if (!employee) return;
+        const confirmed = window.confirm(`Reset PIN ESS untuk ${employee.fullName} ke 123456? Mereka akan diminta ganti PIN saat login berikutnya.`);
+        if (!confirmed) return;
+        setIsResettingPin(true);
+        setPinResetMsg(null);
+        try {
+            const res = await fetch(`/api/v1/employees/${employee.id}/reset-pin`, { method: "POST" });
+            const data = await res.json();
+            if (res.ok) {
+                setPinResetMsg({ type: "success", text: data.message });
+            } else {
+                setPinResetMsg({ type: "error", text: data.error || "Gagal reset PIN" });
+            }
+        } catch {
+            setPinResetMsg({ type: "error", text: "Tidak dapat terhubung ke server" });
+        } finally { setIsResettingPin(false); }
+    };
 
     useEffect(() => {
         const fetchEmployee = async () => {
@@ -67,12 +88,26 @@ export default function ViewEmployeePage() {
                         <p className="text-sm text-muted-foreground mt-1">Detailed personnel view.</p>
                     </div>
                 </div>
-                <Button asChild>
-                    <Link href={`/employees/${employee.id}/edit`}>
-                        <Pencil className="h-4 w-4 mr-2" /> Edit Profile
-                    </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleResetPin} disabled={isResettingPin} id="reset-pin-btn">
+                        {isResettingPin ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4 mr-1" />}
+                        Reset ESS PIN
+                    </Button>
+                    <Button asChild>
+                        <Link href={`/employees/${employee.id}/edit`}>
+                            <Pencil className="h-4 w-4 mr-2" /> Edit Profile
+                        </Link>
+                    </Button>
+                </div>
             </div>
+
+            {pinResetMsg && (
+                <div className={`px-4 py-3 rounded-lg text-sm font-medium ${
+                    pinResetMsg.type === "success" ? "bg-success/10 text-success border border-success/20" : "bg-destructive/10 text-destructive border border-destructive/20"
+                }`}>
+                    {pinResetMsg.text}
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 

@@ -11,6 +11,11 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://hris:hris_password@db:5432/hris_db?schema=public
       - SESSION_SECRET=production_super_secret_key_change_me_later_for_security_reasons
+      # DB_MODE controls database behaviour on startup:
+      #   migrate → (default) apply pending migrations + idempotent seed (safe for code updates)
+      #   reset   → wipe ALL data, re-run migrations + full seed (clean slate)
+      #   skip    → skip all DB ops (fastest restart, code-only update)
+      - DB_MODE=migrate
     depends_on:
       db:
         condition: service_healthy

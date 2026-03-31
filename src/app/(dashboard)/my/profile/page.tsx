@@ -30,7 +30,7 @@ export default function MyProfilePage() {
                             <AvatarFallback>WW</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 text-center sm:text-left">
-                            <h2 className="text-xl font-bold">Wisesa Widyantoro</h2>
+                            <h2 className="text-xl font-bold">Andiko Wibisana</h2>
                             <p className="text-muted-foreground">HR Admin — Human Resources</p>
                             <div className="flex flex-wrap gap-2 mt-2 justify-center sm:justify-start">
                                 <Badge variant="success">Active</Badge>
@@ -38,7 +38,7 @@ export default function MyProfilePage() {
                                 <Badge variant="outline" className="font-mono">EMP-0042</Badge>
                             </div>
                             <div className="flex flex-wrap gap-4 mt-3 text-sm text-muted-foreground justify-center sm:justify-start">
-                                <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> wisesa@company.co.id</span>
+                                <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> andiko@company.co.id</span>
                                 <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> 081234567890</span>
                                 <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Joined 15/03/2020</span>
                             </div>
@@ -62,7 +62,7 @@ export default function MyProfilePage() {
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                                 {[
-                                    ["Full Name", "Wisesa Widyantoro"],
+                                    ["Full Name", "Andiko Wibisana"],
                                     ["ID Number (KTP)", "3271••••••••0001"],
                                     ["Place, Date of Birth", "Jakarta, 15 March 1990"],
                                     ["Gender", "Male"],

@@ -66,7 +66,7 @@ export function Topbar() {
                             </Avatar>
                             <div className="hidden sm:flex flex-col items-start">
                                 <span className="text-sm font-medium text-foreground leading-tight">
-                                    Wisesa W.
+                                    andiko W.
                                 </span>
                                 <span className="text-[10px] text-muted-foreground leading-tight">
                                     HR Admin
@@ -77,9 +77,9 @@ export function Topbar() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel className="flex flex-col">
-                            <span>Wisesa Widyantoro</span>
+                            <span>Andiko Wibisana</span>
                             <span className="text-xs text-muted-foreground font-normal">
-                                wisesa@company.co.id
+                                andiko@company.co.id
                             </span>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />

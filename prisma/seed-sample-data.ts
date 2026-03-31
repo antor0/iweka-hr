@@ -62,7 +62,7 @@ async function main() {
     const taxConfig = await prisma.taxConfig.findFirst({ where: { isActive: true } });
     const bpjsConfig = await prisma.bpjsConfig.findFirst({ where: { isActive: true } });
     const adminEmployee = await prisma.employee.findUnique({ where: { employeeNumber: 'EMP-0001' } });
-    const adminUser = await prisma.user.findUnique({ where: { email: 'wisesa@company.co.id' } });
+    const adminUser = await prisma.user.findUnique({ where: { email: 'andiko@company.co.id' } });
 
     if (!adminEmployee || !adminUser || departments.length === 0 || grades.length === 0) {
         throw new Error('❌ Base seed data not found. Run `npx prisma db seed` first.');
@@ -90,7 +90,13 @@ async function main() {
     // ── 2. Create employees ──
     console.log('👥 Creating employees...');
     const passwordHash = await bcrypt.hash('Password123!', 10);
+    const defaultPinHash = await bcrypt.hash('123456', 10);
     const employeeIds: Record<string, string> = { 'EMP-0001': adminEmployee.id };
+
+    // Set default PIN on admin employee if not set
+    if (!adminEmployee.pin) {
+        await prisma.employee.update({ where: { id: adminEmployee.id }, data: { pin: defaultPinHash, pinMustChange: true } });
+    }
 
     for (const e of employeeDefs) {
         const posCode = e.pos || positionMap[e.num];
@@ -108,17 +114,27 @@ async function main() {
                 bankName: ['BCA', 'BRI', 'Mandiri', 'BNI'][Math.floor(Math.random() * 4)],
                 bankAccount: `${1000000000 + parseInt(e.num.replace('EMP-', ''))}`,
                 managerId: e.dept === 'D-IT' ? undefined : adminEmployee.id,
+                pin: defaultPinHash,
+                pinMustChange: true,
             },
         });
         employeeIds[e.num] = emp.id;
 
         // Create user account for employees with roles
         if (e.role) {
-            await prisma.user.upsert({
-                where: { email: e.email },
-                update: {},
-                create: { email: e.email, passwordHash, employeeId: emp.id, role: e.role },
-            });
+            const existingUserByEmp = await prisma.user.findUnique({ where: { employeeId: emp.id } });
+            if (existingUserByEmp) {
+                await prisma.user.update({
+                    where: { id: existingUserByEmp.id },
+                    data: { email: e.email, role: e.role },
+                });
+            } else {
+                await prisma.user.upsert({
+                    where: { email: e.email },
+                    update: { employeeId: emp.id, role: e.role },
+                    create: { email: e.email, passwordHash, employeeId: emp.id, role: e.role },
+                });
+            }
         }
     }
 
@@ -158,20 +174,31 @@ async function main() {
         { emp: 'EMP-0012', rel: 'CHILD' as const, name: 'Dara Lestari', dob: '2017-12-25' },
     ];
     for (const f of families) {
-        await prisma.familyMember.create({
-            data: {
-                employeeId: employeeIds[f.emp], relationship: f.rel,
-                fullName: f.name, dateOfBirth: new Date(f.dob),
-                isBpjsDependent: true,
-            },
+        const existingFamily = await prisma.familyMember.findFirst({
+            where: { employeeId: employeeIds[f.emp], relationship: f.rel, fullName: f.name },
         });
+        if (!existingFamily) {
+            await prisma.familyMember.create({
+                data: {
+                    employeeId: employeeIds[f.emp], relationship: f.rel,
+                    fullName: f.name, dateOfBirth: new Date(f.dob),
+                    isBpjsDependent: true,
+                },
+            });
+        }
     }
     console.log('  ✅ Family members created');
 
     // ── 4. Shifts ──
     console.log('⏰ Creating shifts...');
-    await prisma.shift.create({ data: { name: 'Regular Office', startTime: '08:00', endTime: '17:00', breakMinutes: 60, isDefault: true } });
-    await prisma.shift.create({ data: { name: 'Night Shift', startTime: '20:00', endTime: '05:00', breakMinutes: 60, isDefault: false } });
+    const existingShift1 = await prisma.shift.findFirst({ where: { name: 'Regular Office' } });
+    if (!existingShift1) {
+        await prisma.shift.create({ data: { name: 'Regular Office', startTime: '08:00', endTime: '17:00', breakMinutes: 60, isDefault: true } });
+    }
+    const existingShift2 = await prisma.shift.findFirst({ where: { name: 'Night Shift' } });
+    if (!existingShift2) {
+        await prisma.shift.create({ data: { name: 'Night Shift', startTime: '20:00', endTime: '05:00', breakMinutes: 60, isDefault: false } });
+    }
     console.log('  ✅ Shifts created');
 
     // ── 5. Attendance records (Feb 2026) ──
@@ -536,13 +563,18 @@ async function main() {
         { emp: 'EMP-0015', type: EmployeeChangeType.STATUS_CHANGE, date: '2026-01-02', old: { status: 'ACTIVE' }, new_: { status: 'PROBATION' }, reason: 'Contract renewal with probation period' },
     ];
     for (const h of histories) {
-        await prisma.employmentHistory.create({
-            data: {
-                employeeId: employeeIds[h.emp], changeType: h.type,
-                effectiveDate: new Date(h.date), oldValue: h.old, newValue: h.new_,
-                reason: h.reason, approvedById: adminEmployee.id,
-            },
+        const existingHistory = await prisma.employmentHistory.findFirst({
+            where: { employeeId: employeeIds[h.emp], changeType: h.type, effectiveDate: new Date(h.date) },
         });
+        if (!existingHistory) {
+            await prisma.employmentHistory.create({
+                data: {
+                    employeeId: employeeIds[h.emp], changeType: h.type,
+                    effectiveDate: new Date(h.date), oldValue: h.old, newValue: h.new_,
+                    reason: h.reason, approvedById: adminEmployee.id,
+                },
+            });
+        }
     }
     console.log('  ✅ Employment history created');
 
@@ -560,14 +592,16 @@ async function main() {
     ];
     for (let i = 0; i < auditActions.length; i++) {
         const a = auditActions[i];
-        await prisma.auditLog.create({
-            data: {
-                userId: adminUser.id, action: a.action, entityType: a.entity, entityId: a.id,
-                oldValues: a.old || undefined, newValues: a.new_ || undefined,
-                ipAddress: '192.168.1.100', userAgent: 'Mozilla/5.0 (Macintosh)',
-                createdAt: new Date(2026, 1, 1 + i * 3, 9, 0),
-            },
-        });
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    userId: adminUser.id, action: a.action, entityType: a.entity, entityId: a.id,
+                    oldValues: a.old || undefined, newValues: a.new_ || undefined,
+                    ipAddress: '192.168.1.100', userAgent: 'Mozilla/5.0 (Macintosh)',
+                    createdAt: new Date(2026, 1, 1 + i * 3, 9, 0),
+                },
+            });
+        } catch { /* skip duplicates */ }
     }
     console.log('  ✅ Audit logs created');
 

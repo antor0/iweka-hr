@@ -34,7 +34,7 @@ Our database seeding is fully automated and consists of several stages that run 
 
 The seed configuration is defined in `prisma.config.ts` and runs the following scripts in order:
 
-1. **`prisma/seed.ts`**: The foundational setup. Creates base departments, grades, positions, the admin user (`wisesa@company.co.id`), leave types, salary components, and calculates the necessary BPJS and PPh 21 (TER) config.
+1. **`prisma/seed.ts`**: The foundational setup. Creates base departments, grades, positions, the admin user (`andiko@company.co.id`), leave types, salary components, and calculates the necessary BPJS and PPh 21 (TER) config.
 2. **`prisma/seed-performance.ts`**: Seeds the Performance Management module. Creates a performance cycle (e.g., Mid-Year Review), employee appraisals, and sample KPIs/goals.
 3. **`prisma/seed-recruitment.ts`**: Seeds the ATS (Recruitment) module. Generates job requisitions, several dummy candidates, and sample applications spanning different review stages.
 4. **`prisma/seed-sample-data.ts`**: A comprehensive HR module seed. Generates 15+ employees across different departments, their family members, shifts, ~300 attendance records, overtime requests, leave balances, and sample payroll runs for January and February.
@@ -57,23 +57,45 @@ The easiest way to deploy HRIS Pro to production is using Docker. The repository
 - Docker Compose
 
 ### 1. Build and Run
-Starting the full stack is easy:
 
-```bash
-# This starts both the 'app' container and 'db' container in the background
-npm run docker:up
-# Or alternatively: docker-compose up -d --build
+The application uses a `DB_MODE` environment variable to control database behaviour on each container startup. Set this in `docker-compose.yml` **before** running the build.
+
+| `DB_MODE` | What it does |
+|-----------|-------------|
+| `migrate` | **(default)** Apply pending migrations + run idempotent seed scripts. Safe for normal code updates. |
+| `reset` | ⚠️ **Destructive.** Wipes ALL data, re-runs migrations from scratch, and seeds a clean database. |
+| `skip` | Skip all database operations. Fastest restart when only app code has changed and the DB is healthy. |
+
+**Option A — Edit `docker-compose.yml` (permanent)**
+
+Open `docker-compose.yml` and change the `DB_MODE` line under the `app` service's `environment` block before running:
+
+```yaml
+- DB_MODE=migrate   # safe default — apply migrations + idempotent seed
+# - DB_MODE=reset   # wipe & full reseed (clean slate)
+# - DB_MODE=skip    # code-only update, skip all DB operations
 ```
 
-### 2. Seed the Production Database
-Once the containers are up and running, you need to apply migrations and seed the database inside the application container:
+Then start/rebuild:
 
 ```bash
-# Run migrations and seed inside the running container
-docker-compose exec app npx prisma migrate deploy
-docker-compose exec app npx prisma db seed
+docker compose up -d --build
 ```
-*(Remember: Only run the full sample data seed if you want dummy data in your production/staging environment. Otherwise, consider running a stripped-down script that only runs `prisma/seed.ts`.)*
+
+**Option B — Override at the command line (one-off, no file edit)**
+
+```bash
+# Normal code update (default behaviour)
+docker compose up -d --build
+
+# Full database wipe + reseed
+DB_MODE=reset docker compose up -d --build
+
+# Code-only hotfix — fastest, skips all DB operations
+DB_MODE=skip docker compose up -d --build
+```
+
+> ⚠️ **`DB_MODE=reset` is destructive.** All existing data will be permanently deleted. Only use this when you intentionally want a clean slate (e.g., broken migration state, schema overhaul, or staging environment reset).
 
 ### 3. Application Access
 By default, the application runs on port `3000`.

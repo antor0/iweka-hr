@@ -76,7 +76,7 @@ export default function LoginPage() {
                                     name="email"
                                     placeholder="name@company.co.id"
                                     className="pl-10"
-                                    defaultValue="wisesa@company.co.id"
+                                    defaultValue="andiko@company.co.id"
                                     required
                                 />
                             </div>

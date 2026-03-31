@@ -160,6 +160,10 @@ model Employee {
   bankAccount String? @map("bank_account") // Encrypted
   photoUrl    String? @map("photo_url")
 
+  // ESS PIN Authentication
+  pin           String?  @map("pin") // bcrypt-hashed
+  pinMustChange Boolean  @default(true) @map("pin_must_change")
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

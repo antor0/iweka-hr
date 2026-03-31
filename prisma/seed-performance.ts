@@ -11,7 +11,7 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
     console.log('Starting Performance Management seed...');
 
-    const admin = await prisma.user.findUnique({ where: { email: 'wisesa@company.co.id' } });
+    const admin = await prisma.user.findUnique({ where: { email: 'andiko@company.co.id' } });
     const employees = await prisma.employee.findMany();
 
     if (!admin || employees.length === 0) {

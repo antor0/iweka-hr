@@ -16,7 +16,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 
 | Role | Email | Password | Access Level |
 |------|-------|----------|--------------|
-| **System Admin / HR Manager** | `wisesa@company.co.id` | `Password123!` | Full access to all modules |
+| **System Admin / HR Manager** | `andiko@company.co.id` | `Password123!` | Full access to all modules |
 
 > ⚠️ **Important**: Change this password immediately after your first login in a production environment.
 
@@ -217,35 +217,40 @@ The application is fully Dockerized using a **multi-stage build** optimized for 
 
 ### Deploy
 
+The application uses a `DB_MODE` environment variable (set in `docker-compose.yml`) to control database behaviour on each container startup:
+
+| `DB_MODE` | What it does |
+|-----------|-------------|
+| `migrate` | **(default)** Apply pending migrations + run idempotent seed scripts. Safe for all normal deploys. |
+| `reset` | ⚠️ **Destructive** — wipes all data, re-runs migrations from scratch, and seeds a fresh database. |
+| `skip` | Skip all DB operations. Fastest option when only app code changed and the DB is healthy. |
+
+**Normal code update (default)**
 ```bash
-# Start all services (Next.js app + PostgreSQL database)
-npm run docker:up
-# or: docker-compose up -d --build
+# Just build & redeploy — DB_MODE=migrate is the default
+docker compose up -d --build
+```
 
-# Access the app
-open http://localhost:3000
+**Full database wipe + fresh reseed**
+```bash
+# Edit docker-compose.yml: set DB_MODE=reset, then:
+DB_MODE=reset docker compose up -d --build
+```
 
+**Code-only hotfix (skip all DB ops)**
+```bash
+DB_MODE=skip docker compose up -d --build
+```
+
+```bash
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop all services
 npm run docker:down
 ```
 
-### Default Docker Database Credentials
-
-| Variable | Value |
-|----------|-------|
-| DB Host | `localhost` |
-| DB Port | `5432` |
-| DB Name | `hris_db` |
-| DB User | `hris` |
-| DB Password | `hris_password` |
-
-> After deployment, run the seed inside the container:
-> ```bash
-> docker-compose exec app npx prisma db seed
-> ```
+> ⚠️ `DB_MODE=reset` permanently deletes all data. See `deployment-guide.md` for full details.
 
 ---
 
