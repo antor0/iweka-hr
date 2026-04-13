@@ -17,7 +17,7 @@ echo "🛠️  DB_MODE = $DB_MODE"
 
 if [ "$DB_MODE" = "reset" ]; then
     echo "⚠️  Resetting database (dropping all data)..."
-    npx prisma migrate reset --force --skip-seed
+    npx prisma migrate reset --force
     echo "📦 Running fresh migrations..."
     npx prisma migrate deploy
     echo "🌱 Running full seed..."
