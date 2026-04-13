@@ -1,11 +1,25 @@
 import 'dotenv/config';
-import { WorkTimeModelType, SuratType, ApprovalType } from '@prisma/client';
-import { prisma } from "../src/lib/db/prisma";
+import { WorkTimeModelType, SuratType, ApprovalType, PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+const connectionString = `${process.env.DATABASE_URL}`;
+const pool = new Pool({ connectionString });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
     console.log('🌱 Seeding Location data...');
-    const hq = await prisma.location.create({
-        data: {
+    const hq = await prisma.location.upsert({
+        where: { id: 'hq-location' }, // Use a fixed ID for seeding
+        update: {
+            name: 'Headquarters (HQ)',
+            address: 'Jl. Jend. Sudirman No. 1, Jakarta',
+            city: 'Jakarta',
+            isActive: true,
+        },
+        create: {
+            id: 'hq-location',
             name: 'Headquarters (HQ)',
             address: 'Jl. Jend. Sudirman No. 1, Jakarta',
             city: 'Jakarta',
@@ -13,8 +27,16 @@ async function main() {
         }
     });
     
-    const branch = await prisma.location.create({
-        data: {
+    const branch = await prisma.location.upsert({
+        where: { id: 'branch-surabaya' },
+        update: {
+            name: 'Branch Office - Surabaya',
+            address: 'Jl. Raya Darmo, Surabaya',
+            city: 'Surabaya',
+            isActive: true,
+        },
+        create: {
+            id: 'branch-surabaya',
             name: 'Branch Office - Surabaya',
             address: 'Jl. Raya Darmo, Surabaya',
             city: 'Surabaya',
@@ -23,8 +45,14 @@ async function main() {
     });
 
     console.log('🌱 Seeding WorkTimeModels data...');
-    const regular = await prisma.workTimeModel.create({
-        data: {
+    const regular = await prisma.workTimeModel.upsert({
+        where: { id: 'work-model-regular' },
+        update: {
+            name: 'Regular Office Hours (09:00 - 18:00)',
+            type: WorkTimeModelType.REGULAR,
+        },
+        create: {
+            id: 'work-model-regular',
             name: 'Regular Office Hours (09:00 - 18:00)',
             type: WorkTimeModelType.REGULAR,
             schedules: {
@@ -35,8 +63,14 @@ async function main() {
         }
     });
     
-    const shift2 = await prisma.workTimeModel.create({
-        data: {
+    const shift2 = await prisma.workTimeModel.upsert({
+        where: { id: 'work-model-shift2' },
+        update: {
+            name: '2-Shift Operation',
+            type: WorkTimeModelType.SHIFT_2,
+        },
+        create: {
+            id: 'work-model-shift2',
             name: '2-Shift Operation',
             type: WorkTimeModelType.SHIFT_2,
             schedules: {
@@ -48,6 +82,7 @@ async function main() {
         }
     });
 
+    // ... (SuratTemplate logic is already using upsert)
     console.log('🌱 Seeding Surat Templates...');
     const suratTypes = [
         { type: SuratType.SP1, name: 'Surat Peringatan 1 (SP1)', defaultFormat: '{{seq}}/{{month}}/SP1/HR/{{year}}' },
@@ -128,17 +163,20 @@ async function main() {
     }
 
     console.log('🌱 Seeding EmailConfig...');
-    await prisma.emailConfig.create({
-        data: {
-            smtpHost: 'smtp.gmail.com',
-            smtpPort: 465,
-            smtpUser: 'hris@example.com',
-            smtpPass: 'password_placeholder',
-            fromName: 'HRIS System',
-            fromEmail: 'hris@example.com',
-            isActive: true,
-        }
-    });
+    const existingEmail = await prisma.emailConfig.findFirst();
+    if (!existingEmail) {
+        await prisma.emailConfig.create({
+            data: {
+                smtpHost: 'smtp.gmail.com',
+                smtpPort: 465,
+                smtpUser: 'hris@example.com',
+                smtpPass: 'password_placeholder',
+                fromName: 'HRIS System',
+                fromEmail: 'hris@example.com',
+                isActive: true,
+            }
+        });
+    }
 
     console.log('✅ All features seeded successfully!');
 }
