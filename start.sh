@@ -27,6 +27,7 @@ if [ "$DB_MODE" = "reset" ]; then
     npx tsx prisma/seed-sample-data.ts
     echo "🔒 Updating admin user password..."
     npx tsx prisma/update-password.ts
+    npx tsx prisma/seed-features.ts
 
 elif [ "$DB_MODE" = "migrate" ]; then
     echo "📦 Applying pending migrations..."
@@ -38,6 +39,8 @@ elif [ "$DB_MODE" = "migrate" ]; then
     npx tsx prisma/seed-sample-data.ts
     echo "🔒 Updating admin user password..."
     npx tsx prisma/update-password.ts
+    npx tsx prisma/seed-features.ts
+
 
 elif [ "$DB_MODE" = "skip" ]; then
     echo "⏩ Skipping all database operations (code-only update)."
