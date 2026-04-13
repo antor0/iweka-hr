@@ -9,6 +9,55 @@ datasource db {
 // ---------------------------------------------------------
 // ENUMS
 // ---------------------------------------------------------
+enum WorkTimeModelType {
+  REGULAR
+  SHIFT_2
+  SHIFT_3
+  CUSTOM
+}
+
+enum ApprovalType {
+  LEAVE
+  OVERTIME
+  CLAIM
+  BUDGETING
+  RECRUITMENT
+}
+
+enum AllowanceCategory {
+  FIXED
+  VARIABLE
+}
+
+enum AllowanceBasis {
+  FIXED_AMOUNT
+  ATTENDANCE_BASED
+}
+
+enum SuratType {
+  SP1
+  SP2
+  SP3
+  PENGANGKATAN_TETAP
+  PROMOSI
+  DEMOSI
+  MUTASI
+  PEMBERHENTIAN
+  PENGUNDURAN_DIRI
+  PURCHASE_REQUEST
+  TUGAS
+  KETERANGAN_PENGHASILAN
+  PAKLARING
+  KETERANGAN_KERJA
+}
+
+enum NotificationType {
+  APPROVAL_NEEDED
+  APPROVAL_RESULT
+  SURAT_ISSUED
+  PAYROLL_READY
+  GENERAL
+}
 
 enum Gender {
   MALE
@@ -128,6 +177,15 @@ enum ClaimCategory {
   OTHER
 }
 
+enum TimesheetStatus {
+  PRESENT
+  LATE
+  ABSENT
+  LEAVE
+  HOLIDAY
+  OFF_DAY
+}
+
 // ---------------------------------------------------------
 // CORE HR
 // ---------------------------------------------------------
@@ -149,20 +207,22 @@ model Employee {
   employmentStatus EmploymentStatus @map("employment_status")
   employmentType   EmploymentType   @map("employment_type")
 
-  departmentId String? @map("department_id")
-  positionId   String? @map("position_id")
-  gradeId      String? @map("grade_id")
-  managerId    String? @map("manager_id")
+  departmentId    String? @map("department_id")
+  positionId      String? @map("position_id")
+  gradeId         String? @map("grade_id")
+  managerId       String? @map("manager_id")
+  locationId      String? @map("location_id")
+  workTimeModelId String? @map("work_time_model_id")
 
-  baseSalary  Decimal? @map("base_salary") @db.Decimal(15, 2) // Override grade midpoint if set
+  baseSalary Decimal? @map("base_salary") @db.Decimal(15, 2) // Override grade midpoint if set
 
   bankName    String? @map("bank_name")
   bankAccount String? @map("bank_account") // Encrypted
   photoUrl    String? @map("photo_url")
 
   // ESS PIN Authentication
-  pin           String?  @map("pin") // bcrypt-hashed
-  pinMustChange Boolean  @default(true) @map("pin_must_change")
+  pin           String? @map("pin") // bcrypt-hashed
+  pinMustChange Boolean @default(true) @map("pin_must_change")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -196,31 +256,49 @@ model Employee {
   interviewsConducted   Interview[]      @relation("InterviewInterviewer")
 
   // Performance inverses
-  appraisalsAsEmployee  Appraisal[]      @relation("AppraisalEmployee")
-  appraisalsAsManager   Appraisal[]      @relation("AppraisalManager")
+  appraisalsAsEmployee Appraisal[] @relation("AppraisalEmployee")
+  appraisalsAsManager  Appraisal[] @relation("AppraisalManager")
 
   // Claims inverses
-  claims          Claim[]          @relation("EmployeeClaims")
-  approvedClaims  Claim[]          @relation("ApprovedClaims")
+  claims         Claim[] @relation("EmployeeClaims")
+  approvedClaims Claim[] @relation("ApprovedClaims")
+
+  // Added inverses
+  location              Location?              @relation(fields: [locationId], references: [id])
+  workTimeModel         WorkTimeModel?         @relation(fields: [workTimeModelId], references: [id])
+  level1Workflows       ApprovalWorkflow[]     @relation("Level1Approver")
+  level2Workflows       ApprovalWorkflow[]     @relation("Level2Approver")
+  allowances            EmployeeAllowance[]
+  monthlyVariableInputs MonthlyVariableInput[]
+  suratHistory          SuratHistory[]
+  workSchedules         EmployeeWorkSchedule[]
+  timesheets            Timesheet[]
 
   @@map("hr_employees")
 }
 
 model Department {
-  id       String  @id @default(uuid())
-  name     String
-  code     String  @unique
-  parentId String? @map("parent_id")
-  headId   String? @map("head_id")
-  isActive Boolean @default(true) @map("is_active")
+  id              String  @id @default(uuid())
+  name            String
+  code            String  @unique
+  parentId        String? @map("parent_id")
+  headId          String? @map("head_id")
+  isActive        Boolean @default(true) @map("is_active")
+  description     String? @db.Text
+  locationId      String? @map("location_id")
+  workTimeModelId String? @map("work_time_model_id")
 
   // Relations
-  parent       Department?      @relation("DepartmentHierarchy", fields: [parentId], references: [id])
-  children     Department[]     @relation("DepartmentHierarchy")
-  head         Employee?        @relation("DepartmentHead", fields: [headId], references: [id])
-  employees    Employee[]       @relation("EmployeeDepartment")
-  positions    Position[]
-  requisitions JobRequisition[]
+  parent            Department?        @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children          Department[]       @relation("DepartmentHierarchy")
+  head              Employee?          @relation("DepartmentHead", fields: [headId], references: [id])
+  employees         Employee[]         @relation("EmployeeDepartment")
+  positions         Position[]
+  requisitions      JobRequisition[]
+  location          Location?          @relation(fields: [locationId], references: [id])
+  workTimeModel     WorkTimeModel?     @relation(fields: [workTimeModelId], references: [id])
+  approvalWorkflows ApprovalWorkflow[]
+  departmentWorkModels DepartmentWorkModel[]
 
   @@map("hr_departments")
 }
@@ -234,10 +312,11 @@ model Position {
   isActive     Boolean @default(true) @map("is_active")
 
   // Relations
-  department   Department?      @relation(fields: [departmentId], references: [id])
-  grade        Grade?           @relation(fields: [gradeId], references: [id])
-  employees    Employee[]       @relation("EmployeePosition")
-  requisitions JobRequisition[]
+  department     Department?      @relation(fields: [departmentId], references: [id])
+  grade          Grade?           @relation(fields: [gradeId], references: [id])
+  employees      Employee[]       @relation("EmployeePosition")
+  requisitions   JobRequisition[]
+  positionGrades PositionGrade[]
 
   @@map("hr_positions")
 }
@@ -250,8 +329,9 @@ model Grade {
   maxSalary Decimal @map("max_salary") @db.Decimal(15, 2)
 
   // Relations
-  positions Position[]
-  employees Employee[]
+  positions      Position[]
+  employees      Employee[]
+  positionGrades PositionGrade[]
 
   @@map("hr_grades")
 }
@@ -461,15 +541,15 @@ model PayrollItem {
 }
 
 model MonthlyIncentive {
-  id           String   @id @default(uuid())
-  employeeId   String   @map("employee_id")
-  month        Int      // 1-12
-  year         Int
-  incentive    Decimal  @default(0) @db.Decimal(15, 2)
-  bonus        Decimal  @default(0) @db.Decimal(15, 2)
-  notes        String?  @db.Text
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  employeeId String   @map("employee_id")
+  month      Int // 1-12
+  year       Int
+  incentive  Decimal  @default(0) @db.Decimal(15, 2)
+  bonus      Decimal  @default(0) @db.Decimal(15, 2)
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
   employee Employee @relation(fields: [employeeId], references: [id])
@@ -566,6 +646,8 @@ model User {
   id               String    @id @default(uuid())
   employeeId       String?   @unique @map("employee_id")
   email            String    @unique
+  fullName         String?   @map("full_name")
+  photoUrl         String?   @map("photo_url")
   passwordHash     String    @map("password_hash")
   role             UserRole  @default(EMPLOYEE)
   isActive         Boolean   @default(true) @map("is_active")
@@ -575,10 +657,12 @@ model User {
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  employee         Employee?    @relation(fields: [employeeId], references: [id])
+  employee         Employee?      @relation(fields: [employeeId], references: [id])
   auditLogs        AuditLog[]
-  runPayrolls      PayrollRun[] @relation("PayrollRunner")
-  approvedPayrolls PayrollRun[] @relation("PayrollApprover")
+  runPayrolls      PayrollRun[]   @relation("PayrollRunner")
+  approvedPayrolls PayrollRun[]   @relation("PayrollApprover")
+  createdSurats    SuratHistory[] @relation("SuratCreator")
+  notifications    Notification[] @relation("UserNotifications")
 
   @@map("sys_users")
 }
@@ -718,15 +802,15 @@ enum AppraisalStatus {
 }
 
 model PerformanceCycle {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  description String?   @db.Text
-  startDate   DateTime  @map("start_date") @db.Date
-  endDate     DateTime  @map("end_date") @db.Date
-  isActive    Boolean   @default(true) @map("is_active")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  description String?  @db.Text
+  startDate   DateTime @map("start_date") @db.Date
+  endDate     DateTime @map("end_date") @db.Date
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  appraisals  Appraisal[]
+  appraisals Appraisal[]
 
   @@map("perf_cycles")
 }
@@ -755,15 +839,15 @@ model Appraisal {
 }
 
 model Goal {
-  id            String   @id @default(uuid())
-  appraisalId   String   @map("appraisal_id")
+  id            String  @id @default(uuid())
+  appraisalId   String  @map("appraisal_id")
   title         String
-  description   String   @db.Text
-  weight        Decimal  @default(100) @db.Decimal(5, 2)
-  status        String   @default("NOT_STARTED")
-  selfRating    Int?     @map("self_rating")
-  managerRating Int?   @map("manager_rating")
-  feedback      String?  @db.Text
+  description   String  @db.Text
+  weight        Decimal @default(100) @db.Decimal(5, 2)
+  status        String  @default("NOT_STARTED")
+  selfRating    Int?    @map("self_rating")
+  managerRating Int?    @map("manager_rating")
+  feedback      String? @db.Text
 
   // Relations
   appraisal Appraisal @relation(fields: [appraisalId], references: [id], onDelete: Cascade)
@@ -815,4 +899,257 @@ model ClaimItem {
   claim Claim @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@map("clm_claim_items")
+}
+
+// ---------------------------------------------------------
+// NEW FEATURES MODELS
+// ---------------------------------------------------------
+
+model Location {
+  id       String  @id @default(uuid())
+  name     String
+  address  String? @db.Text
+  city     String?
+  isActive Boolean @default(true) @map("is_active")
+
+  departments Department[]
+  employees   Employee[]
+
+  @@map("org_locations")
+}
+
+model WorkTimeModel {
+  id       String            @id @default(uuid())
+  name     String
+  type     WorkTimeModelType @default(REGULAR)
+  isActive Boolean           @default(true) @map("is_active")
+
+  schedules            WorkTimeSchedule[]
+  departments          Department[]
+  employees            Employee[]
+  departmentWorkModels DepartmentWorkModel[] @relation("DeptWorkModels")
+  employeeSchedules    EmployeeWorkSchedule[] @relation("ScheduleModel")
+
+  @@map("org_work_time_models")
+}
+
+model WorkTimeSchedule {
+  id              String @id @default(uuid())
+  workTimeModelId String @map("work_time_model_id")
+  shiftName       String @map("shift_name")
+  startTime       String @map("start_time")
+  endTime         String @map("end_time")
+  breakMinutes    Int    @default(60) @map("break_minutes")
+
+  workTimeModel WorkTimeModel @relation(fields: [workTimeModelId], references: [id], onDelete: Cascade)
+
+  @@map("org_work_time_schedules")
+}
+
+model ApprovalWorkflow {
+  id               String       @id @default(uuid())
+  departmentId     String       @map("department_id")
+  approvalType     ApprovalType @map("approval_type")
+  level1ApproverId String       @map("level1_approver_id")
+  level2ApproverId String?      @map("level2_approver_id")
+  isActive         Boolean      @default(true) @map("is_active")
+
+  department     Department @relation(fields: [departmentId], references: [id])
+  level1Approver Employee   @relation("Level1Approver", fields: [level1ApproverId], references: [id])
+  level2Approver Employee?  @relation("Level2Approver", fields: [level2ApproverId], references: [id])
+
+  @@unique([departmentId, approvalType])
+  @@map("org_approval_workflows")
+}
+
+model PositionGrade {
+  id         String @id @default(uuid())
+  positionId String @map("position_id")
+  gradeId    String @map("grade_id")
+
+  position Position @relation(fields: [positionId], references: [id])
+  grade    Grade    @relation(fields: [gradeId], references: [id])
+
+  @@unique([positionId, gradeId])
+  @@map("org_position_grades")
+}
+
+model EmployeeAllowance {
+  id         String            @id @default(uuid())
+  employeeId String            @map("employee_id")
+  name       String
+  category   AllowanceCategory
+  basis      AllowanceBasis    @default(FIXED_AMOUNT)
+  amount     Decimal           @db.Decimal(15, 2)
+  isActive   Boolean           @default(true) @map("is_active")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@map("pay_employee_allowances")
+}
+
+model MonthlyVariableInput {
+  id               String   @id @default(uuid())
+  employeeId       String   @map("employee_id")
+  month            Int
+  year             Int
+  thrAmount        Decimal  @default(0) @map("thr_amount") @db.Decimal(15, 2)
+  overtimeAmount   Decimal  @default(0) @map("overtime_amount") @db.Decimal(15, 2)
+  commissionAmount Decimal  @default(0) @map("commission_amount") @db.Decimal(15, 2)
+  bonusAmount      Decimal  @default(0) @map("bonus_amount") @db.Decimal(15, 2)
+  notes            String?  @db.Text
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, month, year])
+  @@map("pay_monthly_variable_inputs")
+}
+
+model SuratTemplate {
+  id           String    @id @default(uuid())
+  type         SuratType @unique
+  name         String
+  htmlContent  String    @map("html_content") @db.Text
+  numberFormat String    @default("SEQ/MONTH/TYPE/HR/YEAR") @map("number_format")
+  isActive     Boolean   @default(true) @map("is_active")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  suratHistory SuratHistory[]
+
+  @@map("doc_surat_templates")
+}
+
+model SuratHistory {
+  id           String   @id @default(uuid())
+  employeeId   String   @map("employee_id")
+  templateId   String   @map("template_id")
+  suratNumber  String   @map("surat_number")
+  issuedDate   DateTime @map("issued_date") @db.Date
+  renderedData Json     @map("rendered_data")
+  notes        String?  @db.Text
+  createdById  String?  @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  employee  Employee      @relation(fields: [employeeId], references: [id])
+  template  SuratTemplate @relation(fields: [templateId], references: [id])
+  createdBy User?         @relation("SuratCreator", fields: [createdById], references: [id])
+
+  @@map("doc_surat_history")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String           @db.Text
+  link      String?
+  isRead    Boolean          @default(false) @map("is_read")
+  emailSent Boolean          @default(false) @map("email_sent")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation("UserNotifications", fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("sys_notifications")
+}
+
+model EmailConfig {
+  id        String  @id @default(uuid())
+  smtpHost  String  @map("smtp_host")
+  smtpPort  Int     @map("smtp_port")
+  smtpUser  String  @map("smtp_user")
+  smtpPass  String  @map("smtp_pass")
+  fromName  String  @map("from_name")
+  fromEmail String  @map("from_email")
+  isActive  Boolean @default(true) @map("is_active")
+
+  @@map("sys_email_config")
+}
+
+// ---------------------------------------------------------
+// NEW FEATURES MODELS (SCHEDULE & PAYROLL)
+// ---------------------------------------------------------
+
+// Many-to-many: Department ↔ WorkTimeModel
+model DepartmentWorkModel {
+  id              String @id @default(uuid())
+  departmentId    String @map("department_id")
+  workTimeModelId String @map("work_time_model_id")
+
+  department    Department    @relation(fields: [departmentId], references: [id])
+  workTimeModel WorkTimeModel @relation("DeptWorkModels", fields: [workTimeModelId], references: [id])
+
+  @@unique([departmentId, workTimeModelId])
+  @@map("org_department_work_models")
+}
+
+// Generated work schedule per employee per day
+model EmployeeWorkSchedule {
+  id              String   @id @default(uuid())
+  employeeId      String   @map("employee_id")
+  workTimeModelId String   @map("work_time_model_id")
+  date            DateTime @db.Date
+  shiftName       String   @map("shift_name")
+  scheduledStart  String   @map("scheduled_start")  // HH:mm
+  scheduledEnd    String   @map("scheduled_end")    // HH:mm
+  breakMinutes    Int      @default(60) @map("break_minutes")
+  isWeekend       Boolean  @default(false) @map("is_weekend")
+  isHoliday       Boolean  @default(false) @map("is_holiday")
+
+  employee      Employee      @relation(fields: [employeeId], references: [id])
+  workTimeModel WorkTimeModel @relation("ScheduleModel", fields: [workTimeModelId], references: [id])
+  timesheets    Timesheet[]
+
+  @@unique([employeeId, date])
+  @@map("ta_employee_work_schedules")
+}
+
+// Timesheet = Schedule vs Actual Attendance
+model Timesheet {
+  id              String          @id @default(uuid())
+  employeeId      String          @map("employee_id")
+  date            DateTime        @db.Date
+  scheduleId      String?         @map("schedule_id")
+
+  // From schedule
+  scheduledStart  String?         @map("scheduled_start")
+  scheduledEnd    String?         @map("scheduled_end")
+
+  // From actual attendance
+  actualClockIn   DateTime?       @map("actual_clock_in")
+  actualClockOut  DateTime?       @map("actual_clock_out")
+
+  // Computed
+  workHours       Decimal?        @map("work_hours") @db.Decimal(5, 2)
+  overtimeHours   Decimal?        @map("overtime_hours") @db.Decimal(5, 2)
+  lateMinutes     Int?            @map("late_minutes")
+  earlyLeaveMin   Int?            @map("early_leave_minutes")
+  status          TimesheetStatus
+  notes           String?         @db.Text
+
+  month           Int
+  year            Int
+  createdAt       DateTime        @default(now()) @map("created_at")
+
+  employee Employee              @relation(fields: [employeeId], references: [id])
+  schedule EmployeeWorkSchedule? @relation(fields: [scheduleId], references: [id])
+
+  @@unique([employeeId, date])
+  @@map("ta_timesheets")
+}
+
+// Company/National holidays per year
+model Holiday {
+  id          String   @id @default(uuid())
+  name        String
+  date        DateTime @db.Date
+  year        Int
+  isNational  Boolean  @default(true) @map("is_national")
+  description String?  @db.Text
+
+  @@unique([date])
+  @@map("sys_holidays")
 }

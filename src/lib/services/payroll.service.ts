@@ -78,8 +78,8 @@ export class PayrollService {
         });
 
         // Determine Start/End of the period for attendance checking
-        const startDate = new Date(periodYear, periodMonth - 1, 1);
-        const endDate = new Date(periodYear, periodMonth, 0); // Last date of month
+        const startDate = new Date(Date.UTC(periodYear, periodMonth - 1, 1));
+        const endDate = new Date(Date.UTC(periodYear, periodMonth, 0)); // Last date of month
 
         const itemsData: any[] = [];
         let rTotalGross = 0;
@@ -98,22 +98,48 @@ export class PayrollService {
                 basicSalary = (Number(emp.grade.minSalary) + Number(emp.grade.maxSalary)) / 2;
             }
 
-            // 2. Fetch Attendance for Overtime
-            const attendances = await prisma.attendance.findMany({
+            // 2. Fetch Timesheets (used for ATTENDANCE_BASED allowances and calculations)
+            const timesheets = await prisma.timesheet.findMany({
                 where: {
                     employeeId: emp.id,
                     date: { gte: startDate, lte: endDate }
                 }
             });
-            const totalOtHours = attendances.reduce((acc, curr) => acc + Number(curr.overtimeHours || 0), 0);
+            // "LATE" is informational and counts as PRESENT for financial purposes
+            const daysPresent = timesheets.filter(t => t.status === "PRESENT" || t.status === "LATE").length;
 
-            // Dummy OT calculation: (Basic Salary / 173) * OT Hours * 1.5
-            const hourlyRate = basicSalary / 173;
-            const overtimePay = hourlyRate * totalOtHours * 1.5;
+            // 3. Allowances Calculation
+            const allowances = await prisma.employeeAllowance.findMany({
+                where: { employeeId: emp.id, isActive: true }
+            });
 
-            // 3. Allowances (Fixed dummy transport for now: 1000000)
-            const transportAllowance = 1000000;
-            const grossIncome = basicSalary + transportAllowance + overtimePay;
+            let totalAllowances = 0;
+            for (const allowance of allowances) {
+                if (allowance.basis === "FIXED_AMOUNT") {
+                    totalAllowances += Number(allowance.amount);
+                } else if (allowance.basis === "ATTENDANCE_BASED") {
+                    totalAllowances += Number(allowance.amount) * daysPresent;
+                }
+            }
+
+            // 4. Monthly Variable Inputs (THR, Overtime, Bonus, Commission)
+            const vars = await prisma.monthlyVariableInput.findUnique({
+                where: {
+                    employeeId_month_year: {
+                        employeeId: emp.id,
+                        month: periodMonth,
+                        year: periodYear
+                    }
+                }
+            });
+
+            const thrAmount = vars ? Number(vars.thrAmount) : 0;
+            const overtimePay = vars ? Number(vars.overtimeAmount) : 0;
+            const commission = vars ? Number(vars.commissionAmount) : 0;
+            const bonus = vars ? Number(vars.bonusAmount) : 0;
+
+            const totalVariablePay = thrAmount + overtimePay + commission + bonus;
+            const grossIncome = basicSalary + totalAllowances + totalVariablePay;
 
             // 4. BPJS Calculation
             const bpjsBase = Math.min(basicSalary, Number(bpjsConfig.kesSalaryCap));
@@ -159,7 +185,7 @@ export class PayrollService {
             itemsData.push({
                 employeeId: emp.id,
                 basicSalary,
-                totalAllowances: transportAllowance,
+                totalAllowances: totalAllowances,
                 totalOvertime: overtimePay,
                 grossIncome,
                 pph21Amount: taxAmount,
@@ -173,7 +199,13 @@ export class PayrollService {
                 bpjsTkJkmCompany: bpjsJkmComp,
                 totalDeductions,
                 netSalary,
-                components: { transport: transportAllowance, otHours: totalOtHours }
+                components: { 
+                    allowances: totalAllowances, 
+                    thr: thrAmount, 
+                    bonus, 
+                    commission,
+                    overtime: overtimePay
+                }
             });
 
             rTotalGross += grossIncome;

@@ -28,11 +28,14 @@ import {
     FileText,
 } from "lucide-react";
 
+import { Permission, hasPermission } from "@/lib/auth/permissions-config";
+
 interface NavItem {
     title: string;
     href: string;
     icon: React.ReactNode;
     badge?: string;
+    permission?: Permission;
 }
 
 const navItems: NavItem[] = [
@@ -45,51 +48,61 @@ const navItems: NavItem[] = [
         title: "Employees",
         href: "/employees",
         icon: <Users className="h-5 w-5" />,
+        permission: "employees.read",
     },
     {
         title: "Organization",
         href: "/organization",
         icon: <Building2 className="h-5 w-5" />,
+        permission: "organization.read",
     },
     {
         title: "Attendance",
         href: "/attendance",
         icon: <Clock className="h-5 w-5" />,
+        permission: "attendance.read",
     },
     {
         title: "Leave",
         href: "/leave",
         icon: <CalendarDays className="h-5 w-5" />,
+        permission: "leave.read",
     },
     {
         title: "Claims",
         href: "/claims",
         icon: <FileText className="h-5 w-5" />,
+        permission: "claims.read",
     },
     {
         title: "Payroll",
         href: "/payroll",
         icon: <Wallet className="h-5 w-5" />,
+        permission: "payroll.read",
     },
     {
         title: "Tax (PPh 21)",
         href: "/tax",
         icon: <Receipt className="h-5 w-5" />,
+        permission: "payroll.read",
     },
     {
         title: "BPJS",
         href: "/bpjs",
         icon: <HeartPulse className="h-5 w-5" />,
+        permission: "payroll.read",
     },
     {
         title: "Recruitment",
         href: "/recruitment",
         icon: <Briefcase className="h-5 w-5" />,
+        permission: "recruitment.manage",
     },
     {
         title: "Reports",
         href: "/reports",
         icon: <BarChart3 className="h-5 w-5" />,
+        permission: "reports.read",
     },
 ];
 
@@ -103,12 +116,33 @@ const bottomNavItems: NavItem[] = [
         title: "Settings",
         href: "/settings",
         icon: <Settings className="h-5 w-5" />,
+        permission: "settings.manage",
     },
 ];
 
 export function Sidebar() {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = React.useState(false);
+    const [role, setRole] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        fetch("/api/v1/auth/session")
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.session && data.session.role) {
+                    setRole(data.session.role);
+                }
+            })
+            .catch((err) => console.error("Failed to fetch session", err));
+    }, []);
+
+    const filteredNavItems = React.useMemo(() => {
+        return navItems.filter((item) => !item.permission || (role && hasPermission(role, item.permission)));
+    }, [role]);
+
+    const filteredBottomNavItems = React.useMemo(() => {
+        return bottomNavItems.filter((item) => !item.permission || (role && hasPermission(role, item.permission)));
+    }, [role]);
 
     return (
         <aside
@@ -137,7 +171,7 @@ export function Sidebar() {
             {/* Navigation */}
             <ScrollArea className="flex-1 py-3">
                 <nav className="flex flex-col gap-1 px-3">
-                    {navItems.map((item) => {
+                    {filteredNavItems.map((item) => {
                         const isActive =
                             pathname === item.href || pathname?.startsWith(item.href + "/");
 
@@ -191,7 +225,7 @@ export function Sidebar() {
 
             {/* Bottom nav */}
             <div className="border-t border-sidebar-border px-3 py-3 flex flex-col gap-1 shrink-0">
-                {bottomNavItems.map((item) => {
+                {filteredBottomNavItems.map((item) => {
                     const isActive =
                         pathname === item.href || pathname?.startsWith(item.href + "/");
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AttendanceService } from "@/lib/services/attendance.service";
 import { UpdateAttendanceSchema } from "@/lib/validators/attendance.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission, requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(
     request: NextRequest,
@@ -17,7 +18,7 @@ export async function GET(
         if (!record) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
         // Ensure user can only view their own record unless admin
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && record.employeeId !== session.employeeId) {
+        if (!hasPermission(session.role, "attendance.read") && record.employeeId !== session.employeeId) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -33,9 +34,11 @@ export async function PUT(
 ) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "attendance.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const body = await request.json();
@@ -58,9 +61,11 @@ export async function DELETE(
 ) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "attendance.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         await AttendanceService.deleteAttendance(resolvedParams.id);

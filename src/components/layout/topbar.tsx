@@ -16,9 +16,30 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { useRouter } from "next/navigation";
+import { NotificationBell } from "./notification-bell";
 
 export function Topbar() {
     const router = useRouter();
+    const [user, setUser] = React.useState<any>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch("/api/v1/auth/me");
+                const data = await res.json();
+                if (data?.success) {
+                    setUser(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch user in Topbar", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchUser();
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -28,6 +49,16 @@ export function Topbar() {
         } catch (error) {
             console.error("Logout failed", error);
         }
+    };
+
+    const getInitials = (name: string) => {
+        if (!name) return "??";
+        return name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
     };
 
     return (
@@ -47,46 +78,43 @@ export function Topbar() {
             <div className="flex items-center gap-2">
                 <ThemeToggle />
 
-                {/* Notifications */}
-                <Button variant="ghost" size="icon" className="rounded-xl relative">
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center">
-                        <span className="animate-ping absolute h-3 w-3 rounded-full bg-destructive/60" />
-                        <span className="relative flex h-2.5 w-2.5 rounded-full bg-destructive" />
-                    </span>
-                </Button>
+                <NotificationBell />
 
                 {/* User menu */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-secondary transition-colors">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src="" />
-                                <AvatarFallback>WW</AvatarFallback>
+                        <button className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-secondary transition-colors group">
+                            <Avatar className="h-8 w-8 ring-offset-background group-hover:ring-2 ring-primary/20 transition-all">
+                                <AvatarImage src={user?.photoUrl || ""} />
+                                <AvatarFallback className="bg-primary/10 text-[10px] font-bold text-primary">
+                                    {isLoading ? "..." : getInitials(user?.fullName || "User")}
+                                </AvatarFallback>
                             </Avatar>
-                            <div className="hidden sm:flex flex-col items-start">
-                                <span className="text-sm font-medium text-foreground leading-tight">
-                                    andiko W.
+                            <div className="hidden sm:flex flex-col items-start min-w-[80px]">
+                                <span className="text-sm font-semibold text-foreground leading-tight truncate max-w-[120px]">
+                                    {isLoading ? "Loading..." : user?.fullName}
                                 </span>
                                 <span className="text-[10px] text-muted-foreground leading-tight">
-                                    HR Admin
+                                    {isLoading ? "..." : (user?.position || user?.role?.replace("_", " "))}
                                 </span>
                             </div>
-                            <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block" />
+                            <ChevronDown className="h-3 w-3 text-muted-foreground hidden sm:block group-hover:text-primary transition-colors" />
                         </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuLabel className="flex flex-col">
-                            <span>Andiko Wibisana</span>
-                            <span className="text-xs text-muted-foreground font-normal">
-                                andiko@company.co.id
+                    <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-lg border-sidebar-border">
+                        <DropdownMenuLabel className="flex flex-col py-2 px-3">
+                            <span className="font-semibold text-sm truncate">{user?.fullName}</span>
+                            <span className="text-xs text-muted-foreground font-normal truncate">
+                                {user?.email}
                             </span>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>My Profile</DropdownMenuItem>
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer gap-2" onClick={() => router.push("/my/profile")}>
+                            My Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer gap-2">Settings</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive cursor-pointer" onClick={handleLogout}>
+                        <DropdownMenuItem className="text-destructive cursor-pointer gap-2" onClick={handleLogout}>
                             Sign Out
                         </DropdownMenuItem>
                     </DropdownMenuContent>

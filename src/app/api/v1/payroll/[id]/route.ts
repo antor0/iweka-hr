@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PayrollService } from "@/lib/services/payroll.service";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(
     request: NextRequest,
@@ -8,11 +9,11 @@ export async function GET(
 ) {
     try {
         const session = await getSession();
-        // Strict access check. Only HR_ADMIN, SYSTEM_ADMIN, and HR_MANAGER can see payroll run details.
-        // Employees see their individual `PayrollItem` via their own ESS endpoint.
-        if (!session || !["HR_ADMIN", "SYSTEM_ADMIN", "HR_MANAGER"].includes(session.role)) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "payroll.read");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const record = await PayrollService.getPayrollRunById(resolvedParams.id);

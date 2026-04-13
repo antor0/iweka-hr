@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Pencil, User, Mail, Phone, Building2, Briefcase, Calendar, FileText, Loader2, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SalaryDetailTab } from "./components/salary-detail-tab";
+
+import { SuratHistoryTab } from "./components/surat-history-tab";
 
 export default function ViewEmployeePage() {
     const params = useParams();
@@ -109,7 +113,15 @@ export default function ViewEmployeePage() {
                 </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Tabs defaultValue="profile" className="w-full">
+                <TabsList className="grid grid-cols-3 w-full max-w-2xl bg-black/20 border border-white/5 mb-6">
+                    <TabsTrigger value="profile">Profile Overview</TabsTrigger>
+                    <TabsTrigger value="salary">Salary Detail</TabsTrigger>
+                    <TabsTrigger value="surat">Surat History</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="profile">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 {/* Profile Snapshot */}
                 <Card className="md:col-span-1 border-primary/10 shadow-sm relative overflow-hidden">
@@ -212,6 +224,16 @@ export default function ViewEmployeePage() {
                     </Card>
                 </div>
             </div>
+                </TabsContent>
+
+                <TabsContent value="salary">
+                    <SalaryDetailTab employeeId={employee.id} />
+                </TabsContent>
+
+                <TabsContent value="surat">
+                    <SuratHistoryTab employeeId={employee.id} />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

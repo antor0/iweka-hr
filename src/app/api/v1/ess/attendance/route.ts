@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         }
 
         const today = new Date();
-        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
         const todayAttendance = await prisma.attendance.findUnique({
             where: {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         }
 
         const now = new Date();
-        const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const todayDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
         const existing = await prisma.attendance.findUnique({
             where: {

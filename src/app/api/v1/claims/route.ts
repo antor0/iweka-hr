@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ClaimsService } from "@/lib/services/claims.service";
 import { CreateClaimSchema } from "@/lib/validators/claims.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 import { ClaimStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
         let employeeId = searchParams.get("employeeId") || undefined;
         // Non-admin users can only see their own claims
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER" && session.role !== "FINANCE") {
+        if (!hasPermission(session.role, "claims.read")) {
             employeeId = session.employeeId || undefined;
         }
 
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
 
         // Determine which employeeId to use
         let targetEmployeeId: string;
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
+        if (!hasPermission(session.role, "claims.approve")) {
             targetEmployeeId = session.employeeId;
         } else {
             targetEmployeeId = body.employeeId || session.employeeId;

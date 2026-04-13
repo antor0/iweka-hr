@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PayrollService } from "@/lib/services/payroll.service";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(request: NextRequest) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER")) {
-            return NextResponse.json({ error: "Forbidden: Admins only" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "payroll.read");
+        if (forbidden) return forbidden;
 
         const { searchParams } = new URL(request.url);
         const page = parseInt(searchParams.get("page") || "1", 10);

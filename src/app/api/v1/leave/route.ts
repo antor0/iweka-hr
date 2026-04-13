@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LeaveService } from "@/lib/services/leave.service";
 import { CreateLeaveRequestSchema } from "@/lib/validators/leave.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 import { RequestStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
         let employeeId = searchParams.get("employeeId") || undefined;
         // Non-admins can only see their own
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER") {
+        if (!hasPermission(session.role, "leave.read")) {
             employeeId = session.employeeId || undefined;
         }
 
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Force the employeeId to be the logged-in user unless it's an admin creating on behalf
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
+        if (!hasPermission(session.role, "leave.approve")) {
             body.employeeId = realEmployeeId;
         } else if (!body.employeeId) {
             body.employeeId = realEmployeeId;

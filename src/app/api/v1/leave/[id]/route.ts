@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LeaveService } from "@/lib/services/leave.service";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission, requirePermission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db/prisma";
 
 export async function GET(
@@ -16,8 +17,8 @@ export async function GET(
 
         if (!record) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-        // Only creator or HR admins can view
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER" && record.employeeId !== session.employeeId) {
+        // Only creator or those with leave.read permission can view
+        if (!hasPermission(session.role, "leave.read") && record.employeeId !== session.employeeId) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
@@ -35,10 +36,8 @@ export async function PUT(
         const session = await getSession();
         if (!session || !session.employeeId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        // Only HR admins or HR managers can approve for now (simplification)
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN" && session.role !== "HR_MANAGER") {
-            return NextResponse.json({ error: "Forbidden: Only HR can approve leave" }, { status: 403 });
-        }
+        const forbidden = requirePermission(session, "leave.approve");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const { status } = await request.json();

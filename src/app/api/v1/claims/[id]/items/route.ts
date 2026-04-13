@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ClaimsService } from "@/lib/services/claims.service";
 import { AddClaimItemSchema } from "@/lib/validators/claims.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { OcrService } from "@/lib/services/ocr.service";
@@ -21,7 +22,7 @@ export async function POST(
         // Verify ownership
         const claim = await ClaimsService.getClaimById(claimId);
         if (!claim) return NextResponse.json({ error: "Claim not found" }, { status: 404 });
-        if (claim.employeeId !== session.employeeId && session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
+        if (claim.employeeId !== session.employeeId && !hasPermission(session.role, "claims.read")) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

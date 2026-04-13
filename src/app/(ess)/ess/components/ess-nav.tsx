@@ -52,8 +52,19 @@ const navItems = [
         ),
     },
     {
+        id: "nav-approvals",
+        label: "Approvals",
+        href: "/ess/approvals",
+        icon: (active: boolean) => (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+            </svg>
+        ),
+    },
+    {
         id: "nav-more",
-        label: "Claims",
+        label: "More",
         href: "/ess/claims",
         icon: (active: boolean) => (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -143,7 +154,8 @@ const navStyles: Record<string, React.CSSProperties> = {
         justifyContent: "center",
     },
     label: {
-        fontSize: 10,
+        fontSize: 9,
+        marginTop: 2,
         transition: "color 0.2s",
         fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)",
     },

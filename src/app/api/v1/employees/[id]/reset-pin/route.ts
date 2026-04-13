@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db/prisma";
 import bcrypt from "bcryptjs";
 
@@ -9,9 +10,11 @@ export async function POST(
 ) {
     try {
         const session = await getSession();
-        if (!session || !["SYSTEM_ADMIN", "HR_ADMIN", "HR_MANAGER"].includes(session.role)) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "employees.write");
+        if (forbidden) return forbidden;
 
         const { id } = await params;
 

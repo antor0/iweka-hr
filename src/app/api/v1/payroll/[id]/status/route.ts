@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PayrollService } from "@/lib/services/payroll.service";
 import { UpdatePayrollStatusSchema } from "@/lib/validators/payroll.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function POST(
     request: NextRequest,
@@ -9,9 +10,11 @@ export async function POST(
 ) {
     try {
         const session = await getSession();
-        if (!session || !["HR_ADMIN", "SYSTEM_ADMIN", "HR_MANAGER"].includes(session.role)) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "payroll.approve");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const body = await request.json();

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { EmployeeService } from "@/lib/services/employee.service";
 import { CreateEmployeeSchema } from "@/lib/validators/employee.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(request: NextRequest) {
     try {
@@ -31,10 +32,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Optional: Check if user has HR_ADMIN role
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
-            return NextResponse.json({ error: "Forbidden: Insufficient permissions" }, { status: 403 });
-        }
+        const forbidden = requirePermission(session, "employees.write");
+        if (forbidden) return forbidden;
 
         const body = await request.json();
 

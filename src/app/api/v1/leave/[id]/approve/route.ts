@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { LeaveService } from "@/lib/services/leave.service";
 import { ApproveRejectLeaveSchema } from "@/lib/validators/leave.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function POST(
     request: NextRequest,
@@ -9,10 +10,11 @@ export async function POST(
 ) {
     try {
         const session = await getSession();
-        // Only manager, HR admin, or SYS admin can approve
-        if (!session || !["HR_ADMIN", "SYSTEM_ADMIN", "LINE_MANAGER", "HR_MANAGER"].includes(session.role)) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "leave.approve");
+        if (forbidden) return forbidden;
         if (!session.employeeId && session.role !== "SYSTEM_ADMIN") {
             return NextResponse.json({ error: "No employee profile linked to approver" }, { status: 403 });
         }

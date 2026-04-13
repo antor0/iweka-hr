@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AttendanceService } from "@/lib/services/attendance.service";
 import { CreateAttendanceSchema } from "@/lib/validators/attendance.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission, requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(request: NextRequest) {
     try {
@@ -12,8 +13,9 @@ export async function GET(request: NextRequest) {
         const page = parseInt(searchParams.get("page") || "1", 10);
         const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-        // HR admins can view all, ordinary employees only themselves
-        const employeeId = (session.role === "SYSTEM_ADMIN" || session.role === "HR_ADMIN")
+        // Those with attendance.read permission can view all, ordinary employees only themselves
+        const canViewAll = hasPermission(session.role, "attendance.read");
+        const employeeId = canViewAll
             ? searchParams.get("employeeId") || undefined
             : session.employeeId || undefined;
 
@@ -30,9 +32,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden: Admins only for manual literal record creation" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "attendance.write");
+        if (forbidden) return forbidden;
 
         const body = await request.json();
         const parsed = CreateAttendanceSchema.safeParse(body);

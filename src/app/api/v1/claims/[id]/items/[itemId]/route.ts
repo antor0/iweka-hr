@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ClaimsService } from "@/lib/services/claims.service";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 
 export async function DELETE(
     _request: NextRequest,
@@ -17,7 +18,7 @@ export async function DELETE(
         // Verify ownership
         const claim = await ClaimsService.getClaimById(claimId);
         if (!claim) return NextResponse.json({ error: "Claim not found" }, { status: 404 });
-        if (claim.employeeId !== session.employeeId && session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
+        if (claim.employeeId !== session.employeeId && !hasPermission(session.role, "claims.read")) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 

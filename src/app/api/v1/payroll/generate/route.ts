@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { PayrollService } from "@/lib/services/payroll.service";
 import { GeneratePayrollSchema } from "@/lib/validators/payroll.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function POST(request: NextRequest) {
     try {
         const session = await getSession();
-        if (!session || !["HR_ADMIN", "SYSTEM_ADMIN"].includes(session.role)) {
-            return NextResponse.json({ error: "Forbidden: Only HR or System Admins can generate payroll" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "payroll.run");
+        if (forbidden) return forbidden;
 
         const body = await request.json();
         const parsed = GeneratePayrollSchema.safeParse(body);

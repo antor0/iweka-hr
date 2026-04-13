@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DepartmentService } from "@/lib/services/department.service";
 import { UpdateDepartmentSchema } from "@/lib/validators/department.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(
     request: NextRequest,
@@ -17,6 +18,7 @@ export async function GET(
 
         return NextResponse.json({ data: department });
     } catch (error: any) {
+        console.error("GET /api/v1/departments/[id] error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
@@ -27,9 +29,11 @@ export async function PUT(
 ) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "organization.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const body = await request.json();
@@ -52,9 +56,11 @@ export async function DELETE(
 ) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "organization.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         await DepartmentService.deleteDepartment(resolvedParams.id);

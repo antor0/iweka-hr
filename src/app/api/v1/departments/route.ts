@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DepartmentService } from "@/lib/services/department.service";
 import { CreateDepartmentSchema } from "@/lib/validators/department.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(request: NextRequest) {
     try {
@@ -21,9 +22,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const session = await getSession();
-        if (!session || (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN")) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const forbidden = requirePermission(session, "organization.write");
+        if (forbidden) return forbidden;
 
         const body = await request.json();
         const parsed = CreateDepartmentSchema.safeParse(body);

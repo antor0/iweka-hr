@@ -51,12 +51,26 @@ const activityIcons: Record<string, React.ReactNode> = {
 export default function DashboardPage() {
     const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
     const [dashboardData, setDashboardData] = useState<any>(null);
+    const [user, setUser] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        fetchUserInfo();
         fetchDashboardData();
         fetchPendingApprovals();
     }, []);
+
+    const fetchUserInfo = async () => {
+        try {
+            const res = await fetch("/api/v1/auth/me");
+            const data = await res.json();
+            if (data?.success) {
+                setUser(data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch user info", error);
+        }
+    };
 
     const fetchDashboardData = async () => {
         try {
@@ -111,13 +125,15 @@ export default function DashboardPage() {
         return <div className="p-8 flex items-center justify-center animate-pulse"><Clock className="h-6 w-6 text-muted-foreground mr-2" /> Loading dashboard...</div>;
     }
 
+    const firstName = user?.fullName?.split(" ")[0] || "User";
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Page header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                        Welcome back, andiko 👋
+                        Welcome back, {firstName} 👋
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         Here is your HRIS summary for today — {format(new Date(), "EEEE, dd MMMM yyyy")}

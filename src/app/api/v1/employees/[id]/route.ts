@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { EmployeeService } from "@/lib/services/employee.service";
 import { UpdateEmployeeSchema } from "@/lib/validators/employee.schema";
 import { getSession } from "@/lib/auth/session";
+import { requirePermission } from "@/lib/auth/permissions";
 
 export async function GET(
     request: NextRequest,
@@ -37,9 +38,8 @@ export async function PUT(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
-            return NextResponse.json({ error: "Forbidden: Insufficient permissions" }, { status: 403 });
-        }
+        const forbidden = requirePermission(session, "employees.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         const body = await request.json();
@@ -70,9 +70,8 @@ export async function DELETE(
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
-            return NextResponse.json({ error: "Forbidden: Insufficient permissions" }, { status: 403 });
-        }
+        const forbidden = requirePermission(session, "employees.write");
+        if (forbidden) return forbidden;
 
         const resolvedParams = await params;
         await EmployeeService.deleteEmployee(resolvedParams.id);

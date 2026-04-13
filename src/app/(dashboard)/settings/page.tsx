@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +18,21 @@ import {
     Database,
     Globe,
     Save,
+    Check,
+    X,
+    ChevronDown,
+    ChevronUp,
+    Users,
+    Mail,
+    Calendar,
+    FileText
 } from "lucide-react";
+import { ROLE_PERMISSIONS, PERMISSION_GROUPS, hasPermission } from "@/lib/auth/permissions-config";
+import { UsersTab } from "./users-tab";
 
 export default function SettingsPage() {
+    const [expandedRole, setExpandedRole] = useState<string | null>(null);
+
     return (
         <div className="space-y-6 animate-fade-in">
             <div>
@@ -34,9 +49,10 @@ export default function SettingsPage() {
                 <TabsList className="flex-wrap h-auto gap-1 p-1">
                     <TabsTrigger value="company"><Building2 className="h-4 w-4 mr-1.5" /> Company</TabsTrigger>
                     <TabsTrigger value="roles"><Shield className="h-4 w-4 mr-1.5" /> Roles & Permissions</TabsTrigger>
+                    <TabsTrigger value="users"><Users className="h-4 w-4 mr-1.5" /> Platform Users</TabsTrigger>
                     <TabsTrigger value="appearance"><Palette className="h-4 w-4 mr-1.5" /> Appearance</TabsTrigger>
                     <TabsTrigger value="notifications"><Bell className="h-4 w-4 mr-1.5" /> Notifications</TabsTrigger>
-                    <TabsTrigger value="system"><Database className="h-4 w-4 mr-1.5" /> System</TabsTrigger>
+                    <TabsTrigger value="system"><Database className="h-4 w-4 mr-1.5" /> System Config</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="company">
@@ -88,31 +104,73 @@ export default function SettingsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Role Management</CardTitle>
-                            <CardDescription>Configure roles and permissions for each module</CardDescription>
+                            <CardDescription>View system roles and their assigned permissions</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                {["System Admin", "HR Admin", "HR Manager", "Payroll Specialist", "Finance", "Line Manager", "Employee"].map((role) => (
-                                    <div key={role} className="flex items-center justify-between p-3 rounded-xl hover:bg-secondary/50 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                <Shield className="h-4 w-4 text-primary" />
+                                {Object.keys(ROLE_PERMISSIONS).map((role) => (
+                                    <div key={role} className="border border-border rounded-xl overflow-hidden shadow-sm">
+                                        <div
+                                            className="flex items-center justify-between p-3 bg-secondary/30 hover:bg-secondary/50 cursor-pointer transition-colors"
+                                            onClick={() => setExpandedRole(expandedRole === role ? null : role)}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                    <Shield className="h-4 w-4 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">{role.replace(/_/g, " ")}</p>
+                                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                        {ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].includes("*")
+                                                            ? "Full System Access"
+                                                            : `${ROLE_PERMISSIONS[role as keyof typeof ROLE_PERMISSIONS].length} permission sets assigned`}
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium">{role}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {role === "System Admin" ? "Full access to the entire system" :
-                                                        role === "Employee" ? "Limited access to own profile" :
-                                                            "Access based on role"}
-                                                </p>
-                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                {expandedRole === role ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                            </Button>
                                         </div>
-                                        <Button variant="outline" size="sm">Edit</Button>
+
+                                        {expandedRole === role && (
+                                            <div className="p-4 bg-background border-t border-border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                                                {PERMISSION_GROUPS.map(group => (
+                                                    <div key={group.name} className="space-y-3">
+                                                        <h4 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">{group.name}</h4>
+                                                        <div className="flex flex-col gap-2">
+                                                            {group.permissions.map(perm => {
+                                                                const isAllowed = hasPermission(role, perm as any);
+                                                                return (
+                                                                    <div key={perm} className="flex items-center gap-2">
+                                                                        {isAllowed ? (
+                                                                            <div className="h-4 w-4 rounded bg-primary/20 flex items-center justify-center shrink-0">
+                                                                                <Check className="h-3 w-3 text-primary" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="h-4 w-4 rounded bg-secondary/50 flex items-center justify-center shrink-0">
+                                                                                <X className="h-3 w-3 text-muted-foreground/50" />
+                                                                            </div>
+                                                                        )}
+                                                                        <span className={`text-[13px] ${isAllowed ? "text-foreground font-medium" : "text-muted-foreground line-through decoration-muted-foreground/30"}`}>
+                                                                            {perm.split(".")[1]}
+                                                                        </span>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </CardContent>
                     </Card>
+                </TabsContent>
+
+                <TabsContent value="users">
+                    <UsersTab />
                 </TabsContent>
 
                 <TabsContent value="appearance">
@@ -173,32 +231,66 @@ export default function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="system">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>System Information</CardTitle>
-                            <CardDescription>Technical details and system status</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-3 rounded-xl bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground">App Version</p>
-                                    <p className="text-sm font-mono font-medium">v1.0.0-beta</p>
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Configuration & Master Data</CardTitle>
+                                <CardDescription>Manage system-wide configuration and templates</CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <Link href="/surat-templates" className="flex flex-col p-4 rounded-xl border border-border glass glass-hover transition-all">
+                                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
+                                        <FileText className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <h4 className="font-medium text-sm">Surat Templates</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">Manage official company letter formats and numbering</p>
+                                </Link>
+
+                                <Link href="/settings/holidays" className="flex flex-col p-4 rounded-xl border border-border glass glass-hover transition-all">
+                                    <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center mb-3">
+                                        <Calendar className="h-5 w-5 text-orange-500" />
+                                    </div>
+                                    <h4 className="font-medium text-sm">Holiday Settings</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">Configure national and company holidays per year</p>
+                                </Link>
+
+                                <Link href="/settings/email" className="flex flex-col p-4 rounded-xl border border-border glass glass-hover transition-all">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
+                                        <Mail className="h-5 w-5 text-blue-500" />
+                                    </div>
+                                    <h4 className="font-medium text-sm">Email Config</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">Configure SMTP settings for system notifications</p>
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>System Information</CardTitle>
+                                <CardDescription>Technical details and system status</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-3 rounded-xl bg-secondary/50">
+                                        <p className="text-xs text-muted-foreground">App Version</p>
+                                        <p className="text-sm font-mono font-medium">v1.0.0-beta</p>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-secondary/50">
+                                        <p className="text-xs text-muted-foreground">Database</p>
+                                        <p className="text-sm font-mono font-medium">PostgreSQL 16</p>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-secondary/50">
+                                        <p className="text-xs text-muted-foreground">Framework</p>
+                                        <p className="text-sm font-mono font-medium">Next.js 15 (App Router)</p>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-secondary/50">
+                                        <p className="text-xs text-muted-foreground">Status</p>
+                                        <Badge variant="success">Healthy</Badge>
+                                    </div>
                                 </div>
-                                <div className="p-3 rounded-xl bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground">Database</p>
-                                    <p className="text-sm font-mono font-medium">PostgreSQL 16</p>
-                                </div>
-                                <div className="p-3 rounded-xl bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground">Framework</p>
-                                    <p className="text-sm font-mono font-medium">Next.js 15 (App Router)</p>
-                                </div>
-                                <div className="p-3 rounded-xl bg-secondary/50">
-                                    <p className="text-xs text-muted-foreground">Status</p>
-                                    <Badge variant="success">Healthy</Badge>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

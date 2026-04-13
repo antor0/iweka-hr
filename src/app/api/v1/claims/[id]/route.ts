@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ClaimsService } from "@/lib/services/claims.service";
 import { ProcessClaimSchema } from "@/lib/validators/claims.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 
 export async function GET(
     _request: NextRequest,
@@ -20,10 +21,7 @@ export async function GET(
 
         // Non-admin can only view their own claims
         if (
-            session.role !== "SYSTEM_ADMIN" &&
-            session.role !== "HR_ADMIN" &&
-            session.role !== "HR_MANAGER" &&
-            session.role !== "FINANCE" &&
+            !hasPermission(session.role, "claims.read") &&
             claim.employeeId !== session.employeeId
         ) {
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -65,12 +63,7 @@ export async function PATCH(
         // Handle approve/reject action
         if (body.action === "process") {
             // Only HR/Manager/Finance can approve/reject
-            if (
-                session.role !== "SYSTEM_ADMIN" &&
-                session.role !== "HR_ADMIN" &&
-                session.role !== "HR_MANAGER" &&
-                session.role !== "FINANCE"
-            ) {
+            if (!hasPermission(session.role, "claims.approve")) {
                 return NextResponse.json({ error: "Forbidden" }, { status: 403 });
             }
 

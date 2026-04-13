@@ -33,7 +33,8 @@ export class AuthService {
             email: user.email,
             role: user.role,
             employeeId: user.employeeId,
-            fullName: user.employee?.fullName || "System Admin",
+            fullName: user.fullName || user.employee?.fullName || user.email.split("@")[0],
+            photoUrl: user.photoUrl || user.employee?.photoUrl || null,
         };
     }
 }

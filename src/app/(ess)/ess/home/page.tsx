@@ -25,6 +25,7 @@ export default function EssHomePage() {
     const [todayAttendance, setTodayAttendance] = useState<Attendance | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isLoading, setIsLoading] = useState(true);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -33,9 +34,10 @@ export default function EssHomePage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const [profileRes, attendRes] = await Promise.all([
+            const [profileRes, attendRes, notifRes] = await Promise.all([
                 fetch("/api/v1/ess/profile"),
                 fetch("/api/v1/ess/attendance"),
+                fetch("/api/v1/notifications"),
             ]);
 
             if (profileRes.status === 401) {
@@ -55,6 +57,11 @@ export default function EssHomePage() {
             if (attendRes.ok) {
                 const attendData = await attendRes.json();
                 setTodayAttendance(attendData.data?.today || null);
+            }
+
+            if (notifRes.ok) {
+                const notifData = await notifRes.json();
+                setUnreadCount(notifData.unreadCount || 0);
             }
         } catch {
             // network error
@@ -124,8 +131,17 @@ export default function EssHomePage() {
                         <h1 style={styles.name}>{employee?.fullName?.split(" ")[0] || "Employee"} 👋</h1>
                         <p style={styles.role}>{employee?.position?.title || "—"} · {employee?.department?.name || "—"}</p>
                     </div>
-                    <div style={styles.avatar}>
-                        {employee ? getInitials(employee.fullName) : "?"}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <button 
+                            onClick={() => router.push("/ess/notifications")} 
+                            style={styles.bellBtn}
+                        >
+                            <span style={{ fontSize: 20 }}>🔔</span>
+                            {unreadCount > 0 && <span style={styles.badge}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
+                        </button>
+                        <div style={styles.avatar}>
+                            {employee ? getInitials(employee.fullName) : "?"}
+                        </div>
                     </div>
                 </div>
 
@@ -234,6 +250,15 @@ const styles: Record<string, any> = {
         fontSize: 16, fontWeight: 700, color: "#fff",
         boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
         flexShrink: 0,
+    },
+    bellBtn: { 
+        position: "relative", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+        width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", padding: 0 
+    },
+    badge: { 
+        position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", 
+        fontSize: 10, fontWeight: 800, padding: "2px 6px", borderRadius: 10, minWidth: 16, textAlign: "center" 
     },
     clockCard: {
         background: "rgba(255,255,255,0.04)",

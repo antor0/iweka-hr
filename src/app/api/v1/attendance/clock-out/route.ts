@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AttendanceService } from "@/lib/services/attendance.service";
 import { ClockOutSchema } from "@/lib/validators/attendance.schema";
 import { getSession } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/permissions";
 
 export async function POST(request: NextRequest) {
     try {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         // Auto inject employeeId from session
-        if (session.role !== "SYSTEM_ADMIN" && session.role !== "HR_ADMIN") {
+        if (!hasPermission(session.role, "attendance.write")) {
             body.employeeId = session.employeeId;
         } else if (!body.employeeId) {
             body.employeeId = session.employeeId;

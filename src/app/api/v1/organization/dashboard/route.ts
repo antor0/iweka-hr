@@ -42,6 +42,10 @@ export async function GET(request: NextRequest) {
         const formattedDepartments = departments.map((dept, index) => ({
             id: dept.id,
             name: dept.name,
+            code: dept.code,
+            locationId: dept.locationId,
+            description: dept.description,
+            isActive: dept.isActive,
             head: dept.head?.fullName || "Unassigned",
             employees: dept._count.employees,
             positions: dept._count.positions,

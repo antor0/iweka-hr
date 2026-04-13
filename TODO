@@ -1,0 +1,52 @@
+For Employee Section per Employee: 
+- Tunjangan Tetap
+    - Tunjangan Jabatan
+    - Tunjangan Makan (option: fixed or varied based on attendance)
+    - Tunjangan Transportasi (option: fixed or varied based on attendance)
+    - Tunjangan Komunikasi
+    - Other Allowance
+- Tunjangan Tidak Tetap
+    - Tunjangan Lembur
+    - Tunjangan Hari Raya
+    - Tunjangan Bonus
+    - Tunjangan Komisi
+    - Other Allowance
+- Riwayat Persuratan each of Employee
+
+Menu Template Surat:
+    - Surat Peringatan 1
+    - Surat Peringatan 2
+    - Surat Peringatan 3
+    - Surat Pengangkatan Karyawan Tetap
+    - Surat Promosi
+    - Surat Demosi
+    - Surat Mutasi
+    - Surat Pemberhentian Karyawan
+    - Surat Pengunduran Diri
+    - Surat Pengajuan Cuti
+    - Surat Tugas
+    - Surat Keterangan Penghasilan
+    - Surat Paklaring
+    - Surat Keterangan Kerja
+
+
+Organization : 
+- create work shift model (regular, 2 Shift, 24 hours Shift) along with start and end working hours
+- Salary Range Setting per Position
+- Organization structure workflow for approval
+
+Notification: 
+- Notification for approval/rejection on leave, overtime, etc
+- Notification using push notification and email
+
+Settings:
+- Grade definition and salary range
+
+
+Create plan to extend detail departments to enable work model (regular, shift)
+1. assign department work model from work model created. one department can have multi work model
+2. assign employees to selected model (can be all employee or selected), one employee only can be assign to one work model.
+3. create function to generate work schedule (regular, weekend not included) / roster (for shift, minimum employee) for each employee selected in this active month. 
+4. the work schedule will be compared to the actual clock-in/out in attendance then the process will produce timesheet for each employee.
+5. The timesheet will be used as reference for payroll
+don't be shy to ask for clarification if you need to.

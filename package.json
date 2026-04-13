@@ -1,6 +1,6 @@
 {
   "name": "code",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "private": true,
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -12,6 +12,7 @@
     "lint": "next lint",
     "docker:up": "docker-compose up -d --build",
     "docker:down": "docker-compose down",
+    "seed:features": "tsx prisma/seed-features.ts",
     "seed:performance": "tsx prisma/seed-performance.ts",
     "seed:recruitment": "tsx prisma/seed-recruitment.ts",
     "seed:sample": "tsx prisma/seed-sample-data.ts"
@@ -37,6 +38,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.15",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@types/nodemailer": "^8.0.0",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -46,6 +48,7 @@
     "lucide-react": "^0.575.0",
     "next": "16.1.6",
     "next-themes": "^0.4.6",
+    "nodemailer": "^8.0.5",
     "pg": "^8.18.0",
     "prisma": "^7.4.1",
     "radix-ui": "^1.4.3",
