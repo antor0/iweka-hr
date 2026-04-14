@@ -1069,6 +1069,22 @@ model EmailConfig {
   @@map("sys_email_config")
 }
 
+model CompanyConfig {
+  id           String   @id @default("default")
+  companyName  String   @map("company_name")
+  companyTaxId String?  @map("company_tax_id")
+  address      String?  @db.Text
+  phone        String?
+  email        String?
+  payrollDate  Int?     @default(25) @map("payroll_date")
+  jkkRiskGroup String?  @map("jkk_risk_group")
+  mainBank     String?  @map("main_bank")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("sys_company_config")
+}
+
 // ---------------------------------------------------------
 // NEW FEATURES MODELS (SCHEDULE & PAYROLL)
 // ---------------------------------------------------------

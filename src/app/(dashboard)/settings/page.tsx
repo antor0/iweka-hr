@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,13 +27,62 @@ import {
     Users,
     Mail,
     Calendar,
-    FileText
+    FileText,
+    Loader2
 } from "lucide-react";
 import { ROLE_PERMISSIONS, PERMISSION_GROUPS, hasPermission } from "@/lib/auth/permissions-config";
 import { UsersTab } from "./users-tab";
 
 export default function SettingsPage() {
     const [expandedRole, setExpandedRole] = useState<string | null>(null);
+    
+    // Company Config State
+    const [companyConfig, setCompanyConfig] = useState<any>(null);
+    const [isLoadingCompany, setIsLoadingCompany] = useState(true);
+    const [isSavingCompany, setIsSavingCompany] = useState(false);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchCompanyConfig = async () => {
+            try {
+                const res = await fetch("/api/v1/settings/company");
+                const data = await res.json();
+                setCompanyConfig(data);
+            } catch (e) {
+                console.error("Failed to fetch company config", e);
+            } finally {
+                setIsLoadingCompany(false);
+            }
+        };
+        fetchCompanyConfig();
+    }, []);
+
+    const handleSaveCompany = async () => {
+        setIsSavingCompany(true);
+        try {
+            const res = await fetch("/api/v1/settings/company", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(companyConfig),
+            });
+            
+            if (!res.ok) throw new Error("Failed to save");
+            
+            toast({
+                title: "Settings Saved",
+                description: "Company information updated successfully.",
+            });
+        } catch (e) {
+            console.error("Failed to save company config", e);
+            toast({
+                title: "Error Saving",
+                description: "Could not save company configuration.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSavingCompany(false);
+        }
+    };
 
     return (
         <div className="space-y-6 animate-fade-in">
@@ -62,40 +113,55 @@ export default function SettingsPage() {
                             <CardDescription>Company data for payroll and reporting purposes</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Company Name</label>
-                                    <Input defaultValue="PT. Indowebhost Kreasi" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Company Tax ID</label>
-                                    <Input defaultValue="01.234.567.8-012.345" className="font-mono" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Address</label>
-                                    <Input defaultValue="Jl. Sudirman No. 123, Jakarta Selatan" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Payroll Date</label>
-                                    <Input type="number" defaultValue="25" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">JKK Risk Group</label>
-                                    <Input defaultValue="Level 2 (0.54%)" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium">Main Bank</label>
-                                    <Input defaultValue="Bank Mandiri" />
-                                </div>
-                            </div>
+                            {isLoadingCompany ? (
+                                <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                            ) : (
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Company Name</label>
+                                            <Input value={companyConfig?.companyName || ""} onChange={(e) => setCompanyConfig({...companyConfig, companyName: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Company Tax ID</label>
+                                            <Input value={companyConfig?.companyTaxId || ""} onChange={(e) => setCompanyConfig({...companyConfig, companyTaxId: e.target.value})} className="font-mono" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Company Email</label>
+                                            <Input type="email" value={companyConfig?.email || ""} onChange={(e) => setCompanyConfig({...companyConfig, email: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Phone Number</label>
+                                            <Input value={companyConfig?.phone || ""} onChange={(e) => setCompanyConfig({...companyConfig, phone: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-sm font-medium">Address</label>
+                                            <Input value={companyConfig?.address || ""} onChange={(e) => setCompanyConfig({...companyConfig, address: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Payroll Date</label>
+                                            <Input type="number" value={companyConfig?.payrollDate || ""} onChange={(e) => setCompanyConfig({...companyConfig, payrollDate: parseInt(e.target.value) || 25})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">JKK Risk Group</label>
+                                            <Input value={companyConfig?.jkkRiskGroup || ""} onChange={(e) => setCompanyConfig({...companyConfig, jkkRiskGroup: e.target.value})} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Main Bank</label>
+                                            <Input value={companyConfig?.mainBank || ""} onChange={(e) => setCompanyConfig({...companyConfig, mainBank: e.target.value})} />
+                                        </div>
+                                    </div>
 
-                            <Separator />
+                                    <Separator />
 
-                            <div className="flex justify-end">
-                                <Button>
-                                    <Save className="h-4 w-4 mr-1.5" /> Save Changes
-                                </Button>
-                            </div>
+                                    <div className="flex justify-end">
+                                        <Button onClick={handleSaveCompany} disabled={isSavingCompany}>
+                                            {isSavingCompany ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />} 
+                                            Save Changes
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 </TabsContent>

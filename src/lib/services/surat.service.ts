@@ -67,6 +67,18 @@ export class SuratService {
 
         if (!employee) throw new Error("Employee not found");
 
+        // Fetch Company Config
+        const companyConfig = (await prisma.companyConfig.findFirst()) || {
+            companyName: "PT. Indowebhost Kreasi",
+            companyTaxId: "01.234.567.8-012.345",
+            address: "Jl. Sudirman No. 123, Jakarta Selatan",
+            phone: "(021) 1234-5678",
+            email: "hr@indowebhost.co.id",
+            payrollDate: 25,
+            jkkRiskGroup: "Level 2 (0.54%)",
+            mainBank: "Bank Mandiri"
+        };
+
         // Generate Number sequence
         const now = new Date();
         const year = now.getFullYear();
@@ -105,7 +117,12 @@ export class SuratService {
             .replace(/\{\{reason\}\}/gi, payload.reason)
             .replace(/\{\{issued_date\}\}/gi, issuedDateStr)
             .replace(/\{\{hr_name\}\}/gi, "HR Manager") // Can be dynamic based on logged in user later
-            .replace(/\{\{hr_position\}\}/gi, "Head of Human Resources");
+            .replace(/\{\{hr_position\}\}/gi, "Head of Human Resources")
+            .replace(/\{\{company_name\}\}/gi, companyConfig.companyName || '-')
+            .replace(/\{\{company_tax_id\}\}/gi, companyConfig.companyTaxId || '-')
+            .replace(/\{\{company_address\}\}/gi, companyConfig.address || '-')
+            .replace(/\{\{company_email\}\}/gi, companyConfig.email || '-')
+            .replace(/\{\{company_phone\}\}/gi, companyConfig.phone || '-');
 
         const history = await prisma.suratHistory.create({
             data: {

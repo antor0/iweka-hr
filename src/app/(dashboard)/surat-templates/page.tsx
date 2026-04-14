@@ -8,13 +8,15 @@ import { Button } from "@/components/ui/button";
 import { FileText, Save, Loader2, Edit3, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { HTMLEditor } from "@/components/ui/html-editor";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SuratTemplatesPage() {
     const [templates, setTemplates] = useState<any[]>([]);
     const [activeTemplate, setActiveTemplate] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const { toast } = useToast();
 
     const fetchTemplates = async () => {
         try {
@@ -35,20 +37,34 @@ export default function SuratTemplatesPage() {
         if (!activeTemplate) return;
         setSaving(true);
         try {
-            await fetch(`/api/v1/surat/templates/${activeTemplate.id}`, {
+            const res = await fetch(`/api/v1/surat/templates/${activeTemplate.id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: activeTemplate.name,
+                    type: activeTemplate.type,
                     htmlContent: activeTemplate.htmlContent,
                     numberFormat: activeTemplate.numberFormat
                 })
             });
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Save failed");
+            }
+
             fetchTemplates();
-            alert("Template saved successfully");
-        } catch (error) {
+            toast({
+                title: "Template Saved",
+                description: "The surat template has been updated successfully.",
+            });
+        } catch (error: any) {
             console.error("Save failed", error);
-            alert("Failed to save template");
+            toast({
+                title: "Error Saving",
+                description: error.message || "Failed to update template. Please check your connection.",
+                variant: "destructive",
+            });
         } finally {
             setSaving(false);
         }
@@ -120,15 +136,15 @@ export default function SuratTemplatesPage() {
                                     <p className="text-xs text-muted-foreground">Variables: {`{{seq}} => Sequence, {{month}} => Roman Month (I-XII), {{year}} => 2026`}</p>
                                 </div>
 
-                                <div className="space-y-2 h-full">
+                                <div className="space-y-2 flex-1 flex flex-col">
                                     <Label className="flex justify-between">
-                                        <span>HTML Content</span>
-                                        <Badge variant="outline" className="text-[10px]">Variables: {`{{employee_name}}, {{surat_number}}, {{reason}}, {{hire_date}}, {{issued_date}}`}</Badge>
+                                        <span>Template Content Editor</span>
+                                        <Badge variant="outline" className="text-[10px]">Rich Text + Variables Support</Badge>
                                     </Label>
-                                    <Textarea 
-                                        className="font-mono text-sm leading-relaxed min-h-[400px] resize-y bg-black/20"
+                                    <HTMLEditor 
                                         value={activeTemplate.htmlContent} 
-                                        onChange={e => setActiveTemplate({...activeTemplate, htmlContent: e.target.value})} 
+                                        onChange={html => setActiveTemplate({...activeTemplate, htmlContent: html})} 
+                                        className="min-h-[500px]"
                                     />
                                 </div>
                             </CardContent>
