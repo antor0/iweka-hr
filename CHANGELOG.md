@@ -5,7 +5,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.0.0] — 2026-04-15
+
+### Added
+- **Recruitment Dashboard (ATS)** (`/recruitment`): Live stat cards showing Active Postings, Total Candidates, Interviews This Month, and Hires This Month — all sourced from a new `/api/v1/recruitment/stats` aggregate endpoint.
+- **Job Requisition Detail Page** (`/recruitment/[id]`): Full-featured detail view with three tabs:
+  - **Pipeline**: Drag-and-drop Kanban board powered by `@dnd-kit/core` — candidates can be dragged across all pipeline stages (`NEW → SCREENING → INTERVIEW → OFFER → HIRED / REJECTED`).
+  - **Candidates**: Table of all applicants with "Add Candidate to Job" button and per-row "Schedule Interview" action.
+  - **Details & Edit**: Inline edit for job description and requirements with save/cancel toggle.
+- **`CreateRequisitionDialog`**: Dialog for creating new job postings with department, position, headcount, target date, location, description, and requirements fields.
+- **`ApplyCandidateDialog`**: Dialog to add an existing candidate from the talent pool to a specific job requisition, with salary expectation and notes.
+- **`AddCandidateDialog`**: Dialog to manually create a new candidate entry with full profile fields.
+- **`ScheduleInterviewDialog`**: Dialog to schedule an interview for a candidate, selecting interviewer (from employee list), interview type, date/time, and duration.
+- **Interviews List**: Scheduled interviews auto-display under the Candidates tab when present, showing type, date/time, duration, and result status.
+- **`GET/POST /api/v1/recruitment/interviews`**: Retrieve and create interviews for applications.
+- **`PUT/DELETE /api/v1/recruitment/interviews/:id`**: Update interview result/feedback or delete an interview.
+- **`GET/PUT/DELETE /api/v1/recruitment/requisitions/:id`**: Retrieve full requisition detail (with applications and interviews), inline-update job details, and delete requisitions.
+- **`PUT /api/v1/recruitment/applications/:id/status`**: Update an application's pipeline status (used by Kanban drag-and-drop).
+- **`GET /api/v1/recruitment/stats`**: Aggregate recruitment metrics — active postings, unique candidates, monthly interviews, monthly hires.
+- **`POST /api/v1/webhooks/recruitment/apply`** *(public)*: Unauthenticated endpoint to receive job applications from the corporate website. Handles candidate deduplication by email address, creates/updates candidate profile, and creates a new `Application` in `NEW` status within a database transaction.
+- **`WebhookApplySchema`**, **`CreateInterviewSchema`**, **`UpdateInterviewSchema`**: New Zod schemas added to `recruitment.schema.ts`.
+- **Interview CRUD** in `RecruitmentService`: `getInterviews()`, `createInterview()`, `updateInterview()`, `deleteInterview()` methods.
+- **`updateRequisition()`** and **`deleteRequisition()`** in `RecruitmentService`.
+- **Enhanced `getRequisitionById()`**: Now includes nested `interviews` for each application.
+
+### Changed
+- `recruitment/page.tsx` refactored from static computed stats to live data fetched from `/api/v1/recruitment/stats` and `/api/v1/recruitment/requisitions`.
+- `RecruitmentService.getRequisitionById()` now eagerly loads `interviews` within each application.
+- All toast notifications in the Recruitment module migrated from `sonner` to the project's built-in `useToast` hook (`@/hooks/use-toast`).
+
+### Dependencies
+- `@dnd-kit/core@^6.3.1` — Drag-and-drop core engine for the Kanban pipeline
+- `@dnd-kit/sortable@^10.0.0` — Sortable extensions for dnd-kit
+- `@dnd-kit/utilities@^3.2.2` — CSS transform utilities for dnd-kit
+- `sonner@latest` — *(installed but superseded by native `useToast`; can be removed)*
+
+
+
+### Added
+- **Tax API Stats** (`/api/v1/tax/stats`): Aggregates YTD, current month tax totals, PTKP distribution, and grouped monthly arrays directly from `MonthlyTax` and `TaxConfig` models.
+- **Tax Dashboard Updates** (`/tax`): Refactored page from mock data to use live fetched data. Hooked up the Configuration navigation button.
+- **Monthly Return Export (CSV)**: Linked the Tax Dashboard's "Monthly Return" button to trigger a localized CSV generation mapping the new table structure.
+- **TER Tax Presets** (`tax-presets.ts`): Created constant library holding PP 58/2023 rates.
+- **TER Auto-Populate** (`/settings/tax`): Integrated a one-click button in tax settings to automatically populate all PTKP category A (44 rows), B (40 rows), C (41 rows) brackets.
+- **BPJS SIPP Export (CSV)**: Hooked up the "Export SIPP" button in the BPJS dashboard (`/bpjs`) to compile and download monthly contributions via CSV.
+
+### Changed
+- Refactored `bpjsStats` in the BPJS dashboard fixing an invalid comma operator syntax issue.
+
+## [0.9.0] — 2026-04-15
+
+### Added
+- **BPJS Configuration UI** (`/settings/bpjs`): Full management page for BPJS rates (Kesehatan, JHT, JKK, JKM, JP). JKK risk group mapped via dropdown to correct decimal rates. History table tracks all previous configs with effective/end dates.
+- **Tax PPh 21 Configuration UI** (`/settings/tax`): Management page for tax method (TER/Progressive), PTKP values (TK/0–K/3), progressive brackets, and TER rate tables (A, B, C categories) configurable via the UI.
+- **BPJS API** (`GET/POST /api/v1/settings/bpjs`, `PUT/DELETE /api/v1/settings/bpjs/:id`): Full CRUD with history versioning — creating a new config auto-archives the previous one.
+- **Tax API** (`GET/POST /api/v1/settings/tax`, `PUT/DELETE /api/v1/settings/tax/:id`): Full CRUD with the same versioning pattern.
+- **PPh 21 TER Engine** in `payroll.service.ts`: Proper TER category mapping (A/B/C from marital status) with `lookupTerRate()` against `TaxConfig.terRates`. Falls back to progressive if TER table not yet configured.
+- **December Progressive Reconciliation**: In December (or `PROGRESSIVE` method), engine calculates annual taxable income and reconciles against YTD tax paid from `MonthlyTax` table.
+- **`MonthlyTax` record population**: Every payroll run now creates/upserts a `MonthlyTax` record per employee for accurate YTD tracking.
+- **Late Arrival Penalty**: Configurable grace period (minutes) and penalty amount (IDR per occurrence) in Company Settings. Payroll engine reads `Timesheet` LATE records and applies deductions per occurrence exceeding the grace period.
+- **Unpaid Leave Deduction**: Engine queries `LeaveRequest` with `isPaid=false` overlapping the payroll period and deducts proportional daily salary.
+- **MonthlyIncentive Integration**: `MonthlyIncentive.incentive + bonus` now included in gross income.
+- **Manual Deduction field**: `deductionAmount` added to `MonthlyVariableInput` — HR can input per-employee deductions before running payroll.
+- **Mid-Month Hire Proration**: Engine auto-detects employees hired within the payroll period and prorates base salary accordingly.
+- **Enriched `components` JSON**: `PayrollItem.components` now stores a fully structured breakdown: `earnings` (base, allowances detail, variable inputs, incentives), `deductions` (BPJS breakdown, PPh21 with method/category/rate, unpaid leave, late penalty, manual deduction), and `companyCost` (all employer BPJS components).
+- **Live Payroll Dashboard** (`/payroll`): All stat cards, pipeline progress, and history table now fetch from live `PayrollRun` API instead of hardcoded mock data.
+- **Run Payroll Modal**: "Run Payroll" button opens a month/year picker dialog wired to `POST /api/v1/payroll/generate`.
+- **Payroll Run Detail Page** (`/payroll/[id]`): Summary stat cards, per-employee table with expandable rows showing full component breakdown (earnings/deductions/company cost), and status action buttons (Submit → Approve → Finalize).
+- **`PATCH /api/v1/payroll/:id`**: New endpoint for status promotion (DRAFT → REVIEW → APPROVED → FINALIZED).
+- **Settings > Company**: Added "Late Arrival Penalty" section with Grace Period and Penalty Amount fields persisted to `CompanyConfig`.
+
+### Changed
+- `payroll.service.ts` fully refactored — replaced hardcoded 5% flat tax with proper TER/Progressive engine; added late penalty, unpaid leave deduction, incentive, proration, and manual deduction logic; enriched `components` JSON structure.
+- `MonthlyVariableInput` schema extended with `deductionAmount` field.
+- `CompanyConfig` schema extended with `lateGracePeriodMins` and `latePenaltyAmount` fields.
+- `PayrollRun` detail query now includes `MonthlyTax` via `monthlyTax` relation.
+- `/payroll/page.tsx` converted from static page to fully dynamic client component with API integration.
+
+### Fixed
+- `BPJS Combined` stat in `/bpjs` dashboard now correctly adds `totalBpjsCompany + totalBpjsEmployee` numerically using `Number()` cast (previously concatenated as strings due to Prisma `Decimal` serialization).
+- `BpjsConfigSchema` and `TaxConfigSchema` validators updated to use `z.coerce.number()` — fixes "invalid_type" validation error when re-submitting existing config values returned from API as strings.
+
+---
+
 ## [0.8.0] — 2026-04-10
+
 
 ### Added
 - **Platform User Management**: A new centralized "Platform Users" tab within the Settings module for administrating HRIS users.

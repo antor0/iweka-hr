@@ -3,42 +3,55 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Briefcase, Plus, Users, Timer, UserCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { CreateRequisitionDialog } from "./components/create-requisition-dialog";
+import { Briefcase, Users, Timer, UserCheck } from "lucide-react";
 import { GlassStatCard } from "@/components/liquid-glass/glass-stat-card";
 
-const sBadge: Record<string, "default" | "success" | "warning" | "outline" | "destructive"> = { OPEN: "success", DRAFT: "outline", PENDING_APPROVAL: "warning", CLOSED: "destructive" };
+const sBadge: Record<string, "default" | "success" | "warning" | "outline" | "destructive"> = {
+    OPEN: "success",
+    DRAFT: "outline",
+    PENDING_APPROVAL: "warning",
+    CLOSED: "destructive"
+};
 
 export default function RecruitmentPage() {
     const [requisitions, setRequisitions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [stats, setStats] = useState({ activePostings: 0, totalCandidates: 0, interviewsThisMonth: 0, hiredThisMonth: 0 });
+    const router = useRouter();
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [reqRes, statsRes] = await Promise.all([
+                fetch('/api/v1/recruitment/requisitions'),
+                fetch('/api/v1/recruitment/stats')
+            ]);
+            if (reqRes.ok) {
+                const { data } = await reqRes.json();
+                setRequisitions(data || []);
+            }
+            if (statsRes.ok) {
+                const { data } = await statsRes.json();
+                setStats(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch recruitment data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchRequisitions = async () => {
-            try {
-                const res = await fetch('/api/v1/recruitment/requisitions');
-                if (!res.ok) throw new Error("Failed to fetch");
-                const { data } = await res.json();
-                setRequisitions(data || []);
-            } catch (err: any) {
-                setError(err.message);
-                console.error("Failed to fetch requisitions", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchRequisitions();
+        fetchData();
     }, []);
 
-    const activeCount = requisitions.filter(r => r.status === 'OPEN').length;
-    const totalApplications = requisitions.reduce((acc, r) => acc + (r._count?.applications || 0), 0);
-
-    const stats = [
-        { title: "Active Postings", value: String(activeCount), subtitle: "Live jobs", icon: <Briefcase className="h-5 w-5" />, accent: "primary" as const },
-        { title: "Total Candidates", value: String(totalApplications), subtitle: "Across all jobs", icon: <Users className="h-5 w-5" />, accent: "accent" as const },
-        { title: "Interview Process", value: "-", subtitle: "Awaiting schedule", icon: <Timer className="h-5 w-5" />, accent: "warning" as const },
-        { title: "Hired", value: "-", subtitle: "This month", icon: <UserCheck className="h-5 w-5" />, accent: "success" as const },
+    const statCards = [
+        { title: "Active Postings", value: String(stats.activePostings), subtitle: "Live jobs", icon: <Briefcase className="h-5 w-5" />, accent: "primary" as const },
+        { title: "Total Candidates", value: String(stats.totalCandidates), subtitle: "In active postings", icon: <Users className="h-5 w-5" />, accent: "accent" as const },
+        { title: "Interviews", value: String(stats.interviewsThisMonth), subtitle: "Scheduled this month", icon: <Timer className="h-5 w-5" />, accent: "warning" as const },
+        { title: "Hired", value: String(stats.hiredThisMonth), subtitle: "This month", icon: <UserCheck className="h-5 w-5" />, accent: "success" as const },
     ];
 
     return (
@@ -51,12 +64,12 @@ export default function RecruitmentPage() {
                     <p className="text-sm text-muted-foreground mt-1">Manage new employee recruitment pipelines</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button size="sm"><Plus className="h-4 w-4 mr-1.5" /> Create Job Posting</Button>
+                    <CreateRequisitionDialog onSuccess={fetchData} />
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((s) => <GlassStatCard key={s.title} {...s} accentColor={s.accent} />)}
+                {statCards.map((s) => <GlassStatCard key={s.title} {...s} accentColor={s.accent} />)}
             </div>
 
             <Card>
@@ -77,9 +90,13 @@ export default function RecruitmentPage() {
                             {loading ? (
                                 <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">Loading...</td></tr>
                             ) : requisitions.length === 0 ? (
-                                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No job requisitions found.</td></tr>
-                            ) : requisitions.map((p, i) => (
-                                <tr key={p.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer">
+                                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-muted-foreground">No job requisitions found. Create one to get started.</td></tr>
+                            ) : requisitions.map((p) => (
+                                <tr
+                                    key={p.id}
+                                    onClick={() => router.push(`/recruitment/${p.id}`)}
+                                    className="border-b border-border/50 hover:bg-secondary/30 transition-colors cursor-pointer"
+                                >
                                     <td className="px-4 py-3 text-sm font-medium">{p.title}</td>
                                     <td className="px-4 py-3 text-sm text-muted-foreground">{p.department?.name}</td>
                                     <td className="px-4 py-3 text-sm font-medium">{p._count?.applications || 0}</td>

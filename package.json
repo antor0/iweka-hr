@@ -1,6 +1,6 @@
 {
   "name": "code",
-  "version": "0.6.0",
+  "version": "1.0.0",
   "private": true,
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -18,6 +18,9 @@
     "seed:sample": "tsx prisma/seed-sample-data.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",

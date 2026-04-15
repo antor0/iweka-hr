@@ -997,6 +997,7 @@ model MonthlyVariableInput {
   overtimeAmount   Decimal  @default(0) @map("overtime_amount") @db.Decimal(15, 2)
   commissionAmount Decimal  @default(0) @map("commission_amount") @db.Decimal(15, 2)
   bonusAmount      Decimal  @default(0) @map("bonus_amount") @db.Decimal(15, 2)
+  deductionAmount  Decimal  @default(0) @map("deduction_amount") @db.Decimal(15, 2)
   notes            String?  @db.Text
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
@@ -1077,10 +1078,12 @@ model CompanyConfig {
   phone        String?
   email        String?
   payrollDate  Int?     @default(25) @map("payroll_date")
-  jkkRiskGroup String?  @map("jkk_risk_group")
-  mainBank     String?  @map("main_bank")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  jkkRiskGroup        String?  @map("jkk_risk_group")
+  mainBank            String?  @map("main_bank")
+  lateGracePeriodMins Int?     @default(15) @map("late_grace_period_mins")
+  latePenaltyAmount   Decimal? @default(0) @map("late_penalty_amount") @db.Decimal(15, 2)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("sys_company_config")
 }

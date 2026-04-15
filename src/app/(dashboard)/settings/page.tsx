@@ -28,7 +28,10 @@ import {
     Mail,
     Calendar,
     FileText,
-    Loader2
+    Loader2,
+    HeartPulse,
+    Receipt,
+    Clock
 } from "lucide-react";
 import { ROLE_PERMISSIONS, PERMISSION_GROUPS, hasPermission } from "@/lib/auth/permissions-config";
 import { UsersTab } from "./users-tab";
@@ -300,6 +303,63 @@ export default function SettingsPage() {
                     <div className="space-y-6">
                         <Card>
                             <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-warning" />
+                                    Attendance Setting
+                                </CardTitle>
+                                <CardDescription>Configure rules for employee attendance tracking and late penalties</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {isLoadingCompany ? (
+                                    <div className="flex justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+                                ) : (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Late Grace Period (Minutes)</label>
+                                                <Input 
+                                                    type="number" 
+                                                    min="0" 
+                                                    value={companyConfig?.lateGracePeriodMins ?? 15} 
+                                                    onChange={(e) => setCompanyConfig({...companyConfig, lateGracePeriodMins: parseInt(e.target.value) || 0})} 
+                                                />
+                                                <p className="text-xs text-muted-foreground">Minutes of lateness to ignore before applying penalty</p>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-sm font-medium">Penalty Amount (IDR per occurrence)</label>
+                                                <Input 
+                                                    type="number" 
+                                                    min="0" 
+                                                    value={companyConfig?.latePenaltyAmount ?? 0} 
+                                                    onChange={(e) => setCompanyConfig({...companyConfig, latePenaltyAmount: parseFloat(e.target.value) || 0})} 
+                                                />
+                                                <p className="text-xs text-muted-foreground">Fixed amount deducted per late occurrence exceeding grace period</p>
+                                            </div>
+                                        </div>
+
+                                        <Separator />
+                                        
+                                        <div className="flex items-center justify-between p-4 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                                            <div className="flex gap-3">
+                                                <div className="mt-1">
+                                                    <Calendar className="h-5 w-5 text-orange-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium">Automatic Deductions</p>
+                                                    <p className="text-xs text-muted-foreground">Penalties are automatically calculated and applied during the payroll run based on approved timesheets.</p>
+                                                </div>
+                                            </div>
+                                            <Button onClick={handleSaveCompany} disabled={isSavingCompany}>
+                                                {isSavingCompany ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Save className="h-4 w-4 mr-1.5" />} 
+                                                Save Attendance Config
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
                                 <CardTitle>Configuration & Master Data</CardTitle>
                                 <CardDescription>Manage system-wide configuration and templates</CardDescription>
                             </CardHeader>
@@ -326,6 +386,22 @@ export default function SettingsPage() {
                                     </div>
                                     <h4 className="font-medium text-sm">Email Config</h4>
                                     <p className="text-xs text-muted-foreground mt-1">Configure SMTP settings for system notifications</p>
+                                </Link>
+
+                                <Link href="/settings/bpjs" className="flex flex-col p-4 rounded-xl border border-border glass glass-hover transition-all">
+                                    <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3">
+                                        <HeartPulse className="h-5 w-5 text-emerald-500" />
+                                    </div>
+                                    <h4 className="font-medium text-sm">BPJS Configuration</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">Manage Health and Employment BPJS rates</p>
+                                </Link>
+
+                                <Link href="/settings/tax" className="flex flex-col p-4 rounded-xl border border-border glass glass-hover transition-all">
+                                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center mb-3">
+                                        <Receipt className="h-5 w-5 text-violet-500" />
+                                    </div>
+                                    <h4 className="font-medium text-sm">Tax PPh 21 Configuration</h4>
+                                    <p className="text-xs text-muted-foreground mt-1">Manage TER rates, PTKP values, and progressive brackets</p>
                                 </Link>
                             </CardContent>
                         </Card>

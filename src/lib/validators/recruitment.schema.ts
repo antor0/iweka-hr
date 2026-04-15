@@ -29,3 +29,28 @@ export const CreateApplicationSchema = z.object({
     expectedSalary: z.coerce.number().optional(),
     notes: z.string().optional()
 });
+
+export const WebhookApplySchema = z.object({
+    requisitionId: z.string().uuid(),
+    firstName: z.string().min(1),
+    lastName: z.string().min(1),
+    email: z.string().email(),
+    phone: z.string().optional(),
+    resumeUrl: z.string().url().optional().or(z.literal('')),
+    portfolioUrl: z.string().url().optional().or(z.literal('')),
+    expectedSalary: z.coerce.number().optional(),
+    source: z.string().default("Corporate Website")
+});
+
+export const CreateInterviewSchema = z.object({
+    applicationId: z.string().uuid(),
+    interviewerId: z.string().uuid(),
+    scheduledDate: z.coerce.date(),
+    durationMinutes: z.coerce.number().min(15).default(60),
+    type: z.string()
+});
+
+export const UpdateInterviewSchema = z.object({
+    result: z.string().optional(),
+    feedback: z.string().optional()
+});

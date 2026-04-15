@@ -1,6 +1,6 @@
 # 🏢 HRIS Pro — Human Resource Information System
 
-A **production-grade, full-stack HRIS application** built for Indonesian companies. Features a stunning **Liquid Glass** design system, a complete payroll engine with PPh 21 & BPJS compliance, recruitment (ATS), performance management, a custom report builder, an official letter (surat) system with PDF support, and a real-time notification system with email integration — all powered by **Next.js 16**, **Prisma 7**, and **PostgreSQL**.
+A **production-grade, full-stack HRIS application** built for Indonesian companies. Features a stunning **Liquid Glass** design system, a complete payroll engine with PPh 21 & BPJS compliance, a full Applicant Tracking System (ATS) with drag-and-drop Kanban pipelines, performance management, a custom report builder, an official letter (surat) system with PDF support, and a real-time notification system with email integration — all powered by **Next.js 16**, **Prisma 7**, and **PostgreSQL**.
 
 ---
 
@@ -73,17 +73,28 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Approval Workflow** | Draft → Submitted → Approved/Rejected → Paid status flow |
 | **Running Totals** | Automatic total calculation across all receipt items |
 
-### Payroll Engine
+### Payroll Engine *(Updated in v0.9)*
 | Feature | Description |
 |---------|-------------|
-| **Monthly Payroll Run** | Batch calculation engine across all active employees |
-| **Grade-Based Base Salary** | Salary ranges defined per grade (Grade I–VI) |
+| **Monthly Payroll Run** | Batch calculation engine across all active employees with transactional save |
+| **Grade-Based Base Salary** | Salary ranges defined per grade (Grade I–VI); prorated automatically for mid-month hires |
 | **Dynamic Allowances** | Reads employee allowances (fixed & attendance-based) live from DB per payroll run |
-| **Variable Pay** | THR, overtime, bonus, and commission pulled from monthly variable inputs |
-| **BPJS Calculations** | Kesehatan (1%/4%) and Ketenagakerjaan (JHT/JKK/JKM/JP) with salary caps |
-| **PPh 21 Tax (TER Method)** | Automated tax calculation using the 2024 TER (Tarif Efektif Rata-rata) method |
-| **Payslip Generation** | Per-employee payslip with detailed component breakdown |
-| **Accounting Export** | Journal entry and bank transfer file generation |
+| **Variable Pay** | THR, overtime, bonus, commission, and incentives pulled from `MonthlyVariableInput` & `MonthlyIncentive` |
+| **Manual Deduction** | HR can input a per-employee manual deduction amount in `MonthlyVariableInput` each pay period |
+| **BPJS Calculations** | Configurable Kesehatan (Kes) and Ketenagakerjaan (JHT/JKK/JKM/JP) rates/caps via Settings |
+| **PPh 21 TER Engine** | Proper TER category mapping (A/B/C from marital status), rate lookup from `TaxConfig.terRates`, with December progressive reconciliation against YTD tax paid |
+| **`MonthlyTax` Tracking** | YTD gross and tax records created per employee per run for accurate annual reconciliation |
+| **Unpaid Leave Deduction** | Automatically deducts proportional daily salary for approved unpaid leave requests in the period |
+| **Late Arrival Penalty** | Configurable grace period and fixed deduction per late occurrence applied at payroll run time |
+| **Enriched Payslip Components** | Structured `earnings / deductions / companyCost` JSON per employee with full line-item detail |
+| **Live Payroll Dashboard** | Stats, pipeline status, and history from live API data — no hardcoded values |
+| **Payroll Run Detail Page** | Per-employee breakdown with expandable rows; status actions (Submit → Approve → Finalize) |
+
+### Payroll Configuration *(New in v0.9)*
+| Feature | Description |
+|---------|-------------|
+| **BPJS Configuration** | Manage all BPJS rates (Kes, JHT, JKK, JKM, JP) and salary caps with full history versioning |
+| **Tax PPh 21 Configuration** | Configure TER rate tables (A/B/C), PTKP values, and progressive tax brackets via UI |
 
 ### Surat (Official Letters) *(New in v0.5)*
 | Feature | Description |
@@ -104,12 +115,16 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Approval Email Templates** | Pre-built HTML email for approval requests (to approver) and status updates (to requester) |
 | **Email Settings UI** | Full SMTP configuration form at `/settings/email` with live test-send |
 
-### Recruitment (ATS)
+### Recruitment / ATS *(Full ATS in v1.0)*
 | Feature | Description |
 |---------|-------------|
-| **Job Requisitions** | Create and manage approved headcount requests |
-| **Candidate Tracking** | Pipeline stages: `NEW → SCREENING → INTERVIEW → OFFER → HIRED` |
-| **Analytics Dashboard** | Live metrics: active postings, total candidates, conversion rates |
+| **Job Requisitions Dashboard** | Create and manage approved headcount requests; live stat cards for active postings, candidates, interviews, and hires |
+| **Requisition Detail Page** | Per-job tabbed view: Pipeline, Candidates, and Details & Edit |
+| **Drag-and-Drop Kanban Pipeline** | Visual pipeline board powered by `@dnd-kit/core`; drag candidates between `NEW → SCREENING → INTERVIEW → OFFER → HIRED / REJECTED` stages with real-time backend persistence |
+| **Candidate Pool Management** | Manually add candidates to the talent pool; apply existing candidates to specific jobs |
+| **Interview Scheduling** | Schedule structured interviews per candidate with interviewer selection, type, date/time, and duration |
+| **Inline Job Editing** | Edit job description and requirements directly on the detail page without a dialog |
+| **External Application Webhook** | `POST /api/v1/webhooks/recruitment/apply` — public endpoint for corporate website to submit applications; idempotent by email |
 
 ### Performance Management
 | Feature | Description |
@@ -133,7 +148,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Platform User Management** | Full CRUD for system users with optional mapping to internal Employee profiles |
 | **Role-Based Access Control** | Granular matrix-based authorization securing both API endpoints and conditional UI sidebar tabs |
 | **JWT Session Management** | HTTP-only secure cookies with 7-day sliding expiry |
-| **Settings** | Company profile, theme (light/dark), RBAC configuration, SMTP email config |
+| **Settings** | Company profile (incl. late penalty config), theme (light/dark), RBAC, SMTP email, BPJS config, Tax config |
 
 ---
 
@@ -152,6 +167,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Auth** | `jose` (JWT), `bcryptjs` (password hashing) |
 | **Validation** | Zod 4 |
 | **Email** | Nodemailer (SMTP — Gmail, Mailtrap, custom) |
+| **Drag & Drop** | `@dnd-kit/core` + `@dnd-kit/sortable` (Kanban pipeline) |
 | **PDF/Print** | Browser native `print()` via compiled HTML templates |
 | **OCR** | Tesseract.js (receipt text extraction) |
 | **Runtime** | Node.js / Docker |
@@ -197,16 +213,31 @@ src/
 │   │   │   │       └── page.tsx      # Reorganized hierarchical layout
 │   │   │   └── page.tsx
 │   │   ├── payroll/          # Payroll runs
+│   │   │   └── [id]/         # Payroll run detail page (per-employee breakdown, status actions)
+│   │   ├── bpjs/             # BPJS dashboard with live config & monthly summary
 │   │   ├── performance/      # KPIs & appraisals
-│   │   ├── recruitment/      # Job requisitions & ATS
+│   │   ├── recruitment/      # Full ATS module
+│   │   │   ├── [id]/         # Requisition detail page (Kanban, candidates, inline edit)
+│   │   │   │   ├── components/
+│   │   │   │   │   ├── pipeline-board.tsx  # DnD Kanban board
+│   │   │   │   │   ├── pipeline-column.tsx # Droppable column
+│   │   │   │   │   └── candidate-card.tsx  # Draggable candidate card
+│   │   │   │   └── page.tsx
+│   │   │   ├── components/
+│   │   │   │   ├── create-requisition-dialog.tsx
+│   │   │   │   ├── add-candidate-dialog.tsx
+│   │   │   │   ├── apply-candidate-dialog.tsx
+│   │   │   │   └── schedule-interview-dialog.tsx
+│   │   │   └── page.tsx      # ATS dashboard with live stats
 │   │   ├── reports/          # Reports & custom report builder
 │   │   ├── settings/
+│   │   │   ├── bpjs/         # BPJS Configuration UI (rates, history)
+│   │   │   ├── tax/          # Tax PPh 21 Configuration UI (TER, brackets, PTKP)
 │   │   │   ├── holidays/     # National holiday management
 │   │   │   ├── email/        # SMTP email configuration UI
 │   │   │   ├── users-tab.tsx # Component for Platform Users CRUD
-│   │   │   └── page.tsx      # Settings multi-tab layout
+│   │   │   └── page.tsx      # Settings multi-tab layout (incl. Late Penalty config)
 │   │   ├── surat-templates/  # Letter template HTML editor
-│   │   └── tax/              # PPh 21 tax
 │   ├── api/v1/               # REST API routes
 │   │   ├── departments/      # Department-specific operations
 │   │   │   └── [id]/
@@ -221,11 +252,27 @@ src/
 │   │   ├── auth/             # Login / logout / session
 │   │   ├── dashboard/        # Aggregate HR stats & activities
 │   │   ├── ess/              # ESS-specific endpoints (PWA)
-│   │   ├── payroll/          # Payroll generation
+│   │   ├── payroll/
+│   │   │   ├── generate/     # POST — trigger payroll run
+│   │   │   └── [id]/         # GET — payroll run detail; PATCH — status update
+│   │   ├── settings/
+│   │   │   ├── bpjs/         # GET/POST — BPJS config; [id]/ PUT/DELETE
+│   │   │   ├── tax/          # GET/POST — Tax config; [id]/ PUT/DELETE
+│   │   │   ├── company/      # GET/PUT — Company config (incl. late penalty fields)
+│   │   │   └── email/        # EmailConfig CRUD & test
 │   │   ├── performance/      # Cycles, appraisals, goals
-│   │   ├── recruitment/      # Requisitions & candidates
+│   │   ├── recruitment/
+│   │   │   ├── requisitions/
+│   │   │   │   └── [id]/     # GET/PUT/DELETE single requisition
+│   │   │   ├── candidates/   # GET/POST candidate pool
+│   │   │   ├── applications/
+│   │   │   │   └── [id]/status/  # PUT pipeline status update
+│   │   │   ├── interviews/
+│   │   │   │   └── [id]/     # PUT result / DELETE
+│   │   │   └── stats/        # GET aggregate dashboard metrics
+│   │   ├── webhooks/
+│   │   │   └── recruitment/apply/  # POST public application webhook
 │   │   ├── reports/custom/   # Custom data export
-│   │   ├── settings/email/   # EmailConfig CRUD & test
 │   │   └── surat/templates/  # Surat template management
 │   └── login/                # Public auth page
 ├── components/
@@ -242,12 +289,16 @@ src/
     │   ├── email.service.ts          # Nodemailer SMTP wrapper
     │   ├── notification.service.ts   # In-app + email notifications
     │   ├── organization.service.ts   # Locations, work models, workflows
-│   │   ├── department.service.ts     # Department-specific logic
-│   │   ├── schedule.service.ts       # Round-robin shift generation
-│   │   ├── timesheet.service.ts      # Attendance vs Schedule collation
+    │   ├── department.service.ts     # Department-specific logic
+    │   ├── schedule.service.ts       # Round-robin shift generation
+    │   ├── timesheet.service.ts      # Attendance vs Schedule collation
+    │   ├── payroll.service.ts        # TER/Progressive tax engine, BPJS, deductions, enriched components
     │   ├── salary.service.ts         # Allowances & variable inputs
+    │   ├── recruitment.service.ts    # Job requisitions, candidates, applications, interviews
     │   └── surat.service.ts          # Template compilation & history
     └── validators/
+        ├── bpjs-config.schema.ts     # BPJS config Zod schema (coerce.number)
+        ├── tax-config.schema.ts      # Tax config Zod schema (TER, brackets, PTKP)
         ├── organization.schema.ts
         ├── salary.schema.ts
         └── surat.schema.ts
@@ -367,19 +418,19 @@ npm run docker:down
 
 ## 🗄️ Database Schema Overview
 
-The Prisma schema contains **37+ models** covering all HRIS domains:
+The Prisma schema contains **40+ models** covering all HRIS domains:
 
 | Domain | Models |
 |--------|--------|
 | **Core HR** | `Employee`, `Department`, `Position`, `Grade`, `EmploymentHistory`, `FamilyMember` |
 | **Organization** | `Location`, `WorkTimeModel`, `WorkTimeSchedule`, `ApprovalWorkflow`, `PositionGrade` |
-| **Salary** | `EmployeeAllowance`, `MonthlyVariableInput` |
+| **Salary** | `EmployeeAllowance`, `MonthlyVariableInput` (+ `deductionAmount`), `MonthlyIncentive` |
 | **Auth** | `User`, `AuditLog` |
-| **Attendance** | `Attendance`, `Shift` |
+| **Attendance** | `Attendance`, `Shift`, `Timesheet` |
 | **Leave** | `LeaveType`, `LeaveRequest`, `LeaveBalance` |
 | **Claims** | `Claim`, `ClaimItem` |
-| **Payroll** | `PayrollRun`, `PayrollItem`, `SalaryComponent`, `EmployeeSalary` |
-| **Compliance** | `TaxConfig`, `TaxBracket`, `BpjsConfig` |
+| **Payroll** | `PayrollRun`, `PayrollItem`, `MonthlyTax`, `SalaryComponent` |
+| **Compliance** | `TaxConfig`, `BpjsConfig`, `CompanyConfig` (+ `lateGracePeriodMins`, `latePenaltyAmount`) |
 | **Recruitment** | `JobRequisition`, `Candidate`, `Application`, `Interview` |
 | **Performance** | `PerformanceCycle`, `Appraisal`, `Goal` |
 | **Surat** | `SuratTemplate`, `SuratHistory` |
@@ -458,8 +509,20 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 ### Payroll
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/payroll/generate` | Trigger a payroll run |
-| `PUT` | `/payroll/runs/:id/approve` | Approve payroll batch |
+| `GET` | `/payroll` | List payroll runs (paginated) |
+| `POST` | `/payroll/generate` | Trigger a payroll calculation run |
+| `GET` | `/payroll/:id` | Get payroll run detail with per-employee items |
+| `PATCH` | `/payroll/:id` | Update payroll run status (DRAFT → REVIEW → APPROVED → FINALIZED) |
+
+### Payroll Configuration
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET/POST` | `/settings/bpjs` | List / create BPJS rate config (auto-archives previous active config) |
+| `PUT/DELETE` | `/settings/bpjs/:id` | Update / delete a BPJS config version |
+| `GET/POST` | `/settings/tax` | List / create Tax PPh 21 config (TER/Progressive) |
+| `PUT/DELETE` | `/settings/tax/:id` | Update / delete a Tax config version |
+| `GET` | `/tax/stats` | Aggregate live stats for the Tax Dashboard (PPh 21, TER, YTD) |
+| `GET/PUT` | `/settings/company` | Get / update company config (incl. `lateGracePeriodMins`, `latePenaltyAmount`) |
 
 ### Performance
 | Method | Endpoint | Description |
@@ -474,6 +537,13 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET/POST` | `/recruitment/requisitions` | List / create job postings |
+| `GET/PUT/DELETE` | `/recruitment/requisitions/:id` | Get detail / inline update / delete a requisition |
+| `GET/POST` | `/recruitment/candidates` | List / create candidates in the talent pool |
+| `PUT` | `/recruitment/applications/:id/status` | Update application pipeline status (Kanban) |
+| `GET/POST` | `/recruitment/interviews` | List / schedule interviews |
+| `PUT/DELETE` | `/recruitment/interviews/:id` | Update interview result/feedback / delete |
+| `GET` | `/recruitment/stats` | Aggregate dashboard stats (postings, candidates, interviews, hires) |
+| `POST` | `/webhooks/recruitment/apply` | **Public** — receive application from corporate website (no auth) |
 
 ### Claims
 | Method | Endpoint | Description |

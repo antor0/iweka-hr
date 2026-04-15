@@ -11,6 +11,8 @@ const CompanyConfigSchema = z.object({
     payrollDate: z.number().int().min(1).max(31).nullable().optional(),
     jkkRiskGroup: z.string().nullable().optional(),
     mainBank: z.string().nullable().optional(),
+    lateGracePeriodMins: z.coerce.number().int().min(0).default(15).optional(),
+    latePenaltyAmount: z.coerce.number().min(0).default(0).optional(),
 });
 
 export async function GET() {
