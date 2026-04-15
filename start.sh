@@ -18,6 +18,7 @@ echo "🛠️  DB_MODE = $DB_MODE"
 if [ "$DB_MODE" = "reset" ]; then
     echo "⚠️  Resetting database (dropping all data)..."
     npx prisma migrate reset --force
+    npx prisma db push
     echo "📦 Running fresh migrations..."
     npx prisma migrate deploy
     echo "🌱 Running full seed..."
@@ -32,6 +33,7 @@ if [ "$DB_MODE" = "reset" ]; then
 elif [ "$DB_MODE" = "migrate" ]; then
     echo "📦 Applying pending migrations..."
     npx prisma migrate deploy
+    npx prisma db push
     echo "🌱 Running idempotent seed scripts..."
     npx tsx prisma/seed.ts
     npx tsx prisma/seed-performance.ts
