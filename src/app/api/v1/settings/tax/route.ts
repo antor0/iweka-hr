@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
         const newConfig = await prisma.taxConfig.create({
             data: {
-                ...validated,
+                ...(validated as any),
                 isActive: true,
             }
         });

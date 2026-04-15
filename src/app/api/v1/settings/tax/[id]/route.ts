@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const updatedConfig = await prisma.taxConfig.update({
             where: { id },
-            data: validated
+            data: validated as any
         });
 
         if (validated.isActive) {
