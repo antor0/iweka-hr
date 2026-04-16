@@ -53,7 +53,7 @@ export default function LoginPage() {
                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent text-white font-bold text-2xl mb-4 shadow-lg">
                         HR
                     </div>
-                    <h1 className="text-2xl font-bold text-foreground">HRIS Pro</h1>
+                    <h1 className="text-2xl font-bold text-foreground">DigiHR+</h1>
                     <p className="text-sm text-muted-foreground mt-1">
                         Log in to the HR management system
                     </p>
@@ -119,7 +119,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-xs text-muted-foreground mt-6">
-                    © 2026 HRIS Pro — PT. Indowebhost Kreasi
+                    © 2026 DigiHR+ — PT. Indowebhost Kreasi
                 </p>
             </div>
         </div>

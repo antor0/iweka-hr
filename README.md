@@ -1,4 +1,4 @@
-# 🏢 HRIS Pro — Human Resource Information System
+# 🏢 DigiHR+ — Human Resource Information System
 
 A **production-grade, full-stack HRIS application** built for Indonesian companies. Features a stunning **Liquid Glass** design system, a complete payroll engine with PPh 21 & BPJS compliance, a full Applicant Tracking System (ATS) with drag-and-drop Kanban pipelines, performance management, a custom report builder, an official letter (surat) system with PDF support, and a real-time notification system with email integration — all powered by **Next.js 16**, **Prisma 7**, and **PostgreSQL**.
 

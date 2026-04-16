@@ -18,7 +18,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HRIS Pro — Human Resource Information System",
+  title: "DigiHR+ — Human Resource Information System",
   description:
     "Sistem manajemen SDM terintegrasi untuk perusahaan Indonesia. Kelola karyawan, penggajian, kehadiran, cuti, PPh 21, dan BPJS dalam satu platform.",
   keywords: [

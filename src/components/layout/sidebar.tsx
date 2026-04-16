@@ -159,7 +159,7 @@ export function Sidebar() {
                 {!collapsed && (
                     <div className="flex flex-col overflow-hidden animate-fade-in">
                         <span className="text-sm font-bold text-foreground tracking-tight">
-                            HRIS Pro
+                            DigiHR+
                         </span>
                         <span className="text-[10px] text-muted-foreground">
                             Human Resources

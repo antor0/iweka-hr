@@ -1,6 +1,6 @@
-# HRIS Pro — Deployment & Setup Guide
+# DigiHR+ — Deployment & Setup Guide
 
-This guide covers the complete local setup, database seeding, and production deployment process for the HRIS Pro application.
+This guide covers the complete local setup, database seeding, and production deployment process for the DigiHR+ application.
 
 ---
 
@@ -50,7 +50,7 @@ npx prisma db seed
 
 ## 🐳 Production Deployment (Docker Compose)
 
-The easiest way to deploy HRIS Pro to production is using Docker. The repository includes a `Dockerfile` utilizing a multi-stage approach optimized for Next.js, and a `docker-compose.yml` to spin up both the application and the PostgreSQL database.
+The easiest way to deploy DigiHR+ to production is using Docker. The repository includes a `Dockerfile` utilizing a multi-stage approach optimized for Next.js, and a `docker-compose.yml` to spin up both the application and the PostgreSQL database.
 
 ### Prerequisites
 - Docker Engine
