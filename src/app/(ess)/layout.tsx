@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-    themeColor: "#6366f1",
+    themeColor: "#007aff",
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
@@ -49,9 +49,14 @@ export default function EssLayout({
                     enableSystem
                     disableTransitionOnChange={false}
                 >
-                    <div className="relative min-h-screen overflow-x-hidden">
-                        <BackgroundOrbs />
-                        <div className="relative z-10">
+                    <div className="relative min-h-[100dvh] bg-black sm:bg-black/95 flex justify-center items-start overflow-hidden ess-pwa">
+                        {/* Desktop Ambient Background */}
+                        <div className="absolute inset-0 pointer-events-none hidden sm:block opacity-60">
+                            <BackgroundOrbs />
+                        </div>
+
+                        {/* Mobile Application Frame */}
+                        <div className="relative z-10 w-full max-w-[480px] min-h-[100dvh] bg-[var(--ios-system-bg)] overflow-x-hidden shadow-2xl sm:border-x sm:border-white/10 flex flex-col">
                             {children}
                         </div>
                     </div>

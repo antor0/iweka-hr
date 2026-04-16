@@ -148,7 +148,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Platform User Management** | Full CRUD for system users with optional mapping to internal Employee profiles |
 | **Role-Based Access Control** | Granular matrix-based authorization securing both API endpoints and conditional UI sidebar tabs |
 | **JWT Session Management** | HTTP-only secure cookies with 7-day sliding expiry |
-| **Settings** | Company profile (incl. late penalty config), theme (light/dark), RBAC, SMTP email, BPJS config, Tax config |
+| **Settings** | Company profile (incl. late penalty config), ESS theme switching (light/dark/system), RBAC, SMTP email, BPJS config, Tax config |
 
 ---
 
@@ -252,6 +252,10 @@ src/
 │   │   ├── auth/             # Login / logout / session
 │   │   ├── dashboard/        # Aggregate HR stats & activities
 │   │   ├── ess/              # ESS-specific endpoints (PWA)
+│   │   │   ├── components/   # ESS PWA shared components
+│   │   │   │   ├── ess-nav.tsx
+│   │   │   │   ├── offline-banner.tsx
+│   │   │   │   └── theme-toggle.tsx
 │   │   ├── payroll/
 │   │   │   ├── generate/     # POST — trigger payroll run
 │   │   │   └── [id]/         # GET — payroll run detail; PATCH — status update

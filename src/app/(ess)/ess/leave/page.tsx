@@ -10,12 +10,14 @@ import {
     CheckCircle2, 
     XCircle, 
     Clock, 
-    Sun,
     CalendarCheck,
     AlertCircle,
     Info,
-    CalendarPlus
+    CalendarPlus,
+    ChevronRight,
+    Umbrella
 } from "lucide-react";
+import { MobileHeader } from "../components/mobile-header";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -24,10 +26,10 @@ interface LeaveBalance { leaveTypeId: string; entitlement: number; used: number;
 interface LeaveRequest { id: string; startDate: string; endDate: string; totalDays: number; reason: string; status: string; leaveType: { name: string }; }
 
 const statusStyle: Record<string, { bg: string; text: string; label: string; icon: any }> = {
-    PENDING: { bg: "bg-warning/15", text: "text-warning", label: "Pending", icon: Clock },
-    APPROVED: { bg: "bg-success/15", text: "text-success", label: "Approved", icon: CheckCircle2 },
-    REJECTED: { bg: "bg-destructive/15", text: "text-destructive", label: "Rejected", icon: XCircle },
-    CANCELLED: { bg: "bg-muted/15", text: "text-muted-foreground", label: "Cancelled", icon: Info },
+    PENDING: { bg: "bg-amber-500/10", text: "text-amber-500", label: "Pending", icon: Clock },
+    APPROVED: { bg: "bg-emerald-500/10", text: "text-emerald-500", label: "Approved", icon: CheckCircle2 },
+    REJECTED: { bg: "bg-red-500/10", text: "text-red-500", label: "Rejected", icon: XCircle },
+    CANCELLED: { bg: "bg-muted/10", text: "text-muted-foreground", label: "Cancelled", icon: Info },
 };
 
 export default function EssLeavePage() {
@@ -109,165 +111,149 @@ export default function EssLeavePage() {
         }
     };
 
-    const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    const fmtDate = (d: string) => new Date(d).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading leave data...</p>
+            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-transparent font-sans relative">
+        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
             <OfflineBanner />
-
-            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
-                <div className="flex justify-between items-start">
-                    <div>
-                        <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Leave</h1>
-                        <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">Manage your leave requests</p>
-                    </div>
+            <MobileHeader 
+                title="Leave" 
+                rightAction={
                     <button 
-                        id="new-leave-btn" 
                         onClick={() => { setShowForm(!showForm); setMessage(null); }} 
-                        className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all active:scale-90 ${
-                            showForm 
-                                ? "bg-muted text-muted-foreground" 
-                                : "bg-gradient-to-br from-primary to-indigo-600 text-white shadow-primary/30"
-                        }`}
-                        title={showForm ? "Close Form" : "New Request"}
+                        className={`p-2 transition-all ${showForm ? "text-[var(--ios-secondary-label)]" : "text-primary active:opacity-50"}`}
                     >
-                        {showForm ? <X size={20} strokeWidth={2.5} /> : <Plus size={20} strokeWidth={2.5} />}
+                        {showForm ? <X size={24} strokeWidth={2.5} /> : <Plus size={24} strokeWidth={2.5} />}
                     </button>
-                </div>
+                }
+            />
 
+            <div className="max-w-[480px] mx-auto pt-2 flex flex-col gap-6">
                 {message && (
-                    <div className={`rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
-                        message.type === "success" 
-                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                            : "bg-red-500/10 border-red-500/30 text-red-500"
-                    }`}>
-                        {message.type === "success" ? <CheckCircle2 size={14} strokeWidth={3} /> : <AlertCircle size={14} strokeWidth={3} />}
-                        {message.text}
+                    <div className="px-4">
+                        <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                            message.type === "success" 
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                                : "bg-red-500/10 border-red-500/30 text-red-500"
+                        }`}>
+                            {message.type === "success" ? <CheckCircle2 size={16} strokeWidth={3} /> : <AlertCircle size={16} strokeWidth={3} />}
+                            {message.text}
+                        </div>
                     </div>
                 )}
 
                 {/* Submit Form */}
                 {showForm && (
-                    <div className="glass border-primary/20 rounded-[32px] p-6 shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-top-4 duration-500">
-                        <h2 className="text-base font-black text-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <CalendarPlus size={18} className="text-primary" /> New Request
-                        </h2>
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                            <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Leave Type</label>
-                                <div className="relative">
-                                    <select 
-                                        id="leave-type-select" 
-                                        value={form.leaveTypeId} 
-                                        onChange={e => setForm(f => ({ ...f, leaveTypeId: e.target.value }))} 
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none cursor-pointer" 
-                                        required
-                                    >
-                                        <option value="" className="bg-background">Select leave type...</option>
-                                        {leaveTypes.map(lt => (
-                                            <option key={lt.id} value={lt.id} className="bg-background">{lt.name}</option>
-                                        ))}
-                                    </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                        <Sun size={14} />
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="ios-list-group">
+                            <h2 className="ios-list-header flex items-center gap-2 px-1">
+                                <CalendarPlus size={14} /> Application Details
+                            </h2>
+                            <form onSubmit={handleSubmit} className="flex flex-col">
+                                <div className="ios-list-content">
+                                    <div className="ios-cell flex flex-col items-stretch gap-1 py-1 px-4">
+                                        <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Leave Type</label>
+                                        <select 
+                                            id="leave-type-select" 
+                                            value={form.leaveTypeId} 
+                                            onChange={e => setForm(f => ({ ...f, leaveTypeId: e.target.value }))} 
+                                            className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none appearance-none cursor-pointer py-1" 
+                                            required
+                                        >
+                                            <option value="">Select type...</option>
+                                            {leaveTypes.map(lt => (
+                                                <option key={lt.id} value={lt.id}>{lt.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="ios-cell py-1 px-4">
+                                        <div className="flex-1 flex flex-col gap-1">
+                                            <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Start Date</label>
+                                            <input 
+                                                id="leave-start-date" 
+                                                type="date" 
+                                                value={form.startDate} 
+                                                onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} 
+                                                className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none" 
+                                                required 
+                                            />
+                                        </div>
+                                        <div className="w-[0.5px] h-10 bg-[var(--ios-separator)] mx-4" />
+                                        <div className="flex-1 flex flex-col gap-1 text-right">
+                                            <label className="text-[12px] font-bold text-primary uppercase tracking-tight">End Date</label>
+                                            <input 
+                                                id="leave-end-date" 
+                                                type="date" 
+                                                value={form.endDate} 
+                                                min={form.startDate} 
+                                                onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} 
+                                                className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none text-right" 
+                                                required 
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="ios-cell justify-between items-center py-3 bg-[var(--ios-system-bg)]/30">
+                                        <div className="flex items-center gap-2">
+                                            <CalendarCheck size={18} className="text-primary" />
+                                            <span className="text-[17px] font-semibold text-primary">Total Duration</span>
+                                        </div>
+                                        <span className="text-[17px] font-bold text-primary">{form.totalDays} Business Days</span>
+                                    </div>
+                                    <div className="ios-cell flex flex-col items-stretch gap-1 py-3 px-4">
+                                        <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Reason</label>
+                                        <textarea 
+                                            id="leave-reason" 
+                                            value={form.reason} 
+                                            onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} 
+                                            className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none resize-none min-h-[80px]" 
+                                            placeholder="Specify reason..." 
+                                            required 
+                                        />
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="flex gap-4">
-                                <div className="flex-1 flex flex-col gap-2">
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Start Date</label>
-                                    <input 
-                                        id="leave-start-date" 
-                                        type="date" 
-                                        value={form.startDate} 
-                                        onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} 
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans" 
-                                        required 
-                                    />
+                                <div className="px-5 mt-6">
+                                    <button 
+                                        id="submit-leave-btn" 
+                                        type="submit" 
+                                        disabled={isSubmitting} 
+                                        className="w-full py-4.5 bg-primary text-primary-foreground rounded-2xl text-[17px] font-bold shadow-lg shadow-primary/20 active:opacity-80 transition-all disabled:opacity-50"
+                                    >
+                                        {isSubmitting ? (
+                                            <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+                                        ) : "Submit Request"}
+                                    </button>
                                 </div>
-                                <div className="flex-1 flex flex-col gap-2">
-                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">End Date</label>
-                                    <input 
-                                        id="leave-end-date" 
-                                        type="date" 
-                                        value={form.endDate} 
-                                        min={form.startDate} 
-                                        onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} 
-                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans" 
-                                        required 
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex justify-between items-center px-5">
-                                <div className="flex items-center gap-2">
-                                    <CalendarCheck size={16} className="text-primary" />
-                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Total Days</span>
-                                </div>
-                                <span className="text-sm font-black text-primary uppercase tracking-tight">{form.totalDays} working days</span>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Reason</label>
-                                <textarea 
-                                    id="leave-reason" 
-                                    value={form.reason} 
-                                    onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} 
-                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all min-h-[100px] resize-none" 
-                                    placeholder="Briefly explain your leave..." 
-                                    required 
-                                />
-                            </div>
-
-                            <button 
-                                id="submit-leave-btn" 
-                                type="submit" 
-                                disabled={isSubmitting} 
-                                className="w-full py-4.5 bg-gradient-to-br from-primary to-indigo-600 rounded-[22px] text-white text-sm font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
-                            >
-                                {isSubmitting ? (
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
-                                ) : "Submit Request"}
-                            </button>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 )}
 
-                {/* Leave Balances */}
-                {balances.length > 0 && (
-                    <div className="flex flex-col gap-4">
-                        <h2 className="text-[11px] font-black text-primary uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
-                            <Sun size={14} /> Leave Balance {new Date().getFullYear()}
-                        </h2>
+                {/* Leave Balances Grid */}
+                {!showForm && balances.length > 0 && (
+                    <div className="px-4">
                         <div className="grid grid-cols-2 gap-4">
                             {balances.map((b) => {
                                 const remaining = Number(b.entitlement) + Number(b.carryOver) - Number(b.used);
                                 const total = Number(b.entitlement) + Number(b.carryOver);
-                                const pct = Math.min(100, (Number(b.used) / total) * 100);
                                 return (
-                                    <div key={b.leaveTypeId} className="glass border-border/50 rounded-[24px] p-5 flex flex-col gap-2 transition-all hover:translate-y-[-4px] shadow-lg shadow-primary/5 group">
-                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1 group-hover:text-primary transition-colors">{b.leaveType.name}</p>
-                                        <div className="flex items-baseline gap-1.5">
-                                            <span className="text-3xl font-black text-foreground tracking-tighter font-mono">{remaining}</span>
-                                            <span className="text-[10px] text-muted-foreground font-black opacity-40">/ {total}</span>
+                                    <div key={b.leaveTypeId} className="bg-[var(--ios-secondary-bg)] rounded-2xl p-4 shadow-sm border border-[var(--ios-separator)] flex flex-col gap-1 relative overflow-hidden group">
+                                        <div className="absolute right-0 top-0 opacity-[0.05] p-2 rotate-12">
+                                            <Umbrella size={48} />
                                         </div>
-                                        <div className="h-1.5 bg-muted/50 rounded-full w-full overflow-hidden mt-1.5 ring-1 ring-border/20">
-                                            <div 
-                                                className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full transition-all duration-1000" 
-                                                style={{ width: `${pct}%` }} 
-                                            />
+                                        <p className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase tracking-tight">{b.leaveType.name}</p>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-[34px] font-bold text-[var(--ios-label)] tracking-tight">{remaining}</span>
+                                            <span className="text-[15px] font-medium text-[var(--ios-secondary-label)]">Days</span>
                                         </div>
-                                        <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-30 mt-1">Days left</p>
+                                        <p className="text-[11px] font-medium text-[var(--ios-secondary-label)] mt-2">Available for {new Date().getFullYear()}</p>
                                     </div>
                                 );
                             })}
@@ -276,50 +262,47 @@ export default function EssLeavePage() {
                 )}
 
                 {/* Request History */}
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.25em] px-2 opacity-60">
-                        Request History
-                    </h2>
-                    {requests.length === 0 ? (
-                        <div className="glass border-dashed border-border/50 rounded-[32px] p-20 flex flex-col items-center justify-center text-center opacity-60">
-                            <Inbox size={48} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
-                            <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest opacity-60">No leave requests yet</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            {requests.map((req) => {
+                <div className="ios-list-group">
+                    <h2 className="ios-list-header">History</h2>
+                    <div className="ios-list-content">
+                        {requests.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                                <Inbox size={64} strokeWidth={1} />
+                                <p className="text-[17px] font-medium mt-4">No recent history</p>
+                            </div>
+                        ) : (
+                            requests.map((req) => {
                                 const style = statusStyle[req.status] || statusStyle.CANCELLED;
                                 const StatusIcon = style.icon;
                                 return (
-                                    <div key={req.id} className="glass border-border/40 rounded-2xl p-5 flex flex-col gap-4 group transition-all hover:bg-muted/10">
-                                        <div className="flex justify-between items-center">
-                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{req.leaveType.name}</p>
-                                            <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${style.bg} ${style.text}`}>
-                                                <StatusIcon size={12} strokeWidth={2.5} />
-                                                {style.label}
-                                            </span>
+                                    <div key={req.id} className="ios-cell">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${style.bg} ${style.text}`}>
+                                            <Calendar size={20} />
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground font-bold font-mono opacity-80 mb-2">
-                                                {fmtDate(req.startDate)} – {fmtDate(req.endDate)}
-                                            </p>
-                                            <div className="flex items-center gap-2">
-                                                <Calendar size={12} className="text-primary/40" />
-                                                <p className="text-[11px] text-primary font-black uppercase tracking-wider">{req.totalDays} working days</p>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <p className="text-[17px] font-bold text-[var(--ios-label)] truncate">{req.leaveType.name}</p>
+                                                <span className={`px-2 py-0.5 rounded-lg text-[11px] font-bold flex items-center gap-1 ${style.text} ${style.bg}`}>
+                                                    <StatusIcon size={12} strokeWidth={3} />
+                                                    {style.label}
+                                                </span>
                                             </div>
-                                        </div>
-                                        {req.reason && (
-                                            <div className="bg-muted/20 rounded-xl p-3 border border-border/30">
-                                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed italic opacity-80">
+                                            <p className="text-[13px] text-[var(--ios-secondary-label)] font-medium mt-0.5">
+                                                {fmtDate(req.startDate)} — {fmtDate(req.endDate)}
+                                            </p>
+                                            <p className="text-[11px] text-primary font-bold mt-1 uppercase tracking-tight">{req.totalDays} Business Days</p>
+                                            {req.reason && (
+                                                <p className="text-[13px] text-[var(--ios-secondary-label)] italic mt-2 line-clamp-1 border-l-2 border-[var(--ios-separator)] pl-3">
                                                     "{req.reason}"
                                                 </p>
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
+                                        <ChevronRight className="ios-chevron" size={18} />
                                     </div>
                                 );
-                            })}
-                        </div>
-                    )}
+                            })
+                        )}
+                    </div>
                 </div>
             </div>
 

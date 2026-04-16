@@ -5,6 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.1.0] — 2026-04-16
+
+### Added
+- **ESS Theme Switching**: New `EssThemeToggle` component allowing employees to switch between Light, Dark, and System modes directly from the Settings page.
+- **ESS Professional Icons**: Complete migration of all Employee Self Service (ESS) screens to use `lucide-react` icons, replacing legacy emojis and custom SVGs.
+- **Enhanced Liquid Glass PWA**: Modernized mobile UI with refined backdrop blurs, animated navigation indicators, and polished status badges.
+
+### Changed
+- Migrated `home`, `attendance`, `payslip`, `leave`, `approvals`, `notifications`, `claims`, `settings`, and `login` pages in `src/app/(ess)` to use professional iconography.
+- Refactored `EssNav` for better visual feedback and active state clarity.
+- Updated `OfflineBanner` with higher visibility styling.
+
+### Dependencies
+- `lucide-react` usage expanded across all mobile modules.
+
+
 ## [1.0.0] — 2026-04-15
 
 ### Added

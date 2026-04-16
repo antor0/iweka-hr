@@ -20,9 +20,9 @@ export function OfflineBanner() {
     if (!isOffline) return null;
 
     return (
-        <div className="fixed top-0 left-0 right-0 bg-red-600/95 backdrop-blur-xl text-white py-3 px-6 flex items-center justify-center gap-3 text-[11px] font-black z-[9999] shadow-2xl border-b border-white/20 uppercase tracking-[0.2em] animate-in slide-in-from-top duration-500">
-            <WifiOff size={16} strokeWidth={3} className="animate-pulse" />
-            <span className="leading-none">Connectivity Terminated · Remote Synchronization Disabled</span>
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-[#FF3B30] text-white py-2 px-4 flex items-center justify-center gap-2 text-[13px] font-semibold z-[9999] shadow-md border-b border-white/10 animate-in slide-in-from-top duration-500">
+            <WifiOff size={16} strokeWidth={2.5} />
+            <span>Connection Lost</span>
         </div>
     );
 }

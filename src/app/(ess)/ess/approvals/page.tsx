@@ -3,19 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { 
-    Calendar, 
-    CreditCard, 
     CheckCircle2, 
     XCircle, 
-    Clock, 
     Inbox, 
-    CheckSquare,
+    CalendarClock, 
+    Banknote, 
+    AlertCircle, 
     User,
-    CalendarClock,
-    Banknote,
-    AlertCircle,
-    Check
+    ChevronRight,
+    ClipboardList
 } from "lucide-react";
+import { MobileHeader } from "../components/mobile-header";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -63,7 +61,7 @@ export default function EssApprovalsPage() {
 
     const handleAction = async (type: "LEAVE" | "CLAIM", id: string, action: "APPROVED" | "REJECTED") => {
         const reason = action === "REJECTED" ? prompt("Please enter a reason for rejection (optional):") : null;
-        if (action === "REJECTED" && reason === null) return; // User cancelled prompt
+        if (action === "REJECTED" && reason === null) return; 
 
         setProcessingId(id);
         setMessage(null);
@@ -77,14 +75,14 @@ export default function EssApprovalsPage() {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage({ type: "success", text: `${type} has been ${action.toLowerCase()} successfully.` });
+                setMessage({ type: "success", text: `Success: ${type} request ${action.toLowerCase()}.` });
                 if (type === "LEAVE") setLeaves(prev => prev.filter(x => x.id !== id));
                 if (type === "CLAIM") setClaims(prev => prev.filter(x => x.id !== id));
             } else {
                 setMessage({ type: "error", text: data.error || `Failed to process ${type}` });
             }
         } catch {
-            setMessage({ type: "error", text: "Could not complete the action. Try again." });
+            setMessage({ type: "error", text: "Connection error. Please try again." });
         } finally {
             setProcessingId(null);
         }
@@ -92,9 +90,8 @@ export default function EssApprovalsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
-                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading requests...</p>
+            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
@@ -102,155 +99,121 @@ export default function EssApprovalsPage() {
     const totalPending = leaves.length + claims.length;
 
     return (
-        <div className="min-h-screen bg-transparent font-sans relative">
+        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
             <OfflineBanner />
+            <MobileHeader 
+                title="Approvals" 
+                subtitle={totalPending > 0 ? `${totalPending} pending items` : "All caught up"} 
+            />
 
-            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Approvals</h1>
-                    <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">
-                        {totalPending} request{totalPending !== 1 ? "s" : ""} waiting for your action
-                    </p>
-                </div>
-
+            <div className="max-w-[480px] mx-auto pt-2 flex flex-col gap-6">
                 {message && (
-                    <div className={`rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
-                        message.type === "success" 
-                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                            : "bg-red-500/10 border-red-500/30 text-red-500"
-                    }`}>
-                        {message.type === "success" ? <CheckCircle2 size={14} strokeWidth={3} /> : <AlertCircle size={14} strokeWidth={3} />}
-                        {message.text}
+                    <div className="px-4">
+                        <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                            message.type === "success" 
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                                : "bg-red-500/10 border-red-500/30 text-red-500"
+                        }`}>
+                            {message.type === "success" ? <CheckCircle2 size={16} strokeWidth={3} /> : <AlertCircle size={16} strokeWidth={3} />}
+                            {message.text}
+                        </div>
                     </div>
                 )}
 
-                {/* Leave Requests */}
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-[11px] font-black text-primary uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
-                        <CheckSquare size={14} /> Leave Requests ({leaves.length})
-                    </h2>
-                    {leaves.length === 0 ? (
-                        <div className="glass border-dashed border-border/50 rounded-[32px] p-12 flex flex-col items-center justify-center text-center opacity-60">
-                            <CalendarClock size={40} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
-                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">No pending leave requests</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-4">
-                            {leaves.map((leave) => (
-                                <div key={leave.id} className="glass border-border/50 rounded-[32px] p-6 shadow-xl shadow-primary/5 group transition-all">
-                                    <div className="flex items-center gap-3 mb-5">
-                                        <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
-                                            <User size={20} strokeWidth={2.5} />
+                {/* Leave Section */}
+                <div className="ios-list-group">
+                    <h2 className="ios-list-header px-4">Leave Requests</h2>
+                    <div className="ios-list-content">
+                        {leaves.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 opacity-30">
+                                <CalendarClock size={48} strokeWidth={1} />
+                                <p className="text-[15px] font-medium mt-2">No pending leave</p>
+                            </div>
+                        ) : (
+                            leaves.map((leave) => (
+                                <div key={leave.id} className="ios-cell flex flex-col items-stretch p-0">
+                                    <div className="px-4 py-4 flex gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                                            <User size={24} />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{leave.employee.fullName}</p>
-                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">{leave.employee.employeeNumber}</p>
-                                        </div>
-                                        <div className="px-3 py-1 bg-primary/15 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest border border-primary/20">
-                                            {leave.leaveType.name}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-3 mb-6 pb-6 border-b border-border/40">
-                                        <div className="flex items-start gap-4">
-                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Period</span>
-                                            <span className="text-xs text-foreground font-bold font-mono">
-                                                {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
-                                                <span className="text-primary ml-2 uppercase font-black text-[10px] tracking-tight">({leave.totalDays}d)</span>
-                                            </span>
-                                        </div>
-                                        <div className="flex items-start gap-4">
-                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Reason</span>
-                                            <span className="text-[11px] text-muted-foreground font-medium leading-relaxed italic opacity-80">"{leave.reason}"</span>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-[17px] font-bold text-[var(--ios-label)] truncate">{leave.employee.fullName}</h3>
+                                            <p className="text-[13px] text-[var(--ios-secondary-label)] font-medium">
+                                                {leave.leaveType.name} · {leave.totalDays} Days
+                                            </p>
+                                            <p className="text-[13px] text-[var(--ios-secondary-label)] mt-1 truncate">
+                                                Reason: {leave.reason}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3">
+                                    <div className="px-4 pb-4 flex gap-2">
                                         <button 
                                             onClick={() => handleAction("LEAVE", leave.id, "REJECTED")} 
                                             disabled={processingId === leave.id}
-                                            className="flex-1 py-3 rounded-2xl border border-red-500/30 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="flex-1 py-2 rounded-xl bg-destructive/10 text-destructive text-[13px] font-bold active:opacity-50"
                                         >
-                                            <XCircle size={14} strokeWidth={2.5} /> Reject
+                                            Reject
                                         </button>
                                         <button 
                                             onClick={() => handleAction("LEAVE", leave.id, "APPROVED")} 
                                             disabled={processingId === leave.id}
-                                            className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:shadow-emerald-500/30 active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="flex-1 py-2 rounded-xl bg-primary text-white text-[13px] font-bold shadow-sm active:opacity-80"
                                         >
-                                            {processingId === leave.id ? (
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <><CheckCircle2 size={14} strokeWidth={2.5} /> Approve</>
-                                            )}
+                                            {processingId === leave.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Approve"}
                                         </button>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        )}
+                    </div>
                 </div>
 
-                {/* Claim Requests */}
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-[11px] font-black text-amber-500 uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
-                        <Banknote size={14} /> Expense Claims ({claims.length})
-                    </h2>
-                    {claims.length === 0 ? (
-                        <div className="glass border-dashed border-border/50 rounded-[32px] p-12 flex flex-col items-center justify-center text-center opacity-60">
-                            <Inbox size={40} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
-                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">No pending expense claims</p>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-4">
-                            {claims.map((claim) => (
-                                <div key={claim.id} className="glass border-border/50 rounded-[32px] p-6 shadow-xl shadow-primary/5 group transition-all">
-                                    <div className="flex items-center gap-3 mb-5">
-                                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                                            <User size={20} strokeWidth={2.5} />
+                {/* Claims Section */}
+                <div className="ios-list-group">
+                    <h2 className="ios-list-header text-[#FF9500]">Expense Claims</h2>
+                    <div className="ios-list-content">
+                        {claims.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 opacity-30">
+                                <Banknote size={48} strokeWidth={1} />
+                                <p className="text-[15px] font-medium mt-2">No pending claims</p>
+                            </div>
+                        ) : (
+                            claims.map((claim) => (
+                                <div key={claim.id} className="ios-cell flex flex-col items-stretch p-0">
+                                    <div className="px-4 py-4 flex gap-3">
+                                        <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 flex-shrink-0">
+                                            <User size={24} />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{claim.employee.fullName}</p>
-                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60 truncate max-w-[150px]">{claim.title}</p>
-                                        </div>
-                                        <div className="px-3 py-1 bg-amber-500/15 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-widest border border-amber-500/20">
-                                            {claim._count.items} item{claim._count.items > 1 ? "s" : ""}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col gap-3 mb-6 pb-6 border-b border-border/40">
-                                        <div className="flex items-start gap-4">
-                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Claim ID</span>
-                                            <span className="text-xs text-foreground font-mono font-bold tracking-tight">{claim.claimNumber}</span>
-                                        </div>
-                                        <div className="flex items-start gap-4">
-                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Amount</span>
-                                            <span className="text-lg font-black text-amber-500 font-mono tracking-tighter">
-                                                {new Intl.NumberFormat("en-US", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(Number(claim.totalAmount))}
-                                            </span>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-[17px] font-bold text-[var(--ios-label)] truncate">{claim.employee.fullName}</h3>
+                                            <p className="text-[13px] text-[var(--ios-secondary-label)] font-medium">
+                                                {claim.claimNumber} · {claim._count.items} Items
+                                            </p>
+                                            <p className="text-[17px] font-bold text-[var(--ios-label)] mt-1 font-mono">
+                                                {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(Number(claim.totalAmount))}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className="flex gap-3">
+                                    <div className="px-4 pb-4 flex gap-2">
                                         <button 
                                             onClick={() => handleAction("CLAIM", claim.id, "REJECTED")} 
                                             disabled={processingId === claim.id}
-                                            className="flex-1 py-3 rounded-2xl border border-red-500/30 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="flex-1 py-2 rounded-xl bg-destructive/10 text-destructive text-[13px] font-bold active:opacity-50"
                                         >
-                                            <XCircle size={14} strokeWidth={2.5} /> Reject
+                                            Reject
                                         </button>
                                         <button 
                                             onClick={() => handleAction("CLAIM", claim.id, "APPROVED")} 
                                             disabled={processingId === claim.id}
-                                            className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:shadow-emerald-500/30 active:scale-[0.98] transition-all disabled:opacity-50"
+                                            className="flex-1 py-2 rounded-xl bg-primary text-white text-[13px] font-bold shadow-sm active:opacity-80"
                                         >
-                                            {processingId === claim.id ? (
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            ) : (
-                                                <><CheckCircle2 size={14} strokeWidth={2.5} /> Approve</>
-                                            )}
+                                            {processingId === claim.id ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Approve"}
                                         </button>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    )}
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -258,4 +221,3 @@ export default function EssApprovalsPage() {
         </div>
     );
 }
-

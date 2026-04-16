@@ -8,11 +8,10 @@ import {
     AlertCircle, 
     WifiOff, 
     Smartphone, 
-    ShieldCheck, 
-    Key, 
-    Plus,
-    Download
+    Download,
+    Share
 } from "lucide-react";
+import { OfflineBanner } from "./components/offline-banner";
 
 export default function EssLoginPage() {
     const router = useRouter();
@@ -25,18 +24,15 @@ export default function EssLoginPage() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
     useEffect(() => {
-        // Register service worker
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register("/sw.js").catch(console.error);
         }
 
-        // Online/offline detection
         const updateOnlineStatus = () => setIsOffline(!navigator.onLine);
         window.addEventListener("online", updateOnlineStatus);
         window.addEventListener("offline", updateOnlineStatus);
         setIsOffline(!navigator.onLine);
 
-        // PWA install prompt
         const handler = (e: Event) => {
             e.preventDefault();
             setDeferredPrompt(e);
@@ -95,143 +91,120 @@ export default function EssLoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-transparent overflow-hidden font-sans">
-            {/* Offline banner */}
-            {isOffline && (
-                <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-3 flex items-center justify-center gap-2 text-xs font-black z-[100] backdrop-blur-md animate-in slide-in-from-top duration-300 uppercase tracking-widest">
-                    <WifiOff size={14} strokeWidth={2.5} />
-                    <span>System Offline — Remote access limited</span>
-                </div>
-            )}
+        <div className="flex-1 flex flex-col items-center justify-center font-sans pb-10">
+            <OfflineBanner />
 
-            <div className="w-full max-w-[400px] flex flex-col items-center gap-8 relative z-10 animate-in fade-in zoom-in-95 duration-700">
-                {/* Logo Section */}
-                <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="relative group">
-                        <div className="absolute -inset-4 bg-gradient-to-br from-primary/30 to-cyan-500/30 rounded-[36px] blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
-                        <div className="relative p-3 bg-gradient-to-br from-primary/30 to-cyan-500/30 rounded-[32px] shadow-2xl backdrop-blur-2xl border border-white/20">
-                            <Image
-                                src="/icons/icon-192x192.png"
-                                alt="MyHRIS"
-                                width={80}
-                                height={80}
-                                className="rounded-[24px] shadow-lg"
-                                priority
-                            />
-                        </div>
+            <div className="w-full flex flex-col items-stretch gap-10 animate-in fade-in zoom-in-95 duration-700 mt-4 sm:mt-8">
+                {/* Brand Section */}
+                <div className="flex flex-col items-center text-center gap-4 px-6">
+                    <div className="w-20 h-20 bg-white rounded-3xl shadow-xl p-1 relative overflow-hidden ring-1 ring-black/5">
+                        <Image
+                            src="/icons/icon-192x192.png"
+                            alt="MyHRIS"
+                            width={80}
+                            height={80}
+                            className="rounded-[22px]"
+                            priority
+                        />
                     </div>
-                    <div className="flex flex-col gap-1 mt-2">
-                        <h1 className="text-5xl font-black bg-gradient-to-br from-primary via-indigo-500 to-cyan-400 bg-clip-text text-transparent tracking-tighter leading-none pb-2">MyHRIS</h1>
-                        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground font-black opacity-60">Professional Portal</p>
+                    <div>
+                        <h1 className="text-[34px] font-bold text-[var(--ios-label)] tracking-tight">Enterprise HR</h1>
+                        <p className="text-[17px] text-[var(--ios-secondary-label)] font-medium">Employee Self Service</p>
                     </div>
                 </div>
 
-                {/* Login Card */}
-                <div className="glass w-full rounded-[48px] p-9 shadow-2xl border-t border-white/10 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                    
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-                            Secure Login
-                        </h2>
-                        <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1.5 opacity-60">Authorized personnel only</p>
-                    </div>
-
+                {/* Login Inputs Group */}
+                <div className="flex flex-col gap-8">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-[11px] text-red-500 mb-7 font-black uppercase tracking-widest flex items-center gap-2.5 animate-in slide-in-from-top-4 duration-300">
-                            <AlertCircle size={14} strokeWidth={3} /> {error}
+                        <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-4 flex items-center gap-3 text-[13px] text-destructive font-bold animate-in slide-in-from-top-4">
+                            <AlertCircle size={18} /> {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} className="flex flex-col gap-7">
-                        <div className="flex flex-col gap-2.5">
-                            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/60 ml-2">Employee Identifier</label>
-                            <input
-                                id="employee-number"
-                                type="text"
-                                placeholder="e.g. EMP-0001"
-                                value={employeeNumber}
-                                onChange={(e) => setEmployeeNumber(e.target.value)}
-                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-6 py-4.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans"
-                                autoComplete="username"
-                                autoCapitalize="characters"
-                                disabled={isLoading}
-                            />
+                    <form onSubmit={handleLogin} className="flex flex-col w-full">
+                        <div className="ios-list-group mt-0 mb-6">
+                            <div className="ios-list-content">
+                                <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
+                                    <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Employee ID</label>
+                                    <input
+                                        id="employee-number"
+                                        type="text"
+                                        placeholder="EMP-XXXX"
+                                        value={employeeNumber}
+                                        onChange={(e) => setEmployeeNumber(e.target.value)}
+                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1"
+                                        autoComplete="username"
+                                        autoCapitalize="characters"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                                <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
+                                    <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Access PIN</label>
+                                    <input
+                                        id="pin-input"
+                                        type="password"
+                                        inputMode="numeric"
+                                        placeholder="••••••"
+                                        value={pin}
+                                        onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                                        className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono"
+                                        autoComplete="current-password"
+                                        maxLength={6}
+                                        disabled={isLoading}
+                                    />
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col gap-2.5">
-                            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/60 ml-2">Access PIN</label>
-                            <input
-                                id="pin-input"
-                                type="password"
-                                inputMode="numeric"
-                                placeholder="••••••"
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-6 py-4.5 text-foreground font-black tracking-[0.8em] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono text-center text-xl"
-                                autoComplete="current-password"
-                                maxLength={6}
-                                disabled={isLoading}
-                            />
+                        <div className="px-5 pb-6">
+                            <button
+                                id="login-button"
+                                type="submit"
+                                disabled={isLoading || isOffline}
+                                className="w-full py-4.5 bg-primary text-primary-foreground rounded-2xl text-[17px] font-bold shadow-lg shadow-primary/20 active:opacity-80 transition-all disabled:opacity-50 min-h-[56px] flex items-center justify-center relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-white/20 opacity-0 active:opacity-100 transition-opacity"></div>
+                                {isLoading ? (
+                                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : "Sign In"}
+                            </button>
                         </div>
-
-                        <button
-                            id="login-button"
-                            type="submit"
-                            disabled={isLoading || isOffline}
-                            className="w-full mt-2 py-5 bg-gradient-to-r from-primary to-indigo-600 rounded-[24px] text-white font-black text-base uppercase tracking-[0.15em] shadow-xl shadow-primary/30 disabled:opacity-50 disabled:grayscale transition-all active:scale-[0.98] flex items-center justify-center gap-3 min-h-[64px]"
-                        >
-                            {isLoading ? (
-                                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <><LogIn size={20} strokeWidth={3} /> Authentication</>
-                            )}
-                        </button>
                     </form>
 
-                    <div className="mt-9 pt-7 border-t border-border/50 text-center">
-                        <p className="text-[10px] text-muted-foreground/60 font-medium leading-relaxed uppercase tracking-widest">
-                            Initial PIN: <strong className="text-primary font-black">123456</strong>
-                            <br /><span className="opacity-70">Mandatory rotation required upon first access.</span>
-                        </p>
-                    </div>
-                </div>
-
-                {/* Install PWA Banner */}
-                {showInstall && (
-                    <div className="w-full glass rounded-[32px] p-5 flex justify-between items-center border-primary/20 shadow-2xl shadow-primary/5 animate-in slide-in-from-bottom-8 duration-500">
-                        <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                                <Smartphone size={22} strokeWidth={2.5} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-black text-foreground tracking-tight uppercase">Native App Access</p>
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight opacity-60">Add to your workspace</p>
-                            </div>
-                        </div>
-                        <button
-                            id="install-pwa-button"
-                            onClick={handleInstall}
-                            className="h-11 px-6 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2"
-                        >
-                            <Download size={14} strokeWidth={3} /> Install
-                        </button>
-                    </div>
-                )}
-
-                {/* iOS Instructions */}
-                <div className="px-8 text-center">
-                    <p className="text-[10px] text-muted-foreground/60 leading-relaxed font-bold uppercase tracking-tight">
-                        On iOS: Select <span className="text-primary inline-flex items-center align-middle mx-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" strokeWidth="2.5"><path d="M12 2L8 6h3v8h2V6h3L12 2zm-8 11v7h16v-7h-2v5H6v-5H4z" /></svg></span> then activate <strong className="text-foreground tracking-widest">Add to Home Screen</strong>
+                    <p className="text-center text-[13px] text-[var(--ios-secondary-label)] font-medium leading-tight px-4 opacity-60">
+                        Authorized Access Only. Use your corporate credentials to sign in.
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 py-4">
-                    <ShieldCheck size={12} className="text-muted-foreground opacity-30" />
-                    <p className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">Corporate Framework v1.0.0</p>
+                {/* Install Instructions for iOS / PWA */}
+                <div className="mt-2 flex flex-col gap-6 px-4">
+                    {showInstall ? (
+                        <div className="bg-[var(--ios-secondary-bg)] rounded-3xl p-4 border border-[var(--ios-separator)] flex items-center justify-between shadow-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                    <Smartphone size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-[15px] font-bold text-[var(--ios-label)]">Install App</p>
+                                    <p className="text-[12px] text-[var(--ios-secondary-label)]">Quick access from home</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleInstall}
+                                className="bg-primary hover:bg-primary/90 text-white text-[13px] font-bold px-4 py-2 rounded-xl transition-colors shadow-sm"
+                            >
+                                Install
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-center px-4 mb-4">
+                            <p className="text-[12px] text-[var(--ios-secondary-label)] font-medium leading-relaxed bg-[var(--ios-secondary-bg)]/50 py-3 px-4 rounded-2xl">
+                                On iOS, tap <Share className="inline-block w-4 h-4 text-primary mb-[2px] mx-1" /> and then <span className="text-[var(--ios-label)] font-bold">"Add to Home Screen"</span> for the native app experience.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
-
