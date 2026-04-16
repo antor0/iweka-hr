@@ -1,13 +1,16 @@
 {
-  "name": "MyHRIS – Employee Self Service",
-  "short_name": "MyHRIS",
+  "name": "DigiHR+ – Employee Self Service",
+  "short_name": "DigiHR+",
   "description": "Akses layanan HR Anda: slip gaji, absensi, cuti, klaim, dan lainnya.",
   "start_url": "/ess",
   "display": "standalone",
   "background_color": "#0f0f1a",
   "theme_color": "#6366f1",
   "orientation": "portrait-primary",
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "lang": "id",
   "icons": [
     {
@@ -30,14 +33,24 @@
       "short_name": "Clock In",
       "description": "Clock in for today",
       "url": "/ess/attendance",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "My Payslip",
       "short_name": "Payslip",
       "description": "View your payslip",
       "url": "/ess/payslip",
-      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

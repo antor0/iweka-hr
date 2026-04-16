@@ -86,9 +86,10 @@ export default function EssAttendancePage() {
         } finally { setIsActing(false); }
     };
 
-    const fmt = (d: string) => new Date(d).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    const fmt = (d: string) => new Date(d).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
     const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" });
-    const fmtTime = (d: Date) => d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const fmtTime = (d: Date) => d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
+    const fmtFullDate = (d: Date) => d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
 
     const canClockIn = !today || !today.clockIn;
     const canClockOut = today && today.clockIn && !today.clockOut;
@@ -96,22 +97,25 @@ export default function EssAttendancePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center gap-4">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24">
+        <div className="flex-1 pb-28">
             <OfflineBanner />
             <MobileHeader title="Attendance" />
 
-            <div className="max-w-[480px] mx-auto px-4 pt-2 flex flex-col gap-6">
+            <div className="px-4 pt-2 flex flex-col gap-5">
                 {/* Active Session Card */}
                 <div className="bg-[var(--ios-secondary-bg)] rounded-3xl p-8 flex flex-col items-center gap-6 shadow-sm border border-[var(--ios-separator)]">
-                    <div className="text-[52px] font-bold tracking-tighter text-[var(--ios-label)] font-mono leading-none">
-                        {fmtTime(currentTime)}
+                    <div className="flex flex-col items-center gap-2">
+                        <p className="text-[13px] font-bold text-[var(--ios-secondary-label)] uppercase tracking-widest">{fmtFullDate(currentTime)}</p>
+                        <h2 className="text-[38px] font-bold tracking-tighter text-[var(--ios-label)] font-mono leading-none whitespace-nowrap">
+                            {fmtTime(currentTime)}
+                        </h2>
                     </div>
 
                     {today && (
@@ -132,17 +136,25 @@ export default function EssAttendancePage() {
                         </div>
                     )}
 
-                    <div className="flex items-center gap-4 w-full">
-                        <div className="flex-1 bg-[var(--ios-system-bg)] rounded-2xl p-4 text-center border border-[var(--ios-separator)]">
-                            <p className="text-[11px] text-[var(--ios-secondary-label)] uppercase font-bold tracking-tight mb-2">Clock-In</p>
-                            <p className="text-2xl font-bold text-[var(--ios-label)] font-mono">{today?.clockIn ? fmt(today.clockIn) : "--:--"}</p>
+                    <div className="flex items-center gap-3 w-full">
+                        <div className="flex-1 bg-[var(--ios-system-bg)] rounded-2xl p-4 flex flex-col items-center justify-between min-h-[85px] border border-[var(--ios-separator)]">
+                            <p className="text-[10px] text-[var(--ios-secondary-label)] uppercase font-extrabold tracking-wider mb-2">Clock-In</p>
+                            <div className="mt-auto">
+                                <p className="text-[16px] font-bold text-[var(--ios-label)] font-mono leading-none whitespace-nowrap">
+                                    {today?.clockIn ? fmt(today.clockIn) : "-- : --"}
+                                </p>
+                            </div>
                         </div>
-                        <div className="text-muted-foreground/30">
-                            <MoveRight size={20} strokeWidth={3} />
+                        <div className="flex-shrink-0 text-muted-foreground/20">
+                            <div className="w-px h-8 bg-[var(--ios-separator)]" />
                         </div>
-                        <div className="flex-1 bg-[var(--ios-system-bg)] rounded-2xl p-4 text-center border border-[var(--ios-separator)]">
-                            <p className="text-[11px] text-[var(--ios-secondary-label)] uppercase font-bold tracking-tight mb-2">Clock-Out</p>
-                            <p className="text-2xl font-bold text-[var(--ios-label)] font-mono">{today?.clockOut ? fmt(today.clockOut) : "--:--"}</p>
+                        <div className="flex-1 bg-[var(--ios-system-bg)] rounded-2xl p-4 flex flex-col items-center justify-between min-h-[85px] border border-[var(--ios-separator)]">
+                            <p className="text-[10px] text-[var(--ios-secondary-label)] uppercase font-extrabold tracking-wider mb-2">Clock-Out</p>
+                            <div className="mt-auto">
+                                <p className="text-[16px] font-bold text-[var(--ios-label)] font-mono leading-none whitespace-nowrap">
+                                    {today?.clockOut ? fmt(today.clockOut) : "-- : --"}
+                                </p>
+                            </div>
                         </div>
                     </div>
 

@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { 
-    LogIn, 
-    AlertCircle, 
-    WifiOff, 
-    Smartphone, 
+import {
+    LogIn,
+    AlertCircle,
+    WifiOff,
+    Smartphone,
     Download,
     Share
 } from "lucide-react";
@@ -100,7 +100,7 @@ export default function EssLoginPage() {
                     <div className="w-20 h-20 bg-white rounded-3xl shadow-xl p-1 relative overflow-hidden ring-1 ring-black/5">
                         <Image
                             src="/icons/icon-192x192.png"
-                            alt="MyHRIS"
+                            alt="DigiHR+"
                             width={80}
                             height={80}
                             className="rounded-[22px]"
@@ -108,7 +108,7 @@ export default function EssLoginPage() {
                         />
                     </div>
                     <div>
-                        <h1 className="text-[34px] font-bold text-[var(--ios-label)] tracking-tight">Enterprise HR</h1>
+                        <h1 className="text-[34px] font-bold text-[var(--ios-label)] tracking-tight">Mobile DigiHR+</h1>
                         <p className="text-[17px] text-[var(--ios-secondary-label)] font-medium">Employee Self Service</p>
                     </div>
                 </div>
@@ -124,22 +124,22 @@ export default function EssLoginPage() {
                     <form onSubmit={handleLogin} className="flex flex-col w-full">
                         <div className="ios-list-group mt-0 mb-6">
                             <div className="ios-list-content">
-                                <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                                    <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Employee ID</label>
+                                <div className="ios-cell flex flex-col items-center gap-0.5 py-2.5">
+                                    <label className="text-[12px] font-medium text-[var(--ios-secondary-label)] text-center w-full">Employee ID</label>
                                     <input
                                         id="employee-number"
                                         type="text"
                                         placeholder="EMP-XXXX"
                                         value={employeeNumber}
                                         onChange={(e) => setEmployeeNumber(e.target.value)}
-                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1"
+                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1 text-center"
                                         autoComplete="username"
                                         autoCapitalize="characters"
                                         disabled={isLoading}
                                     />
                                 </div>
-                                <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                                    <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Access PIN</label>
+                                <div className="ios-cell flex flex-col items-center gap-0.5 py-2.5">
+                                    <label className="text-[12px] font-medium text-[var(--ios-secondary-label)] text-center w-full">Access PIN</label>
                                     <input
                                         id="pin-input"
                                         type="password"
@@ -147,7 +147,7 @@ export default function EssLoginPage() {
                                         placeholder="••••••"
                                         value={pin}
                                         onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                        className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono"
+                                        className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono text-center"
                                         autoComplete="current-password"
                                         maxLength={6}
                                         disabled={isLoading}

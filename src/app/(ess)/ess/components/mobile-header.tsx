@@ -70,7 +70,7 @@ export function MobileHeader({ title, subtitle, showBack, rightAction }: MobileH
             </div>
 
             {/* Large Title Area (Inline) */}
-            <div className="max-w-[480px] mx-auto w-full pt-[44px] pb-2 px-4">
+            <div className="w-full pt-[44px] pb-2 px-5">
                 <div 
                     className="transition-all origin-left flex flex-col"
                     style={{ 

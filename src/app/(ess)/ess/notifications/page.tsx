@@ -73,7 +73,7 @@ export default function EssNotificationsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
@@ -82,7 +82,7 @@ export default function EssNotificationsPage() {
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
+        <div className="flex-1 pb-28 font-sans">
             <OfflineBanner />
             <MobileHeader 
                 title="Notifications" 
@@ -98,9 +98,9 @@ export default function EssNotificationsPage() {
                 )}
             />
 
-            <div className="max-w-[480px] mx-auto pt-2">
+            <div className="pt-2">
                 <div className="ios-list-group">
-                    <h2 className="ios-list-header px-4 flex justify-between items-center">
+                    <h2 className="ios-list-header flex justify-between items-center">
                         <span>Latest Updates</span>
                         {unreadCount > 0 && (
                             <span className="text-primary font-bold lowercase tracking-normal">
@@ -110,9 +110,12 @@ export default function EssNotificationsPage() {
                     </h2>
                     <div className="ios-list-content">
                         {notifications.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                                <Inbox size={64} strokeWidth={1} />
-                                <p className="text-[17px] font-medium mt-4">No notifications yet</p>
+                            <div className="ios-empty-state">
+                                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <Inbox size={28} strokeWidth={1.5} />
+                                </div>
+                                <p className="ios-empty-state-text">All Caught Up</p>
+                                <p className="ios-empty-state-subtext">You have no new notifications at this time.</p>
                             </div>
                         ) : (
                             notifications.map((notif) => {

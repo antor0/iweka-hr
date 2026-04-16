@@ -1,4 +1,4 @@
-const CACHE_NAME = 'myhris-ess-v1';
+const CACHE_NAME = 'digihr-plus-ess-v1';
 const SHELL_URLS = [
   '/ess',
   '/manifest.json',

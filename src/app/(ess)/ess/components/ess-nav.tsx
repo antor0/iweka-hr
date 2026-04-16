@@ -28,7 +28,7 @@ const navItems = [
     },
     {
         id: "nav-income",
-        label: "Income",
+        label: "Salary",
         href: "/ess/payslip",
         icon: (active: boolean) => <Wallet size={24} strokeWidth={active ? 2.5 : 2} />,
     },
@@ -40,7 +40,7 @@ const navItems = [
     },
     {
         id: "nav-more",
-        label: "More",
+        label: "Misc",
         href: "/ess/claims",
         icon: (active: boolean) => <LayoutGrid size={24} strokeWidth={active ? 2.5 : 2} />,
     },
@@ -56,8 +56,8 @@ export function EssNav() {
                 {navItems.map((item) => {
                     const isActive = pathname === item.href ||
                         (item.href === "/ess/claims" && (
-                            pathname.startsWith("/ess/claims") || 
-                            pathname.startsWith("/ess/settings") || 
+                            pathname.startsWith("/ess/claims") ||
+                            pathname.startsWith("/ess/settings") ||
                             pathname.startsWith("/ess/notifications") ||
                             pathname.startsWith("/ess/leave")
                         ));
@@ -67,9 +67,8 @@ export function EssNav() {
                             key={item.id}
                             id={item.id}
                             onClick={() => router.push(item.href)}
-                            className={`flex flex-col items-center gap-1 flex-1 relative py-1 transition-all active:opacity-50 ${
-                                isActive ? "text-primary" : "text-[var(--ios-secondary-label)]"
-                            }`}
+                            className={`flex flex-col items-center gap-1 flex-1 relative py-1 transition-all active:opacity-50 ${isActive ? "text-primary" : "text-[var(--ios-secondary-label)]"
+                                }`}
                         >
                             <div className="relative">
                                 {item.icon(isActive)}

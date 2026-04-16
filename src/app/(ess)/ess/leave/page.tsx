@@ -115,14 +115,14 @@ export default function EssLeavePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
+        <div className="flex-1 pb-28 font-sans">
             <OfflineBanner />
             <MobileHeader 
                 title="Leave" 
@@ -136,7 +136,7 @@ export default function EssLeavePage() {
                 }
             />
 
-            <div className="max-w-[480px] mx-auto pt-2 flex flex-col gap-6">
+            <div className="pt-2 flex flex-col gap-5">
                 {message && (
                     <div className="px-4">
                         <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
@@ -266,9 +266,12 @@ export default function EssLeavePage() {
                     <h2 className="ios-list-header">History</h2>
                     <div className="ios-list-content">
                         {requests.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                                <Inbox size={64} strokeWidth={1} />
-                                <p className="text-[17px] font-medium mt-4">No recent history</p>
+                            <div className="ios-empty-state">
+                                <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                    <Inbox size={28} strokeWidth={1.5} />
+                                </div>
+                                <p className="ios-empty-state-text">No Leave History</p>
+                                <p className="ios-empty-state-subtext">Your submitted leave requests will appear here.</p>
                             </div>
                         ) : (
                             requests.map((req) => {

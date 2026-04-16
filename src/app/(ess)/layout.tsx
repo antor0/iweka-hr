@@ -11,13 +11,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-    title: "MyHRIS – Employee Self Service",
+    title: "DigiHR+ – Employee Self Service",
     description: "Akses layanan HR Anda: slip gaji, absensi, cuti, klaim, dan lainnya.",
     manifest: "/manifest.json",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
-        title: "MyHRIS",
+        title: "DigiHR+",
     },
     other: {
         "mobile-web-app-capable": "yes",

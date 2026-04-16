@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { 
-    ShieldCheck, 
-    Paintbrush, 
-    LogOut, 
-    CheckCircle2, 
-    AlertCircle, 
-    Fingerprint, 
-    Mail, 
+import {
+    ShieldCheck,
+    Paintbrush,
+    LogOut,
+    CheckCircle2,
+    AlertCircle,
+    Fingerprint,
+    Mail,
     Briefcase,
     ChevronRight,
     Sparkles,
@@ -90,11 +90,11 @@ function SettingsContent() {
     const getInitials = (name: string) => name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "?";
 
     return (
-        <div className="flex-1 pb-24 font-sans">
+        <div className="flex-1 pb-28 font-sans">
             <OfflineBanner />
             <MobileHeader title="Settings" />
 
-            <div className="pt-2 flex flex-col gap-8 w-full">
+            <div className="pt-2 flex flex-col gap-5 w-full">
                 {/* Security Prompt */}
                 {isFirstTime && (
                     <div className="px-4">
@@ -141,9 +141,11 @@ function SettingsContent() {
                 <div className="ios-list-group">
                     <h2 className="ios-list-header">Appearance</h2>
                     <div className="ios-list-content">
-                        <div className="ios-cell flex flex-col items-stretch py-4">
-                            <div className="flex items-center gap-2 mb-4">
-                                <Paintbrush className="text-[#AF52DE]" size={20} />
+                        <div className="ios-cell flex-col items-stretch py-4 gap-3">
+                            <div className="flex items-center gap-2 w-full">
+                                <div className="w-8 h-8 rounded-[8px] bg-[#AF52DE]/15 flex items-center justify-center">
+                                    <Paintbrush className="text-[#AF52DE]" size={16} />
+                                </div>
                                 <span className="text-[17px] font-medium text-[var(--ios-label)]">Theme Mode</span>
                             </div>
                             <EssThemeToggle />
@@ -153,68 +155,71 @@ function SettingsContent() {
 
                 {/* Security */}
                 <div className="ios-list-group">
-                    <h2 className="ios-list-header text-[#007AFF]">Security & PIN</h2>
+                    <h2 className="ios-list-header">Security & PIN</h2>
                     {message && (
-                        <div className="px-5 py-3">
-                            <div className={`text-[13px] font-bold flex items-center gap-2 ${message.type === "success" ? "text-emerald-500" : "text-destructive"}`}>
-                                {message.type === "success" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                        <div className="px-4 mb-2">
+                            <div className={`rounded-xl px-4 py-3 text-[13px] font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === "success"
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                    : "bg-red-500/10 text-red-600 dark:text-red-400"
+                                }`}>
+                                {message.type === "success" ? <CheckCircle2 size={15} strokeWidth={2.5} /> : <AlertCircle size={15} strokeWidth={2.5} />}
                                 {message.text}
                             </div>
                         </div>
                     )}
                     <div className="ios-list-content">
-                        <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                            <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Current PIN</label>
+                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
+                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">Current PIN</label>
                             <input
                                 id="current-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={currentPin}
                                 onChange={e => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono"
+                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                            <label className="text-[12px] font-bold text-primary uppercase tracking-tight">New 6-Digit PIN</label>
+                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
+                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">New 6-Digit PIN</label>
                             <input
                                 id="new-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={newPin}
                                 onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono"
+                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                            <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Confirm PIN</label>
+                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
+                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">Confirm New PIN</label>
                             <input
                                 id="confirm-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={confirmPin}
                                 onChange={e => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[24px] font-bold text-[var(--ios-label)] tracking-[0.4em] focus:outline-none py-1 font-mono"
+                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                    </div>
-                    <div className="px-5 mt-4">
-                        <button
-                            id="change-pin-btn"
-                            disabled={isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6}
-                            onClick={handleChangePin}
-                            className="w-full py-4.5 bg-primary text-primary-foreground rounded-2xl text-[17px] font-bold shadow-lg shadow-primary/20 active:opacity-80 transition-all disabled:opacity-50"
-                        >
-                            {isSubmitting ? <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Update PIN"}
-                        </button>
+                        <div className="ios-cell py-3">
+                            <button
+                                id="change-pin-btn"
+                                disabled={isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6}
+                                onClick={handleChangePin}
+                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-[17px] font-bold active:opacity-80 transition-all disabled:opacity-40"
+                            >
+                                {isSubmitting ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Update PIN"}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -235,7 +240,7 @@ function SettingsContent() {
                                 )}
                             </button>
                         </div>
-                        <p className="text-center text-[13px] text-[var(--ios-secondary-label)] mt-2 font-medium">Enterprise HRIS Mobile v1.1.0</p>
+                        <p className="text-center text-[13px] text-[var(--ios-secondary-label)] mt-2 font-medium">DigiHR+ Mobile v1.1.0</p>
                     </div>
                 )}
             </div>

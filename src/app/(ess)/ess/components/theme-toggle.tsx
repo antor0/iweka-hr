@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Sun, Moon, Laptop, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor } from "lucide-react";
 
 export function EssThemeToggle() {
     const { theme, setTheme } = useTheme();
@@ -13,30 +13,29 @@ export function EssThemeToggle() {
     if (!mounted) return null;
 
     const options = [
-        { id: "light", icon: (active: boolean) => <Sun size={16} strokeWidth={active ? 3 : 2.5} />, label: "Light" },
-        { id: "dark", icon: (active: boolean) => <Moon size={16} strokeWidth={active ? 3 : 2.5} />, label: "Dark" },
-        { id: "system", icon: (active: boolean) => <Monitor size={16} strokeWidth={active ? 3 : 2.5} />, label: "System" },
+        { id: "light", icon: Sun, label: "Light" },
+        { id: "dark", icon: Moon, label: "Dark" },
+        { id: "system", icon: Monitor, label: "System" },
     ];
 
     return (
-        <div className="flex gap-2 p-1.5 bg-muted/20 border border-white/5 rounded-2xl backdrop-blur-xl shadow-inner">
+        <div className="flex gap-0.5 p-1 bg-[var(--ios-separator)]/40 rounded-[12px]">
             {options.map((opt) => {
                 const isActive = theme === opt.id;
+                const Icon = opt.icon;
                 return (
                     <button
                         key={opt.id}
+                        id={`theme-${opt.id}`}
                         onClick={() => setTheme(opt.id)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all duration-300 relative overflow-hidden group ${
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-[13px] font-semibold transition-all duration-200 ${
                             isActive
-                                ? "bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]"
-                                : "text-muted-foreground/60 hover:bg-muted/30"
+                                ? "bg-[var(--ios-secondary-bg)] text-[var(--ios-label)] shadow-sm"
+                                : "text-[var(--ios-secondary-label)]"
                         }`}
                     >
-                        {isActive && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-                        )}
-                        {opt.icon(isActive)}
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? "opacity-100" : "opacity-60"}`}>{opt.label}</span>
+                        <Icon size={14} strokeWidth={isActive ? 2.5 : 2} />
+                        <span>{opt.label}</span>
                     </button>
                 );
             })}

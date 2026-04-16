@@ -2,15 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { 
-    Plus, 
-    X, 
-    Inbox, 
-    CheckCircle2, 
-    XCircle, 
-    Clock, 
-    Banknote, 
-    Car, 
+import {
+    Plus,
+    X,
+    Inbox,
+    CheckCircle2,
+    XCircle,
+    Clock,
+    Banknote,
+    Car,
     MoreHorizontal,
     Trash2,
     FileText,
@@ -126,7 +126,7 @@ export default function EssClaimsPage() {
                 body: formData,
             });
             const data = await res.json();
-            
+
             if (res.ok) {
                 setItems(prev => prev.map((item, i) => {
                     if (i !== idx) return item;
@@ -176,20 +176,20 @@ export default function EssClaimsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
+        <div className="flex-1 pb-28 font-sans">
             <OfflineBanner />
-            <MobileHeader 
-                title="Claims" 
+            <MobileHeader
+                title="Claims"
                 rightAction={
-                    <button 
-                        onClick={() => { setShowForm(!showForm); setMessage(null); }} 
+                    <button
+                        onClick={() => { setShowForm(!showForm); setMessage(null); }}
                         className={`p-2 transition-all ${showForm ? "text-[var(--ios-secondary-label)]" : "text-primary active:opacity-50"}`}
                     >
                         {showForm ? <X size={24} strokeWidth={2.5} /> : <Plus size={24} strokeWidth={2.5} />}
@@ -197,14 +197,13 @@ export default function EssClaimsPage() {
                 }
             />
 
-            <div className="max-w-[480px] mx-auto pt-2 flex flex-col gap-6">
+            <div className="pt-2 flex flex-col gap-5">
                 {message && (
                     <div className="px-4">
-                        <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
-                            message.type === "success" 
-                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
-                                : "bg-red-500/10 border-red-500/30 text-red-500"
-                        }`}>
+                        <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === "success"
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                            : "bg-red-500/10 border-red-500/30 text-red-500"
+                            }`}>
                             {message.type === "success" ? <CheckCircle2 size={16} strokeWidth={3} /> : <AlertCircle size={16} strokeWidth={3} />}
                             {message.text}
                         </div>
@@ -215,25 +214,25 @@ export default function EssClaimsPage() {
                 {showForm && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 px-4">
                         <div className="ios-list-group mx-0">
-                            <h2 className="ios-list-header px-1">General Information</h2>
+                            <h2 className="ios-list-header px-1">Claim Info</h2>
                             <div className="ios-list-content">
                                 <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
                                     <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Claim Title</label>
-                                    <input 
-                                        type="text" 
-                                        value={form.title} 
-                                        onChange={e => setForm(f => ({ ...f, title: e.target.value }))} 
-                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1" 
+                                    <input
+                                        type="text"
+                                        value={form.title}
+                                        onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1"
                                         placeholder="e.g. Business Trip Surabaya"
-                                        required 
+                                        required
                                     />
                                 </div>
                                 <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
                                     <label className="text-[12px] font-bold text-primary uppercase tracking-tight">Details (Optional)</label>
-                                    <textarea 
-                                        value={form.description} 
-                                        onChange={e => setForm(f => ({ ...f, description: e.target.value }))} 
-                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1 min-h-[60px] resize-none" 
+                                    <textarea
+                                        value={form.description}
+                                        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                                        className="w-full bg-transparent text-[17px] font-normal text-[var(--ios-label)] focus:outline-none py-1 min-h-[60px] resize-none"
                                         placeholder="Add notes..."
                                     />
                                 </div>
@@ -258,48 +257,53 @@ export default function EssClaimsPage() {
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
+                                        <div className="ios-cell flex flex-col items-stretch gap-1 py-1 relative">
                                             <label className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase">Category</label>
-                                            <select 
-                                                value={item.category} 
-                                                onChange={e => updateItem(idx, "category", e.target.value)} 
-                                                className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none appearance-none cursor-pointer py-1"
-                                            >
-                                                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                                            </select>
+                                            <div className="relative w-full">
+                                                <select
+                                                    value={item.category}
+                                                    onChange={e => updateItem(idx, "category", e.target.value)}
+                                                    className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none appearance-none cursor-pointer py-1 pr-8"
+                                                >
+                                                    {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                                                </select>
+                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--ios-secondary-label)] opacity-50">
+                                                    <ChevronRight className="rotate-90" size={16} />
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="ios-cell flex flex-col items-stretch gap-1 py-1">
-                                            <label className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase">Explanation</label>
-                                            <input 
-                                                type="text" 
-                                                value={item.description} 
-                                                onChange={e => updateItem(idx, "description", e.target.value)} 
-                                                className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none py-1" 
+                                            <label className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase">Description</label>
+                                            <input
+                                                type="text"
+                                                value={item.description}
+                                                onChange={e => updateItem(idx, "description", e.target.value)}
+                                                className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none py-1"
                                                 placeholder="What was this for?"
-                                                required 
+                                                required
                                             />
                                         </div>
                                         <div className="ios-cell py-1">
                                             <div className="flex-1 flex flex-col gap-1">
                                                 <label className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase">Amount (Rp)</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={item.amount || ""} 
-                                                    onChange={e => updateItem(idx, "amount", Number(e.target.value))} 
-                                                    className="w-full bg-transparent text-[17px] font-bold text-[var(--ios-label)] focus:outline-none py-1 font-mono" 
-                                                    placeholder="0" 
-                                                    required 
+                                                <input
+                                                    type="number"
+                                                    value={item.amount || ""}
+                                                    onChange={e => updateItem(idx, "amount", Number(e.target.value))}
+                                                    className="w-full bg-transparent text-[17px] font-bold text-[var(--ios-label)] focus:outline-none py-1 font-mono"
+                                                    placeholder="0"
+                                                    required
                                                 />
                                             </div>
                                             <div className="w-[0.5px] h-8 bg-[var(--ios-separator)] mx-4" />
                                             <div className="flex-1 flex flex-col gap-1 text-right">
                                                 <label className="text-[11px] font-bold text-[var(--ios-secondary-label)] uppercase">Date</label>
-                                                <input 
-                                                    type="date" 
-                                                    value={item.receiptDate} 
-                                                    onChange={e => updateItem(idx, "receiptDate", e.target.value)} 
-                                                    className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none py-1 text-right" 
-                                                    required 
+                                                <input
+                                                    type="date"
+                                                    value={item.receiptDate}
+                                                    onChange={e => updateItem(idx, "receiptDate", e.target.value)}
+                                                    className="w-full bg-transparent text-[17px] text-[var(--ios-label)] focus:outline-none py-1 text-right"
+                                                    required
                                                 />
                                             </div>
                                         </div>
@@ -318,10 +322,10 @@ export default function EssClaimsPage() {
 
                         <div className="mt-8 flex flex-col gap-6">
                             <div className="bg-[#FF9500] rounded-2xl p-4 flex justify-between items-center text-white shadow-lg shadow-amber-500/20">
-                                <span className="text-[15px] font-bold uppercase tracking-tight">Total Claim Amount</span>
+                                <span className="text-[15px] font-bold uppercase tracking-tight">Total Amount</span>
                                 <span className="text-[20px] font-bold font-mono">{formatIDR(totalAmount)}</span>
                             </div>
-                            <button 
+                            <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
                                 className="w-full py-4.5 bg-primary text-primary-foreground rounded-2xl text-[17px] font-bold shadow-lg shadow-primary/20 active:opacity-80 transition-all disabled:opacity-50"
@@ -334,12 +338,15 @@ export default function EssClaimsPage() {
 
                 {!showForm && (
                     <div className="ios-list-group">
-                        <h2 className="ios-list-header px-4">History</h2>
+                        <h2 className="ios-list-header">History</h2>
                         <div className="ios-list-content">
                             {claims.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-20 opacity-30">
-                                    <Inbox size={64} strokeWidth={1} />
-                                    <p className="text-[17px] font-medium mt-4">No claim history</p>
+                                <div className="ios-empty-state">
+                                    <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                        <Inbox size={28} strokeWidth={1.5} />
+                                    </div>
+                                    <p className="ios-empty-state-text">No Claims Yet</p>
+                                    <p className="ios-empty-state-subtext">Submit your first expense claim using the + button above.</p>
                                 </div>
                             ) : (
                                 claims.map((claim) => {

@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { 
-    Bell, 
-    Clock, 
-    FileText, 
-    Calendar, 
-    CreditCard, 
+import {
+    Bell,
+    Clock,
+    FileText,
+    Calendar,
+    CreditCard,
     Settings,
     CheckCircle2,
     LogOut,
@@ -109,20 +109,20 @@ export default function EssHomePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center gap-4">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24">
+        <div className="flex-1 pb-28">
             <OfflineBanner />
-            <MobileHeader 
-                title={employee?.fullName?.split(" ")[0] || "Home"} 
+            <MobileHeader
+                title={"Hello " + employee?.fullName?.split(" ")[0] || "Home"}
                 rightAction={
-                    <button 
-                        onClick={() => router.push("/ess/notifications")} 
+                    <button
+                        onClick={() => router.push("/ess/notifications")}
                         className="relative p-2 text-primary active:opacity-50"
                     >
                         <Bell size={24} strokeWidth={2} />
@@ -135,9 +135,9 @@ export default function EssHomePage() {
                 }
             />
 
-            <div className="max-w-[480px] mx-auto px-4 pt-2">
+            <div className="px-4 pt-2">
                 {/* Attendance Widget */}
-                <div className="bg-[var(--ios-secondary-bg)] rounded-3xl p-6 shadow-sm mb-8 border border-[var(--ios-separator)]">
+                <div className="bg-[var(--ios-secondary-bg)] rounded-3xl p-6 shadow-sm mb-6 border border-[var(--ios-separator)]">
                     <div className="flex flex-col items-center text-center">
                         <p className="text-[13px] font-semibold text-primary uppercase tracking-wider mb-2">Live Status</p>
                         <h2 className="text-[48px] font-bold tracking-tight text-[var(--ios-label)] font-mono leading-none mb-1">
@@ -201,9 +201,9 @@ export default function EssHomePage() {
 
                 <div className="flex flex-col items-center gap-1 opacity-40 mt-12">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--ios-secondary-label)]">
-                        <Smartphone size={12} /> HRIS Mobile Platform
+                        <Smartphone size={12} /> DigiHR+ Mobile Platform
                     </div>
-                    <p className="text-[10px] text-[var(--ios-secondary-label)] font-medium">Enterprise Edition v1.1.0</p>
+                    <p className="text-[10px] text-[var(--ios-secondary-label)] font-medium">Mobile DigiHR+ v1.1.0</p>
                 </div>
             </div>
 

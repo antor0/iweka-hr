@@ -90,7 +90,7 @@ export default function EssApprovalsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[var(--ios-system-bg)] flex flex-col items-center justify-center">
+            <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-[3px] border-primary/20 border-t-primary rounded-full animate-spin" />
             </div>
         );
@@ -99,14 +99,14 @@ export default function EssApprovalsPage() {
     const totalPending = leaves.length + claims.length;
 
     return (
-        <div className="min-h-screen bg-[var(--ios-system-bg)] pb-24 font-sans">
+        <div className="flex-1 pb-28 font-sans">
             <OfflineBanner />
             <MobileHeader 
                 title="Approvals" 
                 subtitle={totalPending > 0 ? `${totalPending} pending items` : "All caught up"} 
             />
 
-            <div className="max-w-[480px] mx-auto pt-2 flex flex-col gap-6">
+            <div className="pt-2 flex flex-col gap-5">
                 {message && (
                     <div className="px-4">
                         <div className={`rounded-2xl p-4 text-[13px] font-bold border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
@@ -122,12 +122,15 @@ export default function EssApprovalsPage() {
 
                 {/* Leave Section */}
                 <div className="ios-list-group">
-                    <h2 className="ios-list-header px-4">Leave Requests</h2>
+                    <h2 className="ios-list-header">Leave Requests</h2>
                     <div className="ios-list-content">
                         {leaves.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 opacity-30">
-                                <CalendarClock size={48} strokeWidth={1} />
-                                <p className="text-[15px] font-medium mt-2">No pending leave</p>
+                            <div className="ios-empty-state">
+                                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                    <CalendarClock size={24} strokeWidth={1.5} />
+                                </div>
+                                <p className="ios-empty-state-text">No Pending Leave</p>
+                                <p className="ios-empty-state-subtext">All leave requests have been resolved.</p>
                             </div>
                         ) : (
                             leaves.map((leave) => (
@@ -170,12 +173,15 @@ export default function EssApprovalsPage() {
 
                 {/* Claims Section */}
                 <div className="ios-list-group">
-                    <h2 className="ios-list-header text-[#FF9500]">Expense Claims</h2>
+                    <h2 className="ios-list-header">Expense Claims</h2>
                     <div className="ios-list-content">
                         {claims.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-12 opacity-30">
-                                <Banknote size={48} strokeWidth={1} />
-                                <p className="text-[15px] font-medium mt-2">No pending claims</p>
+                            <div className="ios-empty-state">
+                                <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+                                    <Banknote size={24} strokeWidth={1.5} />
+                                </div>
+                                <p className="ios-empty-state-text">No Pending Claims</p>
+                                <p className="ios-empty-state-subtext">All expense claims have been resolved.</p>
                             </div>
                         ) : (
                             claims.map((claim) => (
