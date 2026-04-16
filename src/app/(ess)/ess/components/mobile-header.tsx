@@ -6,11 +6,12 @@ import { useRouter } from "next/navigation";
 
 interface MobileHeaderProps {
     title: string;
+    subtitle?: string;
     showBack?: boolean;
     rightAction?: React.ReactNode;
 }
 
-export function MobileHeader({ title, showBack, rightAction }: MobileHeaderProps) {
+export function MobileHeader({ title, subtitle, showBack, rightAction }: MobileHeaderProps) {
     const router = useRouter();
     const [scrolled, setScrolled] = useState(false);
     const [scrollAmount, setScrollAmount] = useState(0);
@@ -49,12 +50,17 @@ export function MobileHeader({ title, showBack, rightAction }: MobileHeaderProps
                         )}
                     </div>
                     
-                    <div className="flex-1 flex justify-center">
+                    <div className="flex-1 flex flex-col justify-center items-center">
                         <span className={`text-[17px] font-semibold tracking-tight transition-opacity duration-200 ${
                             scrolled ? "opacity-100" : "opacity-0"
                         }`}>
                             {title}
                         </span>
+                        {subtitle && scrolled && (
+                            <span className={`text-[11px] font-medium text-[var(--ios-secondary-label)] -mt-0.5 tracking-tight transition-opacity duration-200 opacity-100`}>
+                                {subtitle}
+                            </span>
+                        )}
                     </div>
 
                     <div className="flex-1 flex justify-end">
@@ -65,16 +71,23 @@ export function MobileHeader({ title, showBack, rightAction }: MobileHeaderProps
 
             {/* Large Title Area (Inline) */}
             <div className="max-w-[480px] mx-auto w-full pt-[44px] pb-2 px-4">
-                <h1 
-                    className="text-[34px] font-bold tracking-tight text-[var(--ios-label)] transition-all origin-left"
+                <div 
+                    className="transition-all origin-left flex flex-col"
                     style={{ 
                         opacity: 1 - collapseProgress,
                         transform: `scale(${1 - collapseProgress * 0.1}) translateY(${-scrollAmount * 0.2}px)`,
                         visibility: collapseProgress === 1 ? 'hidden' : 'visible'
                     }}
                 >
-                    {title}
-                </h1>
+                    <h1 className="text-[34px] font-bold tracking-tight text-[var(--ios-label)] leading-tight">
+                        {title}
+                    </h1>
+                    {subtitle && (
+                        <p className="text-[13px] font-medium text-[var(--ios-secondary-label)] mt-0.5 uppercase tracking-wider">
+                            {subtitle}
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );
