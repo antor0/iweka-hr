@@ -1,76 +1,46 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import {
+    Home,
+    Clock,
+    FileText,
+    Calendar,
+    CheckSquare,
+    LayoutGrid,
+    Wallet
+} from "lucide-react";
 
 const navItems = [
     {
         id: "nav-home",
         label: "Home",
         href: "/ess/home",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                <polyline points="9,22 9,12 15,12 15,22" />
-            </svg>
-        ),
+        icon: (active: boolean) => <Home size={20} strokeWidth={active ? 3 : 2.5} />,
     },
     {
         id: "nav-attendance",
-        label: "Attendance",
+        label: "Clock",
         href: "/ess/attendance",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12,6 12,12 16,14" />
-            </svg>
-        ),
+        icon: (active: boolean) => <Clock size={20} strokeWidth={active ? 3 : 2.5} />,
     },
     {
         id: "nav-payslip",
-        label: "Payslip",
+        label: "Income",
         href: "/ess/payslip",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-            </svg>
-        ),
-    },
-    {
-        id: "nav-leave",
-        label: "Leave",
-        href: "/ess/leave",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-        ),
+        icon: (active: boolean) => <Wallet size={20} strokeWidth={active ? 3 : 2.5} />,
     },
     {
         id: "nav-approvals",
-        label: "Approvals",
+        label: "Tasks",
         href: "/ess/approvals",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 11l3 3L22 4" />
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
-            </svg>
-        ),
+        icon: (active: boolean) => <CheckSquare size={20} strokeWidth={active ? 3 : 2.5} />,
     },
     {
         id: "nav-more",
-        label: "More",
+        label: "Misc",
         href: "/ess/claims",
-        icon: (active: boolean) => (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? "#818cf8" : "#475569"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
-            </svg>
-        ),
+        icon: (active: boolean) => <LayoutGrid size={20} strokeWidth={active ? 3 : 2.5} />,
     },
 ];
 
@@ -79,31 +49,39 @@ export function EssNav() {
     const router = useRouter();
 
     return (
-        <nav style={navStyles.nav}>
-            <div style={navStyles.inner}>
+        <nav className="fixed bottom-0 left-0 right-0 glass backdrop-blur-[40px] z-[100] border-t border-white/10 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+            <div className="flex justify-around items-center max-w-[480px] mx-auto px-1 py-3">
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href === "/ess/claims" && (pathname.startsWith("/ess/claims") || pathname.startsWith("/ess/settings")));
+                    const isActive = pathname === item.href ||
+                        (item.href === "/ess/claims" && (pathname.startsWith("/ess/claims") || pathname.startsWith("/ess/settings") || pathname.startsWith("/ess/notifications")));
+
                     return (
                         <button
                             key={item.id}
                             id={item.id}
                             onClick={() => router.push(item.href)}
-                            style={{
-                                ...navStyles.navItem,
-                                color: isActive ? "#818cf8" : "#475569",
-                            }}
+                            className={`flex flex-col items-center gap-1.5 flex-1 relative transition-all duration-300 active:scale-90 ${isActive ? "text-primary scale-105" : "text-muted-foreground/60 font-medium"
+                                }`}
                         >
-                            <div style={{ ...navStyles.iconWrapper, background: isActive ? "rgba(99,102,241,0.15)" : "transparent" }}>
+                            <div className={`p-2.5 rounded-[18px] transition-all duration-500 relative ${isActive
+                                    ? "bg-primary/10 shadow-[0_0_20px_rgba(99,102,241,0.2)] text-primary"
+                                    : "bg-transparent hover:bg-muted/30"
+                                }`}>
                                 {item.icon(isActive)}
+                                {isActive && (
+                                    <div className="absolute inset-0 rounded-[18px] border border-primary/20 animate-pulse" />
+                                )}
                             </div>
-                            <span style={{
-                                ...navStyles.label,
-                                color: isActive ? "#818cf8" : "#475569",
-                                fontWeight: isActive ? 600 : 400,
-                            }}>
+                            <span className={`text-[9px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${isActive ? "opacity-100" : "opacity-0 -translate-y-1"}`}>
                                 {item.label}
                             </span>
-                            {isActive && <div style={navStyles.activeDot} />}
+
+                            {isActive && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                                    <div className="w-6 h-3 bg-primary/20 blur-[8px] rounded-full" />
+                                    <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_12px_rgba(99,102,241,0.8)] -mt-1" />
+                                </div>
+                            )}
                         </button>
                     );
                 })}
@@ -112,61 +90,3 @@ export function EssNav() {
     );
 }
 
-const navStyles: Record<string, React.CSSProperties> = {
-    nav: {
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        background: "rgba(10,10,25,0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
-        zIndex: 100,
-        paddingBottom: "env(safe-area-inset-bottom)",
-    },
-    inner: {
-        display: "flex",
-        justifyContent: "space-around",
-        alignItems: "center",
-        padding: "8px 0 4px",
-        maxWidth: 480,
-        margin: "0 auto",
-    },
-    navItem: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 2,
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        padding: "4px 8px",
-        position: "relative",
-        flex: 1,
-    },
-    iconWrapper: {
-        padding: "6px",
-        borderRadius: "10px",
-        transition: "background 0.2s",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    label: {
-        fontSize: 9,
-        marginTop: 2,
-        transition: "color 0.2s",
-        fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)",
-    },
-    activeDot: {
-        position: "absolute",
-        top: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: 4,
-        height: 4,
-        borderRadius: "50%",
-        background: "#818cf8",
-    },
-};

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { WifiOff } from "lucide-react";
 
 export function OfflineBanner() {
     const [isOffline, setIsOffline] = useState(false);
@@ -19,25 +20,9 @@ export function OfflineBanner() {
     if (!isOffline) return null;
 
     return (
-        <div style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            background: "rgba(245,158,11,0.95)",
-            backdropFilter: "blur(8px)",
-            color: "#78350f",
-            padding: "10px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 13,
-            fontWeight: 600,
-            zIndex: 9999,
-            justifyContent: "center",
-        }}>
-            <span>📡</span>
-            <span>No internet connection. Some features may be unavailable.</span>
+        <div className="fixed top-0 left-0 right-0 bg-red-600/95 backdrop-blur-xl text-white py-3 px-6 flex items-center justify-center gap-3 text-[11px] font-black z-[9999] shadow-2xl border-b border-white/20 uppercase tracking-[0.2em] animate-in slide-in-from-top duration-500">
+            <WifiOff size={16} strokeWidth={3} className="animate-pulse" />
+            <span className="leading-none">Connectivity Terminated · Remote Synchronization Disabled</span>
         </div>
     );
 }

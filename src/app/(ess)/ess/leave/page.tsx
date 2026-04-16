@@ -2,6 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { 
+    Calendar, 
+    Plus, 
+    X, 
+    Inbox, 
+    CheckCircle2, 
+    XCircle, 
+    Clock, 
+    Sun,
+    CalendarCheck,
+    AlertCircle,
+    Info,
+    CalendarPlus
+} from "lucide-react";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -9,11 +23,11 @@ interface LeaveType { id: string; name: string; code: string; isPaid: boolean; }
 interface LeaveBalance { leaveTypeId: string; entitlement: number; used: number; carryOver: number; leaveType: { name: string; code: string; isPaid: boolean }; }
 interface LeaveRequest { id: string; startDate: string; endDate: string; totalDays: number; reason: string; status: string; leaveType: { name: string }; }
 
-const statusStyle: Record<string, { bg: string; color: string }> = {
-    PENDING: { bg: "rgba(245,158,11,0.15)", color: "#fbbf24" },
-    APPROVED: { bg: "rgba(16,185,129,0.15)", color: "#34d399" },
-    REJECTED: { bg: "rgba(239,68,68,0.15)", color: "#f87171" },
-    CANCELLED: { bg: "rgba(100,116,139,0.15)", color: "#94a3b8" },
+const statusStyle: Record<string, { bg: string; text: string; label: string; icon: any }> = {
+    PENDING: { bg: "bg-warning/15", text: "text-warning", label: "Pending", icon: Clock },
+    APPROVED: { bg: "bg-success/15", text: "text-success", label: "Approved", icon: CheckCircle2 },
+    REJECTED: { bg: "bg-destructive/15", text: "text-destructive", label: "Rejected", icon: XCircle },
+    CANCELLED: { bg: "bg-muted/15", text: "text-muted-foreground", label: "Cancelled", icon: Info },
 };
 
 export default function EssLeavePage() {
@@ -52,7 +66,6 @@ export default function EssLeavePage() {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    // Auto-calculate days when dates change
     useEffect(() => {
         if (form.startDate && form.endDate) {
             const start = new Date(form.startDate);
@@ -82,7 +95,7 @@ export default function EssLeavePage() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: "✅ Leave request submitted successfully!" });
+                setMessage({ type: "success", text: "Leave request submitted successfully!" });
                 setShowForm(false);
                 setForm({ leaveTypeId: "", startDate: "", endDate: "", totalDays: 1, reason: "" });
                 await fetchData();
@@ -99,65 +112,132 @@ export default function EssLeavePage() {
     const fmtDate = (d: string) => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
 
     if (isLoading) {
-        return <div style={s.root}><div style={s.center}><div style={s.spinner} /></div></div>;
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading leave data...</p>
+            </div>
+        );
     }
 
     return (
-        <div style={s.root}>
+        <div className="min-h-screen bg-transparent font-sans relative">
             <OfflineBanner />
-            <div style={s.orb} />
 
-            <div style={s.page}>
-                <div style={s.headerRow}>
+            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
+                <div className="flex justify-between items-start">
                     <div>
-                        <h1 style={s.pageTitle}>Leave</h1>
-                        <p style={s.pageSub}>Manage your leave requests</p>
+                        <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Leave</h1>
+                        <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">Manage your leave requests</p>
                     </div>
-                    <button id="new-leave-btn" onClick={() => { setShowForm(!showForm); setMessage(null); }} style={s.newBtn}>
-                        {showForm ? "✕ Close" : "+ Request"}
+                    <button 
+                        id="new-leave-btn" 
+                        onClick={() => { setShowForm(!showForm); setMessage(null); }} 
+                        className={`w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg transition-all active:scale-90 ${
+                            showForm 
+                                ? "bg-muted text-muted-foreground" 
+                                : "bg-gradient-to-br from-primary to-indigo-600 text-white shadow-primary/30"
+                        }`}
+                        title={showForm ? "Close Form" : "New Request"}
+                    >
+                        {showForm ? <X size={20} strokeWidth={2.5} /> : <Plus size={20} strokeWidth={2.5} />}
                     </button>
                 </div>
 
                 {message && (
-                    <div style={{ ...s.msgBox, background: message.type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.12)", borderColor: message.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.25)", color: message.type === "success" ? "#34d399" : "#fca5a5" }}>
+                    <div className={`rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                        message.type === "success" 
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                            : "bg-red-500/10 border-red-500/30 text-red-500"
+                    }`}>
+                        {message.type === "success" ? <CheckCircle2 size={14} strokeWidth={3} /> : <AlertCircle size={14} strokeWidth={3} />}
                         {message.text}
                     </div>
                 )}
 
                 {/* Submit Form */}
                 {showForm && (
-                    <div style={s.formCard}>
-                        <h2 style={s.formTitle}>New Leave Request</h2>
-                        <form onSubmit={handleSubmit} style={s.form}>
-                            <div style={s.field}>
-                                <label style={s.label}>Leave Type</label>
-                                <select id="leave-type-select" value={form.leaveTypeId} onChange={e => setForm(f => ({ ...f, leaveTypeId: e.target.value }))} style={s.select} required>
-                                    <option value="">Select leave type...</option>
-                                    {leaveTypes.map(lt => (
-                                        <option key={lt.id} value={lt.id}>{lt.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div style={s.dateRow}>
-                                <div style={{ ...s.field, flex: 1 }}>
-                                    <label style={s.label}>Start Date</label>
-                                    <input id="leave-start-date" type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} style={s.input} required />
+                    <div className="glass border-primary/20 rounded-[32px] p-6 shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <h2 className="text-base font-black text-foreground uppercase tracking-widest mb-6 flex items-center gap-2">
+                            <CalendarPlus size={18} className="text-primary" /> New Request
+                        </h2>
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Leave Type</label>
+                                <div className="relative">
+                                    <select 
+                                        id="leave-type-select" 
+                                        value={form.leaveTypeId} 
+                                        onChange={e => setForm(f => ({ ...f, leaveTypeId: e.target.value }))} 
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none cursor-pointer" 
+                                        required
+                                    >
+                                        <option value="" className="bg-background">Select leave type...</option>
+                                        {leaveTypes.map(lt => (
+                                            <option key={lt.id} value={lt.id} className="bg-background">{lt.name}</option>
+                                        ))}
+                                    </select>
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+                                        <Sun size={14} />
+                                    </div>
                                 </div>
-                                <div style={{ ...s.field, flex: 1 }}>
-                                    <label style={s.label}>End Date</label>
-                                    <input id="leave-end-date" type="date" value={form.endDate} min={form.startDate} onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} style={s.input} required />
+                            </div>
+                            
+                            <div className="flex gap-4">
+                                <div className="flex-1 flex flex-col gap-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Start Date</label>
+                                    <input 
+                                        id="leave-start-date" 
+                                        type="date" 
+                                        value={form.startDate} 
+                                        onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} 
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans" 
+                                        required 
+                                    />
+                                </div>
+                                <div className="flex-1 flex flex-col gap-2">
+                                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">End Date</label>
+                                    <input 
+                                        id="leave-end-date" 
+                                        type="date" 
+                                        value={form.endDate} 
+                                        min={form.startDate} 
+                                        onChange={e => setForm(f => ({ ...f, endDate: e.target.value }))} 
+                                        className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans" 
+                                        required 
+                                    />
                                 </div>
                             </div>
-                            <div style={s.field}>
-                                <label style={s.label}>Total Working Days</label>
-                                <div style={s.daysDisplay}>{form.totalDays} working days</div>
+
+                            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex justify-between items-center px-5">
+                                <div className="flex items-center gap-2">
+                                    <CalendarCheck size={16} className="text-primary" />
+                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Total Days</span>
+                                </div>
+                                <span className="text-sm font-black text-primary uppercase tracking-tight">{form.totalDays} working days</span>
                             </div>
-                            <div style={s.field}>
-                                <label style={s.label}>Reason</label>
-                                <textarea id="leave-reason" value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} style={{ ...s.input, minHeight: 80, resize: "vertical" }} placeholder="Explain the reason for leave..." required />
+
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] pl-1">Reason</label>
+                                <textarea 
+                                    id="leave-reason" 
+                                    value={form.reason} 
+                                    onChange={e => setForm(f => ({ ...f, reason: e.target.value }))} 
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl px-4 py-3.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all min-h-[100px] resize-none" 
+                                    placeholder="Briefly explain your leave..." 
+                                    required 
+                                />
                             </div>
-                            <button id="submit-leave-btn" type="submit" disabled={isSubmitting} style={{ ...s.submitBtn, opacity: isSubmitting ? 0.7 : 1 }}>
-                                {isSubmitting ? <span style={s.btnSpinner} /> : "Submit Request"}
+
+                            <button 
+                                id="submit-leave-btn" 
+                                type="submit" 
+                                disabled={isSubmitting} 
+                                className="w-full py-4.5 bg-gradient-to-br from-primary to-indigo-600 rounded-[22px] text-white text-sm font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.98] transition-all disabled:opacity-50 mt-2"
+                            >
+                                {isSubmitting ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+                                ) : "Submit Request"}
                             </button>
                         </form>
                     </div>
@@ -165,23 +245,29 @@ export default function EssLeavePage() {
 
                 {/* Leave Balances */}
                 {balances.length > 0 && (
-                    <div style={s.section}>
-                        <h2 style={s.sectionTitle}>Leave Balance {new Date().getFullYear()}</h2>
-                        <div style={s.balanceGrid}>
+                    <div className="flex flex-col gap-4">
+                        <h2 className="text-[11px] font-black text-primary uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
+                            <Sun size={14} /> Leave Balance {new Date().getFullYear()}
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4">
                             {balances.map((b) => {
                                 const remaining = Number(b.entitlement) + Number(b.carryOver) - Number(b.used);
-                                const pct = Math.min(100, (Number(b.used) / (Number(b.entitlement) + Number(b.carryOver))) * 100);
+                                const total = Number(b.entitlement) + Number(b.carryOver);
+                                const pct = Math.min(100, (Number(b.used) / total) * 100);
                                 return (
-                                    <div key={b.leaveTypeId} style={s.balanceCard}>
-                                        <p style={s.balanceName}>{b.leaveType.name}</p>
-                                        <div style={s.balanceNumbers}>
-                                            <span style={s.balanceRemaining}>{remaining}</span>
-                                            <span style={s.balanceOf}>/ {Number(b.entitlement) + Number(b.carryOver)}</span>
+                                    <div key={b.leaveTypeId} className="glass border-border/50 rounded-[24px] p-5 flex flex-col gap-2 transition-all hover:translate-y-[-4px] shadow-lg shadow-primary/5 group">
+                                        <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1 group-hover:text-primary transition-colors">{b.leaveType.name}</p>
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className="text-3xl font-black text-foreground tracking-tighter font-mono">{remaining}</span>
+                                            <span className="text-[10px] text-muted-foreground font-black opacity-40">/ {total}</span>
                                         </div>
-                                        <div style={s.progressBg}>
-                                            <div style={{ ...s.progressFill, width: `${pct}%` }} />
+                                        <div className="h-1.5 bg-muted/50 rounded-full w-full overflow-hidden mt-1.5 ring-1 ring-border/20">
+                                            <div 
+                                                className="h-full bg-gradient-to-r from-primary to-indigo-500 rounded-full transition-all duration-1000" 
+                                                style={{ width: `${pct}%` }} 
+                                            />
                                         </div>
-                                        <p style={s.balanceSub}>Days remaining</p>
+                                        <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-30 mt-1">Days left</p>
                                     </div>
                                 );
                             })}
@@ -190,85 +276,54 @@ export default function EssLeavePage() {
                 )}
 
                 {/* Request History */}
-                <div style={s.section}>
-                    <h2 style={s.sectionTitle}>Request History</h2>
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.25em] px-2 opacity-60">
+                        Request History
+                    </h2>
                     {requests.length === 0 ? (
-                        <div style={s.emptyState}>
-                            <span style={{ fontSize: 40 }}>📭</span>
-                            <p style={{ color: "#64748b", margin: "8px 0 0" }}>No leave requests yet</p>
+                        <div className="glass border-dashed border-border/50 rounded-[32px] p-20 flex flex-col items-center justify-center text-center opacity-60">
+                            <Inbox size={48} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
+                            <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest opacity-60">No leave requests yet</p>
                         </div>
                     ) : (
-                        <div style={s.requestList}>
+                        <div className="flex flex-col gap-3">
                             {requests.map((req) => {
-                                const sc = statusStyle[req.status] || statusStyle.CANCELLED;
+                                const style = statusStyle[req.status] || statusStyle.CANCELLED;
+                                const StatusIcon = style.icon;
                                 return (
-                                    <div key={req.id} style={s.requestCard}>
-                                        <div style={s.reqTop}>
-                                            <p style={s.reqType}>{req.leaveType.name}</p>
-                                            <span style={{ ...s.reqStatus, background: sc.bg, color: sc.color }}>{req.status}</span>
+                                    <div key={req.id} className="glass border-border/40 rounded-2xl p-5 flex flex-col gap-4 group transition-all hover:bg-muted/10">
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{req.leaveType.name}</p>
+                                            <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${style.bg} ${style.text}`}>
+                                                <StatusIcon size={12} strokeWidth={2.5} />
+                                                {style.label}
+                                            </span>
                                         </div>
-                                        <p style={s.reqDates}>{fmtDate(req.startDate)} – {fmtDate(req.endDate)} · <strong style={{ color: "#a5b4fc" }}>{req.totalDays} days</strong></p>
-                                        <p style={s.reqReason}>{req.reason}</p>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground font-bold font-mono opacity-80 mb-2">
+                                                {fmtDate(req.startDate)} – {fmtDate(req.endDate)}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar size={12} className="text-primary/40" />
+                                                <p className="text-[11px] text-primary font-black uppercase tracking-wider">{req.totalDays} working days</p>
+                                            </div>
+                                        </div>
+                                        {req.reason && (
+                                            <div className="bg-muted/20 rounded-xl p-3 border border-border/30">
+                                                <p className="text-[11px] text-muted-foreground font-medium leading-relaxed italic opacity-80">
+                                                    "{req.reason}"
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
                         </div>
                     )}
                 </div>
-
-                <div style={{ height: 80 }} />
             </div>
 
             <EssNav />
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                select option { background: #1a1033; color: #e2e8f0; }
-                input:focus, select:focus, textarea:focus { outline: none; border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.2) !important; }
-                button:hover:not(:disabled) { filter: brightness(1.1); }
-            `}</style>
         </div>
     );
 }
-
-const s: Record<string, any> = {
-    root: { minHeight: "100vh", background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)", fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)", position: "relative" },
-    orb: { position: "fixed", top: "-10%", right: "-5%", width: 300, height: 300, borderRadius: "50%", background: "rgba(16,185,129,0.1)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    center: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" },
-    spinner: { width: 36, height: 36, border: "3px solid rgba(99,102,241,0.3)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    page: { position: "relative", zIndex: 1, padding: "20px 16px 0", maxWidth: 480, margin: "0 auto" },
-    headerRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
-    pageTitle: { margin: "0 0 2px", fontSize: 26, fontWeight: 800, color: "#e0e7ff" },
-    pageSub: { margin: 0, fontSize: 13, color: "#64748b" },
-    newBtn: { padding: "8px 16px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(99,102,241,0.4)", marginTop: 4 },
-    msgBox: { borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, border: "1px solid", marginBottom: 16 },
-    formCard: { background: "rgba(255,255,255,0.04)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 20, padding: "20px 16px", marginBottom: 20 },
-    formTitle: { margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "#e0e7ff" },
-    form: { display: "flex", flexDirection: "column", gap: 14 },
-    field: { display: "flex", flexDirection: "column", gap: 6 },
-    label: { fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" },
-    input: { padding: "11px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#e2e8f0", fontSize: 14, width: "100%", boxSizing: "border-box" as const, fontFamily: "inherit" },
-    select: { padding: "11px 12px", background: "rgba(15,15,26,0.95)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#e2e8f0", fontSize: 14, width: "100%", boxSizing: "border-box" as const, fontFamily: "inherit", cursor: "pointer" },
-    dateRow: { display: "flex", gap: 10 },
-    daysDisplay: { padding: "11px 12px", background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, color: "#818cf8", fontWeight: 700, fontSize: 14 },
-    submitBtn: { padding: "13px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(99,102,241,0.4)", minHeight: 48 },
-    btnSpinner: { width: 18, height: 18, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    section: { marginBottom: 20 },
-    sectionTitle: { margin: "0 0 10px", fontSize: 13, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" },
-    balanceGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
-    balanceCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "14px" },
-    balanceName: { margin: "0 0 8px", fontSize: 11, color: "#64748b", fontWeight: 600 },
-    balanceNumbers: { display: "flex", alignItems: "baseline", gap: 4, marginBottom: 8 },
-    balanceRemaining: { fontSize: 28, fontWeight: 800, color: "#e0e7ff" },
-    balanceOf: { fontSize: 13, color: "#475569" },
-    progressBg: { height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, marginBottom: 4, overflow: "hidden" },
-    progressFill: { height: "100%", background: "linear-gradient(90deg, #6366f1, #8b5cf6)", borderRadius: 2, transition: "width 0.5s ease" },
-    balanceSub: { margin: 0, fontSize: 10, color: "#475569" },
-    emptyState: { display: "flex", flexDirection: "column", alignItems: "center", padding: "32px", background: "rgba(255,255,255,0.03)", borderRadius: 16, border: "1px solid rgba(255,255,255,0.05)" },
-    requestList: { display: "flex", flexDirection: "column", gap: 8 },
-    requestCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "14px" },
-    reqTop: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-    reqType: { margin: 0, fontSize: 14, fontWeight: 600, color: "#e0e7ff" },
-    reqStatus: { padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 },
-    reqDates: { margin: "0 0 4px", fontSize: 12, color: "#64748b" },
-    reqReason: { margin: 0, fontSize: 12, color: "#94a3b8", fontStyle: "italic" },
-};

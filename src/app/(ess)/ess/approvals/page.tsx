@@ -2,6 +2,20 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { 
+    Calendar, 
+    CreditCard, 
+    CheckCircle2, 
+    XCircle, 
+    Clock, 
+    Inbox, 
+    CheckSquare,
+    User,
+    CalendarClock,
+    Banknote,
+    AlertCircle,
+    Check
+} from "lucide-react";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -76,75 +90,97 @@ export default function EssApprovalsPage() {
         }
     };
 
-    if (isLoading) return <div style={s.root}><div style={s.center}><div style={s.spinner} /></div></div>;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading requests...</p>
+            </div>
+        );
+    }
 
     const totalPending = leaves.length + claims.length;
 
     return (
-        <div style={s.root}>
+        <div className="min-h-screen bg-transparent font-sans relative">
             <OfflineBanner />
-            <div style={s.orb} />
 
-            <div style={s.page}>
-                <div style={s.headerRow}>
-                    <div>
-                        <h1 style={s.pageTitle}>Approvals</h1>
-                        <p style={s.pageSub}>{totalPending} request{totalPending !== 1 ? "s" : ""} waiting</p>
-                    </div>
+            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Approvals</h1>
+                    <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">
+                        {totalPending} request{totalPending !== 1 ? "s" : ""} waiting for your action
+                    </p>
                 </div>
 
                 {message && (
-                    <div style={{ ...s.msgBox, background: message.type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.12)", borderColor: message.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.25)", color: message.type === "success" ? "#34d399" : "#fca5a5" }}>
+                    <div className={`rounded-2xl p-4 text-[11px] font-black uppercase tracking-widest border flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                        message.type === "success" 
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                            : "bg-red-500/10 border-red-500/30 text-red-500"
+                    }`}>
+                        {message.type === "success" ? <CheckCircle2 size={14} strokeWidth={3} /> : <AlertCircle size={14} strokeWidth={3} />}
                         {message.text}
                     </div>
                 )}
 
                 {/* Leave Requests */}
-                <div style={s.section}>
-                    <h2 style={s.sectionTitle}>Leave Requests ({leaves.length})</h2>
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-[11px] font-black text-primary uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
+                        <CheckSquare size={14} /> Leave Requests ({leaves.length})
+                    </h2>
                     {leaves.length === 0 ? (
-                        <div style={s.emptyState}>
-                            <p style={{ color: "#64748b", margin: 0 }}>No pending leaves.</p>
+                        <div className="glass border-dashed border-border/50 rounded-[32px] p-12 flex flex-col items-center justify-center text-center opacity-60">
+                            <CalendarClock size={40} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
+                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">No pending leave requests</p>
                         </div>
                     ) : (
-                        <div style={s.listContainer}>
+                        <div className="flex flex-col gap-4">
                             {leaves.map((leave) => (
-                                <div key={leave.id} style={s.card}>
-                                    <div style={s.cardTop}>
-                                        <div style={s.avatar}>{leave.employee.fullName.charAt(0)}</div>
-                                        <div style={{ flex: 1 }}>
-                                            <p style={s.cardTitle}>{leave.employee.fullName}</p>
-                                            <p style={s.cardSub}>{leave.employee.employeeNumber}</p>
+                                <div key={leave.id} className="glass border-border/50 rounded-[32px] p-6 shadow-xl shadow-primary/5 group transition-all">
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                                            <User size={20} strokeWidth={2.5} />
                                         </div>
-                                        <span style={s.badge}>{leave.leaveType.name}</span>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{leave.employee.fullName}</p>
+                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">{leave.employee.employeeNumber}</p>
+                                        </div>
+                                        <div className="px-3 py-1 bg-primary/15 text-primary rounded-xl text-[9px] font-black uppercase tracking-widest border border-primary/20">
+                                            {leave.leaveType.name}
+                                        </div>
                                     </div>
-                                    <div style={s.cardBody}>
-                                        <div style={s.metaRow}>
-                                            <span style={s.metaLabel}>Date:</span>
-                                            <span style={s.metaValue}>
+                                    <div className="flex flex-col gap-3 mb-6 pb-6 border-b border-border/40">
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Period</span>
+                                            <span className="text-xs text-foreground font-bold font-mono">
                                                 {new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}
-                                                {" "}({leave.totalDays} days)
+                                                <span className="text-primary ml-2 uppercase font-black text-[10px] tracking-tight">({leave.totalDays}d)</span>
                                             </span>
                                         </div>
-                                        <div style={s.metaRow}>
-                                            <span style={s.metaLabel}>Reason:</span>
-                                            <span style={s.metaValue}>{leave.reason}</span>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Reason</span>
+                                            <span className="text-[11px] text-muted-foreground font-medium leading-relaxed italic opacity-80">"{leave.reason}"</span>
                                         </div>
                                     </div>
-                                    <div style={s.actionRow}>
+                                    <div className="flex gap-3">
                                         <button 
                                             onClick={() => handleAction("LEAVE", leave.id, "REJECTED")} 
                                             disabled={processingId === leave.id}
-                                            style={s.rejectBtn}
+                                            className="flex-1 py-3 rounded-2xl border border-red-500/30 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
                                         >
-                                            Reject
+                                            <XCircle size={14} strokeWidth={2.5} /> Reject
                                         </button>
                                         <button 
                                             onClick={() => handleAction("LEAVE", leave.id, "APPROVED")} 
                                             disabled={processingId === leave.id}
-                                            style={s.approveBtn}
+                                            className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:shadow-emerald-500/30 active:scale-[0.98] transition-all disabled:opacity-50"
                                         >
-                                            {processingId === leave.id ? "Processing..." : "Approve"}
+                                            {processingId === leave.id ? (
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <><CheckCircle2 size={14} strokeWidth={2.5} /> Approve</>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -154,50 +190,61 @@ export default function EssApprovalsPage() {
                 </div>
 
                 {/* Claim Requests */}
-                <div style={s.section}>
-                    <h2 style={s.sectionTitle}>Expense Claims ({claims.length})</h2>
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-[11px] font-black text-amber-500 uppercase tracking-[0.25em] px-2 opacity-80 flex items-center gap-2">
+                        <Banknote size={14} /> Expense Claims ({claims.length})
+                    </h2>
                     {claims.length === 0 ? (
-                        <div style={s.emptyState}>
-                            <p style={{ color: "#64748b", margin: 0 }}>No pending claims.</p>
+                        <div className="glass border-dashed border-border/50 rounded-[32px] p-12 flex flex-col items-center justify-center text-center opacity-60">
+                            <Inbox size={40} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
+                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">No pending expense claims</p>
                         </div>
                     ) : (
-                        <div style={s.listContainer}>
+                        <div className="flex flex-col gap-4">
                             {claims.map((claim) => (
-                                <div key={claim.id} style={s.card}>
-                                    <div style={s.cardTop}>
-                                        <div style={s.avatar}>{claim.employee.fullName.charAt(0)}</div>
-                                        <div style={{ flex: 1 }}>
-                                            <p style={s.cardTitle}>{claim.employee.fullName}</p>
-                                            <p style={s.cardSub}>{claim.title} ({claim.claimNumber})</p>
+                                <div key={claim.id} className="glass border-border/50 rounded-[32px] p-6 shadow-xl shadow-primary/5 group transition-all">
+                                    <div className="flex items-center gap-3 mb-5">
+                                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                                            <User size={20} strokeWidth={2.5} />
                                         </div>
-                                        <span style={s.badgeItems}>{claim._count.items} item{claim._count.items > 1 ? "s" : ""}</span>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{claim.employee.fullName}</p>
+                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60 truncate max-w-[150px]">{claim.title}</p>
+                                        </div>
+                                        <div className="px-3 py-1 bg-amber-500/15 text-amber-500 rounded-xl text-[9px] font-black uppercase tracking-widest border border-amber-500/20">
+                                            {claim._count.items} item{claim._count.items > 1 ? "s" : ""}
+                                        </div>
                                     </div>
-                                    <div style={s.cardBody}>
-                                        <div style={s.metaRow}>
-                                            <span style={s.metaLabel}>Submitted:</span>
-                                            <span style={s.metaValue}>{new Date(claim.submittedAt).toLocaleDateString()}</span>
+                                    <div className="flex flex-col gap-3 mb-6 pb-6 border-b border-border/40">
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Claim ID</span>
+                                            <span className="text-xs text-foreground font-mono font-bold tracking-tight">{claim.claimNumber}</span>
                                         </div>
-                                        <div style={s.metaRow}>
-                                            <span style={s.metaLabel}>Total IDR:</span>
-                                            <span style={{...s.metaValue, fontWeight: 700, color: "#fbbf24", fontFamily: "monospace"}}>
+                                        <div className="flex items-start gap-4">
+                                            <span className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] w-16 pt-0.5 opacity-60">Amount</span>
+                                            <span className="text-lg font-black text-amber-500 font-mono tracking-tighter">
                                                 {new Intl.NumberFormat("en-US", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(Number(claim.totalAmount))}
                                             </span>
                                         </div>
                                     </div>
-                                    <div style={s.actionRow}>
+                                    <div className="flex gap-3">
                                         <button 
                                             onClick={() => handleAction("CLAIM", claim.id, "REJECTED")} 
                                             disabled={processingId === claim.id}
-                                            style={s.rejectBtn}
+                                            className="flex-1 py-3 rounded-2xl border border-red-500/30 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-500/10 active:scale-[0.98] transition-all disabled:opacity-50"
                                         >
-                                            Reject
+                                            <XCircle size={14} strokeWidth={2.5} /> Reject
                                         </button>
                                         <button 
                                             onClick={() => handleAction("CLAIM", claim.id, "APPROVED")} 
                                             disabled={processingId === claim.id}
-                                            style={s.approveBtn}
+                                            className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 hover:shadow-emerald-500/30 active:scale-[0.98] transition-all disabled:opacity-50"
                                         >
-                                            {processingId === claim.id ? "Processing..." : "Approve"}
+                                            {processingId === claim.id ? (
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <><CheckCircle2 size={14} strokeWidth={2.5} /> Approve</>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -205,8 +252,6 @@ export default function EssApprovalsPage() {
                         </div>
                     )}
                 </div>
-
-                <div style={{ height: 80 }} />
             </div>
 
             <EssNav />
@@ -214,32 +259,3 @@ export default function EssApprovalsPage() {
     );
 }
 
-const s: Record<string, any> = {
-    root: { minHeight: "100vh", background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)", fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)", position: "relative" },
-    orb: { position: "fixed", top: "10%", right: "-10%", width: 300, height: 300, borderRadius: "50%", background: "rgba(99,102,241,0.08)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    center: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" },
-    spinner: { width: 36, height: 36, border: "3px solid rgba(99,102,241,0.3)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    page: { position: "relative", zIndex: 1, padding: "20px 16px 0", maxWidth: 480, margin: "0 auto" },
-    headerRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 20 },
-    pageTitle: { margin: "0 0 2px", fontSize: 26, fontWeight: 800, color: "#e0e7ff" },
-    pageSub: { margin: 0, fontSize: 13, color: "#64748b" },
-    msgBox: { borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, border: "1px solid", marginBottom: 16 },
-    section: { marginBottom: 24 },
-    sectionTitle: { margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "#818cf8", textTransform: "uppercase" as const, letterSpacing: "0.08em" },
-    emptyState: { padding: "20px", background: "rgba(255,255,255,0.02)", borderRadius: 12, border: "1px dashed rgba(255,255,255,0.1)", textAlign: "center" as const },
-    listContainer: { display: "flex", flexDirection: "column", gap: 12 },
-    card: { background: "rgba(255,255,255,0.04)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "16px" },
-    cardTop: { display: "flex", alignItems: "center", gap: 12, marginBottom: 14 },
-    avatar: { width: 36, height: 36, borderRadius: "50%", background: "rgba(99,102,241,0.2)", color: "#818cf8", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 },
-    cardTitle: { margin: "0 0 2px", fontSize: 15, fontWeight: 700, color: "#e0e7ff" },
-    cardSub: { margin: 0, fontSize: 12, color: "#94a3b8" },
-    badge: { background: "rgba(99,102,241,0.15)", color: "#818cf8", padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 },
-    badgeItems: { background: "rgba(245,158,11,0.15)", color: "#fbbf24", padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 },
-    cardBody: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.06)" },
-    metaRow: { display: "flex", alignItems: "flex-start", gap: 8 },
-    metaLabel: { fontSize: 12, color: "#64748b", width: 70, shrink: 0 },
-    metaValue: { fontSize: 13, color: "#e2e8f0", flex: 1, lineHeight: "1.4" },
-    actionRow: { display: "flex", gap: 10 },
-    rejectBtn: { flex: 1, padding: "10px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, color: "#fca5a5", fontSize: 13, fontWeight: 600, cursor: "pointer" },
-    approveBtn: { flex: 1, padding: "10px", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: 10, color: "#34d399", fontSize: 13, fontWeight: 600, cursor: "pointer" },
-};

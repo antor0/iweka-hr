@@ -2,6 +2,21 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { 
+    Bell, 
+    Clock, 
+    FileText, 
+    Calendar, 
+    CreditCard, 
+    Settings,
+    CheckCircle2,
+    AlertCircle,
+    XCircle,
+    LogIn,
+    LogOut,
+    ChevronRight,
+    Smartphone
+} from "lucide-react";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -100,204 +115,150 @@ export default function EssHomePage() {
     };
 
     const quickActions = [
-        { id: "qa-payslip", label: "Payslip", icon: "📄", href: "/ess/payslip", color: "rgba(99,102,241,0.2)", border: "rgba(99,102,241,0.3)" },
-        { id: "qa-leave", label: "Request Leave", icon: "📅", href: "/ess/leave", color: "rgba(16,185,129,0.15)", border: "rgba(16,185,129,0.3)" },
-        { id: "qa-claims", label: "Claims", icon: "💰", href: "/ess/claims", color: "rgba(245,158,11,0.15)", border: "rgba(245,158,11,0.3)" },
-        { id: "qa-settings", label: "Settings", icon: "⚙️", href: "/ess/settings", color: "rgba(168,85,247,0.15)", border: "rgba(168,85,247,0.3)" },
+        { id: "qa-payslip", label: "Payslip", icon: <FileText size={28} />, href: "/ess/payslip", border: "border-indigo-500/30", bg: "bg-indigo-500/10", text: "text-indigo-500" },
+        { id: "qa-leave", label: "Leave", icon: <Calendar size={28} />, href: "/ess/leave", border: "border-emerald-500/30", bg: "bg-emerald-500/10", text: "text-emerald-500" },
+        { id: "qa-claims", label: "Claims", icon: <CreditCard size={28} />, href: "/ess/claims", border: "border-amber-500/30", bg: "bg-amber-500/10", text: "text-amber-500" },
+        { id: "qa-settings", label: "Settings", icon: <Settings size={28} />, href: "/ess/settings", border: "border-purple-500/30", bg: "bg-purple-500/10", text: "text-purple-500" },
     ];
 
     if (isLoading) {
         return (
-            <div style={styles.root}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", flexDirection: "column", gap: 16 }}>
-                    <div style={styles.spinner} />
-                    <p style={{ color: "#64748b", fontSize: 14 }}>Loading...</p>
-                </div>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium">Loading your dashboard...</p>
             </div>
         );
     }
 
     return (
-        <div style={styles.root}>
+        <div className="min-h-screen bg-transparent">
             <OfflineBanner />
-            <div style={styles.orb1} />
-            <div style={styles.orb2} />
 
-            <div style={styles.page}>
+            <div className="relative z-10 px-4 pt-5 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
                 {/* Header */}
-                <div style={styles.header}>
+                <div className="flex justify-between items-start">
                     <div>
-                        <p style={styles.greeting}>{getGreeting()},</p>
-                        <h1 style={styles.name}>{employee?.fullName?.split(" ")[0] || "Employee"} 👋</h1>
-                        <p style={styles.role}>{employee?.position?.title || "—"} · {employee?.department?.name || "—"}</p>
+                        <p className="text-xs text-muted-foreground font-medium">{getGreeting()},</p>
+                        <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-0.5">
+                            {employee?.fullName?.split(" ")[0] || "Employee"} 
+                            <span className="ml-2 inline-block animate-bounce origin-bottom">👋</span>
+                        </h1>
+                        <p className="text-[11px] text-muted-foreground font-medium mt-1 uppercase tracking-wider">{employee?.position?.title || "—"} · {employee?.department?.name || "—"}</p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div className="flex items-center gap-3">
                         <button 
                             onClick={() => router.push("/ess/notifications")} 
-                            style={styles.bellBtn}
+                            className="w-11 h-11 rounded-2xl glass border-border/50 flex items-center justify-center relative active:scale-95 transition-all hover:bg-muted/30"
                         >
-                            <span style={{ fontSize: 20 }}>🔔</span>
-                            {unreadCount > 0 && <span style={styles.badge}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
+                            <Bell size={20} className="text-muted-foreground" />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-destructive text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg border-2 border-background">
+                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                </span>
+                            )}
                         </button>
-                        <div style={styles.avatar}>
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-sm font-black text-white shadow-xl shadow-primary/30">
                             {employee ? getInitials(employee.fullName) : "?"}
                         </div>
                     </div>
                 </div>
 
                 {/* Live Clock Card */}
-                <div style={styles.clockCard}>
-                    <div style={styles.clockTimeWrapper}>
-                        <div style={styles.clockPulse} />
-                        <span style={styles.clockTime}>{formatTime(currentTime)}</span>
+                <div className="glass rounded-[32px] p-6 relative overflow-hidden group shadow-2xl shadow-primary/5">
+                    <div className="absolute -top-6 -right-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rotate-12 group-hover:rotate-0 duration-700">
+                        <Clock size={160} strokeWidth={1} className="text-foreground" />
                     </div>
-                    <p style={styles.clockDate}>{formatDate(currentTime)}</p>
-
-                    {/* Attendance Status */}
-                    {todayAttendance ? (
-                        <div style={styles.attendStatus}>
-                            <div style={styles.attendChip(todayAttendance.status)}>
-                                {todayAttendance.status === "LATE" ? "🕐 Late" :
-                                 todayAttendance.status === "PRESENT" ? "✅ Present" :
-                                 todayAttendance.status === "ABSENT" ? "❌ Absent" : "📋 " + todayAttendance.status}
-                            </div>
-                            <div style={styles.attendTimes}>
-                                {todayAttendance.clockIn && (
-                                    <span>In: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockIn).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</strong></span>
-                                )}
-                                {todayAttendance.clockOut && (
-                                    <span>Out: <strong style={{ color: "#a5b4fc" }}>{new Date(todayAttendance.clockOut).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</strong></span>
-                                )}
-                            </div>
+                    
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-1.5">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse ring-4 ring-emerald-500/20" />
+                            <span className="text-[44px] font-black text-foreground tracking-tighter leading-none font-mono">
+                                {formatTime(currentTime)}
+                            </span>
                         </div>
-                    ) : (
-                        <div style={styles.attendStatus}>
-                            <p style={{ margin: 0, fontSize: 13, color: "#ef4444" }}>⚠ Not clocked in today</p>
-                        </div>
-                    )}
+                        <p className="text-[10px] text-muted-foreground font-black mb-6 uppercase tracking-[0.2em]">{formatDate(currentTime)}</p>
 
-                    <button
-                        id="home-clock-btn"
-                        onClick={() => router.push("/ess/attendance")}
-                        style={styles.clockBtn}
-                    >
-                        {!todayAttendance || !todayAttendance.clockIn
-                            ? "🟢 Clock In Now"
-                            : !todayAttendance.clockOut
-                            ? "🔴 Clock Out"
-                            : "✅ Attendance Complete"}
-                    </button>
+                        {/* Attendance Status */}
+                        <div className="flex flex-col gap-3 mb-6">
+                            {todayAttendance ? (
+                                <>
+                                    <div className={`self-start px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 ${
+                                        todayAttendance.status === "PRESENT" ? "bg-success/15 text-success border border-success/20" :
+                                        todayAttendance.status === "LATE" ? "bg-warning/15 text-warning border border-warning/20" :
+                                        "bg-destructive/15 text-destructive border border-destructive/20"
+                                    }`}>
+                                        {todayAttendance.status === "LATE" ? <><Clock size={12} strokeWidth={2.5} /> Late Arrival</> :
+                                         todayAttendance.status === "PRESENT" ? <><CheckCircle2 size={12} strokeWidth={2.5} /> On Time</> :
+                                         todayAttendance.status === "ABSENT" ? <><XCircle size={12} strokeWidth={2.5} /> Absent</> : todayAttendance.status}
+                                    </div>
+                                    <div className="flex gap-6 px-1">
+                                        {todayAttendance.clockIn && (
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-1 opacity-60">Clock In</span>
+                                                <span className="text-sm font-black text-foreground/80 font-mono">{new Date(todayAttendance.clockIn).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                            </div>
+                                        )}
+                                        {todayAttendance.clockOut && (
+                                            <div className="flex flex-col border-l border-border/50 pl-6">
+                                                <span className="text-[9px] text-muted-foreground uppercase font-black tracking-widest mb-1 opacity-60">Clock Out</span>
+                                                <span className="text-sm font-black text-foreground/80 font-mono">{new Date(todayAttendance.clockOut).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-destructive/10 border border-destructive/20 rounded-2xl p-3.5 flex items-center gap-3">
+                                    <AlertCircle size={18} className="text-destructive" strokeWidth={2.5} />
+                                    <span className="text-destructive font-black text-[11px] uppercase tracking-wider">Not clocked in today</span>
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            id="home-clock-btn"
+                            onClick={() => router.push("/ess/attendance")}
+                            className="w-full py-4.5 bg-gradient-to-r from-primary to-indigo-600 rounded-[22px] text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group-active:translate-y-0.5"
+                        >
+                            {!todayAttendance || !todayAttendance.clockIn ? (
+                                <><LogIn size={18} strokeWidth={2.5} /> Clock In Now</>
+                            ) : !todayAttendance.clockOut ? (
+                                <><LogOut size={18} strokeWidth={2.5} /> Clock Out</>
+                            ) : (
+                                <><CheckCircle2 size={18} strokeWidth={2.5} /> Attendance Complete</>
+                            )}
+                        </button>
+                    </div>
                 </div>
 
                 {/* Quick Actions */}
-                <div style={styles.section}>
-                    <h2 style={styles.sectionTitle}>Quick Actions</h2>
-                    <div style={styles.quickGrid}>
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] ml-1 opacity-60">Quick Actions</h2>
+                    <div className="grid grid-cols-2 gap-4">
                         {quickActions.map((qa) => (
                             <button
                                 key={qa.id}
                                 id={qa.id}
                                 onClick={() => router.push(qa.href)}
-                                style={{ ...styles.quickCard, background: qa.color, border: `1px solid ${qa.border}` }}
+                                className={`flex flex-col items-center justify-center gap-4 p-8 rounded-[32px] glass backdrop-blur-2xl border transition-all duration-300 shadow-xl hover:shadow-primary/10 active:scale-95 group ${qa.border} ${qa.bg}`}
                             >
-                                <span style={{ fontSize: 28 }}>{qa.icon}</span>
-                                <span style={styles.quickLabel}>{qa.label}</span>
+                                <div className={`p-3 rounded-2xl transition-transform duration-500 group-hover:scale-110 ${qa.text}`}>
+                                    {qa.icon}
+                                </div>
+                                <span className="text-[11px] font-black text-foreground/80 uppercase tracking-[0.15em]">{qa.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
-
-                <div style={{ height: 80 }} />
+                
+                <div className="flex justify-center mt-2 opacity-30">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full glass border-border/50 text-[9px] font-black uppercase tracking-widest">
+                        <Smartphone size={10} /> source: Mobile ESS
+                    </div>
+                </div>
             </div>
 
             <EssNav />
-
-            <style>{`
-                @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.5); } }
-                @keyframes spin { to { transform: rotate(360deg); } }
-                button:hover:not(:disabled) { filter: brightness(1.1); }
-            `}</style>
         </div>
     );
 }
 
-const attendChipColors: Record<string, { bg: string; color: string }> = {
-    PRESENT: { bg: "rgba(16,185,129,0.15)", color: "#34d399" },
-    LATE: { bg: "rgba(245,158,11,0.15)", color: "#fbbf24" },
-    ABSENT: { bg: "rgba(239,68,68,0.15)", color: "#f87171" },
-    LEAVE: { bg: "rgba(99,102,241,0.15)", color: "#818cf8" },
-};
-
-const styles: Record<string, any> = {
-    root: {
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)",
-        fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)",
-        position: "relative",
-        overflow: "hidden",
-    },
-    orb1: { position: "fixed", top: "-10%", right: "-5%", width: 300, height: 300, borderRadius: "50%", background: "rgba(99,102,241,0.15)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    orb2: { position: "fixed", bottom: "20%", left: "-10%", width: 250, height: 250, borderRadius: "50%", background: "rgba(6,182,212,0.1)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    page: { position: "relative", zIndex: 1, padding: "20px 16px 0", maxWidth: 480, margin: "0 auto" },
-    header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 },
-    greeting: { margin: 0, fontSize: 13, color: "#64748b" },
-    name: { margin: "2px 0 4px", fontSize: 24, fontWeight: 800, color: "#e0e7ff" },
-    role: { margin: 0, fontSize: 12, color: "#475569" },
-    avatar: {
-        width: 48, height: 48, borderRadius: 14,
-        background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 16, fontWeight: 700, color: "#fff",
-        boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
-        flexShrink: 0,
-    },
-    bellBtn: { 
-        position: "relative", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-        width: 44, height: 44, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "pointer", padding: 0 
-    },
-    badge: { 
-        position: "absolute", top: -4, right: -4, background: "#ef4444", color: "#fff", 
-        fontSize: 10, fontWeight: 800, padding: "2px 6px", borderRadius: 10, minWidth: 16, textAlign: "center" 
-    },
-    clockCard: {
-        background: "rgba(255,255,255,0.04)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 20,
-        padding: "20px",
-        marginBottom: 24,
-        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
-    },
-    clockTimeWrapper: { display: "flex", alignItems: "center", gap: 10, marginBottom: 4 },
-    clockPulse: { width: 8, height: 8, borderRadius: "50%", background: "#10b981", animation: "pulse 2s ease-in-out infinite", flexShrink: 0 },
-    clockTime: { fontSize: 42, fontWeight: 800, background: "linear-gradient(135deg, #a5b4fc, #67e8f9)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", letterSpacing: "-1px", lineHeight: 1 },
-    clockDate: { margin: "0 0 16px", fontSize: 13, color: "#64748b" },
-    attendStatus: { marginBottom: 16, display: "flex", flexDirection: "column", gap: 6 },
-    attendChip: (status: string) => ({
-        display: "inline-flex", padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600,
-        background: (attendChipColors[status] || attendChipColors.ABSENT).bg,
-        color: (attendChipColors[status] || attendChipColors.ABSENT).color,
-        alignSelf: "flex-start",
-    }),
-    attendTimes: { display: "flex", gap: 16, fontSize: 13, color: "#64748b" },
-    clockBtn: {
-        width: "100%", padding: "13px", borderRadius: 12, border: "none",
-        background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "#fff",
-        fontSize: 15, fontWeight: 700, cursor: "pointer",
-        boxShadow: "0 4px 20px rgba(99,102,241,0.4)",
-        transition: "all 0.2s",
-    },
-    section: { marginBottom: 24 },
-    sectionTitle: { margin: "0 0 12px", fontSize: 14, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" },
-    quickGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
-    quickCard: {
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8,
-        padding: "20px 12px", borderRadius: 16, cursor: "pointer",
-        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-        transition: "all 0.2s", boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-    },
-    quickLabel: { fontSize: 12, fontWeight: 600, color: "#cbd5e1" },
-    spinner: { width: 36, height: 36, border: "3px solid rgba(99,102,241,0.3)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-};

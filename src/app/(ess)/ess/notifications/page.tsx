@@ -2,7 +2,21 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { 
+    Bell, 
+    ArrowLeft, 
+    Inbox, 
+    CheckCircle2, 
+    AlertCircle, 
+    Calendar, 
+    CreditCard, 
+    Clock,
+    Info,
+    Megaphone,
+    MailCheck
+} from "lucide-react";
 import { EssNav } from "../components/ess-nav";
+import { OfflineBanner } from "../components/offline-banner";
 
 interface Notification {
     id: string;
@@ -13,6 +27,13 @@ interface Notification {
     isRead: boolean;
     createdAt: string;
 }
+
+const typeIcons: Record<string, any> = {
+    LEAVE: Calendar,
+    CLAIM: CreditCard,
+    ANNOUNCEMENT: Megaphone,
+    ATTENDANCE: Clock,
+};
 
 export default function EssNotificationsPage() {
     const router = useRouter();
@@ -45,80 +66,113 @@ export default function EssNotificationsPage() {
             fetch(`/api/v1/notifications/${notif.id}/read`, { method: "POST" }).catch(() => {});
         }
         if (notif.link) {
-            // Check if link is an internal pwa link. Often web links are /leave etc. 
-            // We can just try to navigate there. For PWA, they might be /ess/approvals
-            // Let's just push to router.
             router.push(notif.link);
         }
     };
 
-    if (isLoading) return <div style={s.root}><div style={s.center}><div style={s.spinner} /></div></div>;
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading notifications...</p>
+            </div>
+        );
+    }
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
     return (
-        <div style={s.root}>
-            <div style={s.page}>
-                <div style={s.headerRow}>
-                    <button onClick={() => router.back()} style={s.backBtn}>← Back</button>
-                    <h1 style={s.pageTitle}>Notifications</h1>
-                    {unreadCount > 0 ? (
-                        <button onClick={handleMarkAllRead} style={s.markReadBtn}>Mark all read</button>
-                    ) : <div style={{width: 60}} />}
+        <div className="min-h-screen bg-transparent font-sans relative">
+            <OfflineBanner />
+
+            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
+                <div className="flex justify-between items-center">
+                    <button 
+                        onClick={() => router.back()} 
+                        className="w-10 h-10 rounded-2xl glass flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all active:scale-95"
+                    >
+                        <ArrowLeft size={18} strokeWidth={2.5} />
+                    </button>
+                    <h1 className="text-xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Notifications</h1>
+                    <div className="w-10" /> {/* Spacer */}
+                </div>
+
+                <div className="flex justify-between items-end px-1">
+                    <div>
+                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] opacity-80 flex items-center gap-1.5">
+                            <Bell size={12} /> Live Updates
+                        </p>
+                        <p className="text-[11px] text-muted-foreground font-bold mt-1.5 opacity-70">
+                            {unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? "s" : ""}` : "You're all caught up!"}
+                        </p>
+                    </div>
+                    {unreadCount > 0 && (
+                        <button 
+                            onClick={handleMarkAllRead} 
+                            className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-xl border border-primary/20 hover:bg-primary/20 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            <MailCheck size={14} strokeWidth={2.5} /> Mark All Read
+                        </button>
+                    )}
                 </div>
 
                 {notifications.length === 0 ? (
-                    <div style={s.emptyState}>
-                        <span style={{ fontSize: 40 }}>📭</span>
-                        <p style={{ color: "#64748b", margin: "8px 0 0" }}>No notifications yet</p>
+                    <div className="glass border-dashed border-border/50 rounded-[32px] p-20 flex flex-col items-center justify-center text-center opacity-60">
+                        <Inbox size={48} className="text-muted-foreground opacity-30 mb-4" strokeWidth={1.5} />
+                        <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest opacity-60">No notifications yet</p>
                     </div>
                 ) : (
-                    <div style={s.list}>
-                        {notifications.map((notif) => (
-                            <div 
-                                key={notif.id} 
-                                onClick={() => handleNotificationClick(notif)}
-                                style={{ ...s.card, background: notif.isRead ? "rgba(255,255,255,0.02)" : "rgba(99,102,241,0.08)", cursor: notif.link ? "pointer" : "default" }}
-                            >
-                                <div style={s.cardTop}>
-                                    <span style={{ ...s.typeBadge, background: notif.isRead ? "rgba(255,255,255,0.1)" : "rgba(99,102,241,0.2)", color: notif.isRead ? "#94a3b8" : "#818cf8" }}>
-                                        {notif.type.replace("_", " ")}
-                                    </span>
-                                    <span style={s.time}>{new Date(notif.createdAt).toLocaleDateString()}</span>
+                    <div className="flex flex-col gap-3">
+                        {notifications.map((notif) => {
+                            const Icon = typeIcons[notif.type] || Info;
+                            return (
+                                <div 
+                                    key={notif.id} 
+                                    onClick={() => handleNotificationClick(notif)}
+                                    className={`p-5 rounded-[28px] border transition-all duration-300 relative group overflow-hidden ${
+                                        notif.isRead 
+                                            ? "glass border-border/50 opacity-80 hover:opacity-100" 
+                                            : "glass-accent border-primary/40 shadow-xl shadow-primary/5 scale-[1.01]"
+                                    } ${notif.link ? "cursor-pointer active:scale-[0.98]" : "cursor-default"}`}
+                                >
+                                    {!notif.isRead && (
+                                        <div className="absolute top-2 right-2">
+                                            <div className="w-2.5 h-2.5 bg-primary rounded-full animate-pulse ring-4 ring-primary/20" />
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between items-center mb-3">
+                                        <div className={`flex items-center gap-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                            notif.isRead 
+                                                ? "bg-muted/50 text-muted-foreground" 
+                                                : "bg-primary/20 text-primary"
+                                        }`}>
+                                            <Icon size={12} strokeWidth={2.5} />
+                                            {notif.type.replace("_", " ")}
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground font-black font-mono opacity-50 uppercase tracking-tighter">
+                                            {new Date(notif.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                        </span>
+                                    </div>
+
+                                    <h3 className={`text-sm font-black mb-1.5 leading-snug tracking-tight ${
+                                        notif.isRead ? "text-foreground/80" : "text-foreground"
+                                    }`}>
+                                        {notif.title}
+                                    </h3>
+                                    <p className={`text-[12px] leading-relaxed font-medium ${
+                                        notif.isRead ? "text-muted-foreground/80" : "text-muted-foreground"
+                                    }`}>
+                                        {notif.message}
+                                    </p>
                                 </div>
-                                <h3 style={{ ...s.title, color: notif.isRead ? "#cbd5e1" : "#e0e7ff" }}>
-                                    {notif.title}
-                                    {!notif.isRead && <span style={s.unreadDot} />}
-                                </h3>
-                                <p style={s.message}>{notif.message}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
-                
-                <div style={{ height: 80 }} />
             </div>
+
             <EssNav />
         </div>
     );
 }
-
-const s: Record<string, any> = {
-    root: { minHeight: "100vh", background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)", fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)" },
-    center: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" },
-    spinner: { width: 36, height: 36, border: "3px solid rgba(99,102,241,0.3)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    page: { padding: "20px 16px 0", maxWidth: 480, margin: "0 auto" },
-    headerRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
-    backBtn: { background: "none", border: "none", color: "#818cf8", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 0 },
-    markReadBtn: { background: "none", border: "none", color: "#a5b4fc", fontSize: 12, cursor: "pointer", padding: 0 },
-    pageTitle: { margin: 0, fontSize: 18, fontWeight: 700, color: "#fff" },
-    emptyState: { display: "flex", flexDirection: "column", alignItems: "center", padding: "40px 20px", background: "rgba(255,255,255,0.02)", borderRadius: 16, border: "1px dashed rgba(255,255,255,0.05)" },
-    list: { display: "flex", flexDirection: "column", gap: 12 },
-    card: { border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "16px", transition: "all 0.2s" },
-    cardTop: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-    typeBadge: { padding: "2px 8px", borderRadius: 10, fontSize: 10, fontWeight: 700, letterSpacing: "0.05em" },
-    time: { fontSize: 11, color: "#64748b" },
-    title: { margin: "0 0 6px", fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 },
-    unreadDot: { width: 8, height: 8, background: "#ef4444", borderRadius: "50%", display: "inline-block" },
-    message: { margin: 0, fontSize: 13, color: "#94a3b8", lineHeight: 1.5 },
-};

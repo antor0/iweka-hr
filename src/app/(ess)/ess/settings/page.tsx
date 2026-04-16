@@ -2,8 +2,26 @@
 
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { 
+    ShieldCheck, 
+    User, 
+    Paintbrush, 
+    LogOut, 
+    Lock, 
+    CheckCircle2, 
+    XCircle, 
+    AlertCircle, 
+    Fingerprint, 
+    Mail, 
+    Briefcase,
+    ChevronRight,
+    Sparkles,
+    UserCircle,
+    KeyRound
+} from "lucide-react";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
+import { EssThemeToggle } from "../components/theme-toggle";
 
 function SettingsContent() {
     const router = useRouter();
@@ -49,7 +67,7 @@ function SettingsContent() {
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: "✅ PIN updated successfully!" });
+                setMessage({ type: "success", text: "PIN updated successfully!" });
                 setCurrentPin(""); setNewPin(""); setConfirmPin("");
                 if (isFirstTime) {
                     setTimeout(() => router.push("/ess/home"), 1500);
@@ -74,106 +92,142 @@ function SettingsContent() {
     const getInitials = (name: string) => name?.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "?";
 
     return (
-        <div style={s.root}>
+        <div className="min-h-screen bg-transparent font-sans">
             <OfflineBanner />
-            <div style={s.orb} />
 
-            <div style={s.page}>
+            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Settings</h1>
+                    <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">Personalize your experience</p>
+                </div>
+
                 {/* First-time prompt */}
                 {isFirstTime && (
-                    <div style={s.firstTimeBanner}>
-                        <span style={{ fontSize: 20 }}>🔐</span>
+                    <div className="bg-warning/10 border border-warning/30 rounded-[28px] p-5 flex gap-4 items-start animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="w-10 h-10 rounded-2xl bg-warning/20 flex items-center justify-center text-warning flex-shrink-0">
+                            <ShieldCheck size={20} strokeWidth={2.5} />
+                        </div>
                         <div>
-                            <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#fbbf24" }}>Change PIN Now!</p>
-                            <p style={{ margin: 0, fontSize: 12, color: "#d97706" }}>For account security, please change your default PIN before continuing.</p>
+                            <p className="text-sm font-black text-warning uppercase tracking-widest mb-1">Update Your Security</p>
+                            <p className="text-[11px] text-warning/70 font-bold leading-relaxed uppercase tracking-tight">For account security, please change your default PIN before continuing.</p>
                         </div>
                     </div>
                 )}
 
                 {/* Profile Header */}
                 {profile && (
-                    <div style={s.profileCard}>
-                        <div style={s.profileAvatar}>{getInitials(profile.fullName)}</div>
-                        <div>
-                            <p style={s.profileName}>{profile.fullName}</p>
-                            <p style={s.profileRole}>{profile.position?.title || "—"}</p>
-                            <p style={s.profileDept}>{profile.department?.name || "—"} · {profile.employeeNumber}</p>
+                    <div className="glass rounded-[32px] p-6 flex items-center gap-5 shadow-2xl shadow-primary/5 group relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+                        <div className="w-16 h-16 rounded-[22px] bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-2xl font-black text-white shadow-xl shadow-primary/30 flex-shrink-0">
+                            {getInitials(profile.fullName)}
+                        </div>
+                        <div className="min-w-0 z-10">
+                            <p className="text-base font-black text-foreground truncate tracking-tight uppercase">{profile.fullName}</p>
+                            <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1 opacity-80">{profile.position?.title || "Staff"}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold mt-0.5 opacity-60 flex items-center gap-1.5 uppercase">
+                                <Briefcase size={10} /> {profile.department?.name || "General"} · {profile.employeeNumber}
+                            </p>
                         </div>
                     </div>
                 )}
 
-                {/* Change PIN Card */}
-                <div style={s.card}>
-                    <div style={s.cardHeader}>
-                        <span style={{ fontSize: 20 }}>🔐</span>
-                        <h2 style={s.cardTitle}>Change PIN</h2>
+                {/* Appearance Card */}
+                <div className="glass rounded-[32px] p-7 border-l-4 border-l-primary shadow-xl shadow-primary/5">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <Paintbrush size={18} strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-sm font-black text-foreground uppercase tracking-widest">Aesthetics</h2>
                     </div>
-                    <p style={s.cardDesc}>PIN is used to access the MyHRIS application. Ensure your PIN is easy to remember but not easy to guess.</p>
+                    <p className="text-[11px] text-muted-foreground mb-6 font-bold uppercase tracking-tight opacity-70">Customize how MyHRIS looks and feels on your device.</p>
+                    <EssThemeToggle />
+                </div>
+
+                {/* Change PIN Card */}
+                <div className="glass rounded-[32px] p-7 border-l-4 border-l-indigo-500 shadow-xl shadow-indigo-500/5">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-9 h-9 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                            <KeyRound size={18} strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-sm font-black text-foreground uppercase tracking-widest">Security Access</h2>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mb-6 font-bold uppercase tracking-tight opacity-70">Your PIN protects your personal HR data. Keep it confidential.</p>
 
                     {message && (
-                        <div style={{ ...s.msgBox, background: message.type === "success" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.12)", borderColor: message.type === "success" ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.25)", color: message.type === "success" ? "#34d399" : "#fca5a5" }}>
+                        <div className={`rounded-2xl p-4 text-[10px] font-black uppercase tracking-widest border flex items-center justify-center gap-2 mb-6 animate-in fade-in slide-in-from-top-2 duration-300 ${
+                            message.type === "success" 
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+                                : "bg-red-500/10 border-red-500/30 text-red-500"
+                        }`}>
+                            {message.type === "success" ? <CheckCircle2 size={12} strokeWidth={3} /> : <AlertCircle size={12} strokeWidth={3} />}
                             {message.text}
                         </div>
                     )}
 
-                    <form onSubmit={handleChangePin} style={s.form}>
-                        <div style={s.field}>
-                            <label style={s.label}>Current PIN</label>
-                            <div style={s.pinWrapper}>
+                    <form onSubmit={handleChangePin} className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Current PIN</label>
+                            <div className="relative">
                                 <input
                                     id="current-pin"
                                     type="password"
                                     inputMode="numeric"
                                     value={currentPin}
                                     onChange={e => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                    style={{ ...s.pinInput, letterSpacing: currentPin ? "0.4em" : "normal", fontSize: currentPin ? 22 : 16 }}
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-4 text-foreground font-black tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
                                     placeholder="••••••"
                                     maxLength={6}
                                     disabled={isSubmitting}
                                 />
-                                <span style={s.pinLen}>{currentPin.length}/6</span>
+                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground/30 font-mono italic">{currentPin.length}/6</span>
                             </div>
                         </div>
-                        <div style={s.field}>
-                            <label style={s.label}>New PIN</label>
-                            <div style={s.pinWrapper}>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">New PIN</label>
+                            <div className="relative">
                                 <input
                                     id="new-pin"
                                     type="password"
                                     inputMode="numeric"
                                     value={newPin}
                                     onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                    style={{ ...s.pinInput, letterSpacing: newPin ? "0.4em" : "normal", fontSize: newPin ? 22 : 16 }}
-                                    placeholder="•••••"
+                                    className="w-full bg-muted/30 border border-border/50 rounded-2xl px-5 py-4 text-foreground font-black tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
+                                    placeholder="••••••"
                                     maxLength={6}
                                     disabled={isSubmitting}
                                 />
-                                <span style={s.pinLen}>{newPin.length}/6</span>
+                                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-muted-foreground/30 font-mono italic">{newPin.length}/6</span>
                             </div>
                         </div>
-                        <div style={s.field}>
-                            <label style={s.label}>Confirm New PIN</label>
-                            <div style={s.pinWrapper}>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Confirm New PIN</label>
+                            <div className="relative">
                                 <input
                                     id="confirm-pin"
                                     type="password"
                                     inputMode="numeric"
                                     value={confirmPin}
                                     onChange={e => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                    style={{
-                                        ...s.pinInput,
-                                        letterSpacing: confirmPin ? "0.4em" : "normal",
-                                        fontSize: confirmPin ? 22 : 16,
-                                        borderColor: confirmPin && newPin && confirmPin === newPin ? "rgba(16,185,129,0.5)" : confirmPin && newPin && confirmPin !== newPin ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.1)",
-                                    }}
+                                    className={`w-full bg-muted/30 border rounded-2xl px-5 py-4 text-foreground font-black tracking-[0.5em] focus:outline-none focus:ring-2 transition-all font-mono ${
+                                        confirmPin && newPin && confirmPin === newPin 
+                                            ? "border-emerald-500/50 focus:ring-emerald-500/30" 
+                                            : confirmPin && newPin && confirmPin !== newPin 
+                                            ? "border-red-500/50 focus:ring-red-500/30" 
+                                            : "border-border/50 focus:ring-primary/50"
+                                    }`}
                                     placeholder="••••••"
                                     maxLength={6}
                                     disabled={isSubmitting}
                                 />
                                 {confirmPin && newPin && (
-                                    <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16 }}>
-                                        {confirmPin === newPin ? "✅" : "❌"}
-                                    </span>
+                                    <div className="absolute right-5 top-1/2 -translate-y-1/2">
+                                        {confirmPin === newPin 
+                                            ? <CheckCircle2 size={16} className="text-emerald-500" strokeWidth={3} /> 
+                                            : <XCircle size={16} className="text-red-500" strokeWidth={3} />
+                                        }
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -182,95 +236,74 @@ function SettingsContent() {
                             id="change-pin-btn"
                             type="submit"
                             disabled={isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6}
-                            style={{
-                                ...s.submitBtn,
-                                opacity: isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6 ? 0.5 : 1,
-                                cursor: isSubmitting || currentPin.length < 6 ? "not-allowed" : "pointer",
-                            }}
+                            className="w-full mt-4 py-4.5 bg-gradient-to-r from-primary to-indigo-600 rounded-[22px] text-white font-black text-sm uppercase tracking-[0.15em] shadow-xl shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all active:scale-[0.98]"
                         >
-                            {isSubmitting ? <span style={s.btnSpinner} /> : isFirstTime ? "✅ Save PIN & Continue" : "Change PIN"}
+                            {isSubmitting ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <>{isFirstTime ? <Sparkles size={18} /> : <CheckCircle2 size={18} />} {isFirstTime ? "Authorize Account" : "Confirm Update"}</>
+                            )}
                         </button>
                     </form>
                 </div>
 
                 {/* Info Card */}
-                <div style={s.infoCard}>
-                    <h3 style={{ ...s.cardTitle, fontSize: 14 }}>ℹ️ Account Information</h3>
-                    <div style={s.infoRow}>
-                        <span style={s.infoLabel}>Employee ID</span>
-                        <span style={s.infoValue}>{profile?.employeeNumber || "—"}</span>
+                <div className="glass rounded-[32px] p-7 flex flex-col gap-4 shadow-xl shadow-primary/5">
+                    <h3 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.25em] px-1 opacity-60 mb-1">Account Specifications</h3>
+                    <div className="flex justify-between items-center px-2 py-3 border-b border-border/20">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                             <Fingerprint size={12} className="opacity-40" /> Employee ID
+                        </span>
+                        <span className="text-xs font-black text-foreground font-mono tracking-tighter opacity-80">{profile?.employeeNumber || "—"}</span>
                     </div>
-                    <div style={s.infoRow}>
-                        <span style={s.infoLabel}>Email</span>
-                        <span style={s.infoValue}>{profile?.email || "—"}</span>
+                    <div className="flex justify-between items-center px-2 py-3 border-b border-border/20">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                            <Mail size={12} className="opacity-40" /> Business Email
+                        </span>
+                        <span className="text-xs font-bold text-foreground/70 truncate ml-4 tracking-tight">{profile?.email || "—"}</span>
                     </div>
-                    <div style={s.infoRow}>
-                        <span style={s.infoLabel}>Status</span>
-                        <span style={{ ...s.infoValue, color: "#34d399" }}>{profile?.employmentStatus || "—"}</span>
+                    <div className="flex justify-between items-center px-2 py-3">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                            <Sparkles size={12} className="opacity-40" /> Employment
+                        </span>
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                            {profile?.employmentStatus || "Active"}
+                        </span>
                     </div>
                 </div>
 
-                {/* Logout */}
+                {/* Logout Button */}
                 {!isFirstTime && (
                     <button
                         id="logout-btn"
                         onClick={handleLogout}
                         disabled={isLoggingOut}
-                        style={{ ...s.logoutBtn, opacity: isLoggingOut ? 0.7 : 1 }}
+                        className="w-full mt-4 py-4.5 bg-red-500/5 group border-2 border-dashed border-red-500/20 rounded-[24px] text-red-500 font-black text-xs uppercase tracking-[0.25em] transition-all hover:bg-red-500/10 hover:border-red-500/40 active:scale-[0.98] flex items-center justify-center gap-3"
                     >
-                        {isLoggingOut ? "Exiting..." : "🚪 Logout from Account"}
+                        {isLoggingOut ? (
+                            <div className="w-4 h-4 border-2 border-red-500/30 border-t-red-500 rounded-full animate-spin" />
+                        ) : (
+                            <><LogOut size={16} strokeWidth={2.5} className="group-hover:-translate-x-1 transition-transform" /> Exit System Access</>
+                        )}
                     </button>
                 )}
-
-                <div style={{ height: 80 }} />
             </div>
 
             <EssNav />
-
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                input:focus { outline: none; border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.2) !important; }
-                button:hover:not(:disabled) { filter: brightness(1.1); }
-                input::placeholder { color: #475569; }
-            `}</style>
         </div>
     );
 }
 
 export default function EssSettingsPage() {
     return (
-        <Suspense fallback={<div style={{ background: "#0f0f1a", height: "100vh" }} />}>
+        <Suspense fallback={
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Warming up systems...</p>
+            </div>
+        }>
             <SettingsContent />
         </Suspense>
     );
 }
 
-const s: Record<string, any> = {
-    root: { minHeight: "100vh", background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)", fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)", position: "relative" },
-    orb: { position: "fixed", top: "-10%", right: "-5%", width: 300, height: 300, borderRadius: "50%", background: "rgba(168,85,247,0.15)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    page: { position: "relative", zIndex: 1, padding: "20px 16px 0", maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 },
-    firstTimeBanner: { background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 14, padding: "14px 16px", display: "flex", gap: 12, alignItems: "flex-start" },
-    profileCard: { display: "flex", alignItems: "center", gap: 14, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px" },
-    profileAvatar: { width: 52, height: 52, borderRadius: 14, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, color: "#fff", flexShrink: 0 },
-    profileName: { margin: "0 0 2px", fontSize: 16, fontWeight: 700, color: "#e0e7ff" },
-    profileRole: { margin: "0 0 2px", fontSize: 12, color: "#818cf8" },
-    profileDept: { margin: 0, fontSize: 11, color: "#475569" },
-    card: { background: "rgba(255,255,255,0.04)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 20, padding: "20px 16px" },
-    cardHeader: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 },
-    cardTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: "#e0e7ff" },
-    cardDesc: { margin: "0 0 16px", fontSize: 12, color: "#64748b", lineHeight: 1.5 },
-    msgBox: { borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, border: "1px solid", marginBottom: 14 },
-    form: { display: "flex", flexDirection: "column", gap: 14 },
-    field: { display: "flex", flexDirection: "column", gap: 6 },
-    label: { fontSize: 11, fontWeight: 600, color: "#94a3b8", textTransform: "uppercase" as const, letterSpacing: "0.05em" },
-    pinWrapper: { position: "relative" },
-    pinInput: { width: "100%", padding: "13px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, color: "#e2e8f0", transition: "all 0.2s", boxSizing: "border-box" as const, fontFamily: "inherit" },
-    pinLen: { position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#475569" },
-    submitBtn: { padding: "14px", background: "linear-gradient(135deg, #a855f7, #7c3aed)", border: "none", borderRadius: 12, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(168,85,247,0.4)", minHeight: 50, gap: 8 },
-    btnSpinner: { width: 18, height: 18, border: "2px solid rgba(255,255,255,0.4)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    infoCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, padding: "16px", display: "flex", flexDirection: "column", gap: 10 },
-    infoRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-    infoLabel: { fontSize: 12, color: "#64748b" },
-    infoValue: { fontSize: 13, fontWeight: 600, color: "#cbd5e1" },
-    logoutBtn: { width: "100%", padding: "14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12, color: "#f87171", fontSize: 15, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" },
-};

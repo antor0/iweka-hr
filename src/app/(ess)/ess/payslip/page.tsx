@@ -2,6 +2,16 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import {
+    FileText,
+    Download,
+    Inbox,
+    ChevronRight,
+    ChevronDown,
+    Banknote,
+    Printer,
+    FileCheck
+} from "lucide-react";
 import { OfflineBanner } from "../components/offline-banner";
 import { EssNav } from "../components/ess-nav";
 
@@ -176,171 +186,156 @@ export default function EssPayslipPage() {
 
     if (isLoading) {
         return (
-            <div style={s.root}>
-                <div style={s.center}><div style={s.spinner} /></div>
+            <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Loading payslips...</p>
             </div>
         );
     }
 
     return (
-        <div style={s.root}>
+        <div className="min-h-screen bg-transparent font-sans relative">
             <OfflineBanner />
-            <div style={s.orb} />
 
-            <div style={s.page}>
-                <h1 style={s.pageTitle}>Payslip</h1>
-                <p style={s.pageSub}>Select a period to view the payslip</p>
+            <div className="relative z-10 px-4 pt-6 pb-24 max-w-[480px] mx-auto flex flex-col gap-6">
+                <div>
+                    <h1 className="text-3xl font-extrabold text-foreground tracking-tight underline decoration-primary/30 underline-offset-8">Payslip</h1>
+                    <p className="text-[11px] text-muted-foreground font-black mt-4 uppercase tracking-[0.2em] px-1 opacity-70">Select a period to view the payslip</p>
+                </div>
 
                 {periods.length === 0 ? (
-                    <div style={s.emptyCard}>
-                        <span style={{ fontSize: 48 }}>📭</span>
-                        <p style={{ color: "#64748b", margin: "12px 0 0", textAlign: "center" as const }}>No payslip available</p>
+                    <div className="glass border-dashed border-border/50 rounded-[32px] p-16 flex flex-col items-center justify-center gap-4 text-center">
+                        <Inbox size={48} className="text-muted-foreground opacity-30" strokeWidth={1.5} />
+                        <p className="text-[11px] text-muted-foreground font-black uppercase tracking-widest opacity-60">No payslip available</p>
                     </div>
                 ) : (
                     <>
                         {/* Period Selector */}
-                        <div style={s.periodList}>
-                            {periods.map((p) => (
-                                <button
-                                    key={`${p.year}-${p.month}`}
-                                    id={`payslip-${p.year}-${p.month}`}
-                                    onClick={() => fetchDetail(p)}
-                                    style={{
-                                        ...s.periodCard,
-                                        border: selected?.month === p.month && selected?.year === p.year
-                                            ? "1px solid rgba(99,102,241,0.5)"
-                                            : "1px solid rgba(255,255,255,0.06)",
-                                        background: selected?.month === p.month && selected?.year === p.year
-                                            ? "rgba(99,102,241,0.12)"
-                                            : "rgba(255,255,255,0.04)",
-                                    }}
-                                >
-                                    <div style={s.periodIcon}>📄</div>
-                                    <div style={s.periodInfo}>
-                                        <p style={s.periodName}>{MONTHS[p.month - 1]} {p.year}</p>
-                                        <p style={s.periodNet}>{formatIDR(Number(p.netSalary))}</p>
-                                    </div>
-                                    <span style={s.periodArrow}>›</span>
-                                </button>
-                            ))}
+                        <div className="flex flex-col gap-3">
+                            {periods.map((p) => {
+                                const isSelected = selected?.month === p.month && selected?.year === p.year;
+                                return (
+                                    <button
+                                        key={`${p.year}-${p.month}`}
+                                        id={`payslip-${p.year}-${p.month}`}
+                                        onClick={() => fetchDetail(p)}
+                                        className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 backdrop-blur-md border hover:translate-x-1 active:scale-[0.98] ${isSelected
+                                                ? "glass-accent border-primary/40 shadow-lg shadow-primary/5"
+                                                : "glass border-border/50 hover:bg-muted/50"
+                                            }`}
+                                    >
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isSelected ? "bg-primary/20 text-primary" : "bg-muted/50 text-muted-foreground"
+                                            }`}>
+                                            <FileText size={20} />
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <p className={`text-sm font-black uppercase tracking-tight ${isSelected ? "text-primary" : "text-foreground"}`}>
+                                                {MONTHS[p.month - 1]} {p.year}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground font-medium font-mono opacity-80">{formatIDR(Number(p.netSalary))}</p>
+                                        </div>
+                                        <div className={`transition-all duration-300 ${isSelected ? "text-primary rotate-0" : "text-muted-foreground/30"}`}>
+                                            {isSelected ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {/* Detail View */}
                         {selected && (
-                            <div style={s.detailCard}>
+                            <div className="glass border-primary/20 rounded-[32px] p-6 shadow-2xl shadow-primary/5 animate-in fade-in slide-in-from-top-4 duration-500">
                                 {isLoadingDetail ? (
-                                    <div style={s.detailLoading}><div style={s.spinner} /></div>
+                                    <div className="flex justify-center py-12">
+                                        <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+                                    </div>
                                 ) : detail ? (
                                     <>
-                                        <div style={s.detailHeader}>
+                                        <div className="flex justify-between items-start mb-6">
                                             <div>
-                                                <p style={s.detailTitle}>Payslip</p>
-                                                <p style={s.detailPeriod}>{MONTHS[selected.month - 1]} {selected.year}</p>
+                                                <h2 className="text-base font-black text-foreground uppercase tracking-widest flex items-center gap-2">
+                                                    <FileCheck className="text-primary" size={20} /> Payslip
+                                                </h2>
+                                                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1 pl-7">{MONTHS[selected.month - 1]} {selected.year}</p>
                                             </div>
                                             <button
                                                 id="download-payslip-btn"
                                                 onClick={handlePrint}
-                                                style={s.downloadBtn}
+                                                className="p-2.5 bg-gradient-to-br from-primary to-indigo-600 rounded-xl text-white shadow-lg shadow-primary/30 active:scale-95 transition-all"
+                                                title="Download PDF"
                                             >
-                                                ⬇ Download PDF
+                                                <Download size={18} strokeWidth={2.5} />
                                             </button>
                                         </div>
 
-                                        <div style={s.empInfo}>
-                                            <p style={s.empName}>{detail.payrollItem.employee.fullName}</p>
-                                            <p style={s.empRole}>{detail.payrollItem.employee.position?.title} · {detail.payrollItem.employee.department?.name}</p>
+                                        <div className="mb-6 px-1">
+                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">{detail.payrollItem.employee.fullName}</p>
+                                            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-60">
+                                                {detail.payrollItem.employee.position?.title} · {detail.payrollItem.employee.department?.name}
+                                            </p>
                                         </div>
 
-                                        <div style={s.divider} />
+                                        <div className="h-px bg-border/50 w-full mb-6" />
 
-                                        <p style={s.secLabel}>Earnings</p>
-                                        {[
-                                            { label: "Basic Salary", value: detail.payrollItem.basicSalary },
-                                            { label: "Allowances", value: detail.payrollItem.totalAllowances },
-                                            { label: "Overtime", value: detail.payrollItem.totalOvertime },
-                                            ...(Number(detail.payrollItem.totalIncentives) > 0 ? [{ label: "Incentives & Bonuses", value: detail.payrollItem.totalIncentives }] : []),
-                                        ].map((row) => (
-                                            <div key={row.label} style={s.row}>
-                                                <span style={s.rowLabel}>{row.label}</span>
-                                                <span style={s.rowValue}>{formatIDR(Number(row.value))}</span>
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.25em] mb-4 opacity-70">Earnings</p>
+                                        <div className="flex flex-col gap-3.5 mb-6">
+                                            {[
+                                                { label: "Basic Salary", value: detail.payrollItem.basicSalary },
+                                                { label: "Allowances", value: detail.payrollItem.totalAllowances },
+                                                { label: "Overtime", value: detail.payrollItem.totalOvertime },
+                                                ...(Number(detail.payrollItem.totalIncentives) > 0 ? [{ label: "Incentives & Bonuses", value: detail.payrollItem.totalIncentives }] : []),
+                                            ].map((row) => (
+                                                <div key={row.label} className="flex justify-between items-center px-1">
+                                                    <span className="text-[13px] text-muted-foreground font-medium">{row.label}</span>
+                                                    <span className="text-[13px] font-bold text-foreground font-mono">{formatIDR(Number(row.value))}</span>
+                                                </div>
+                                            ))}
+                                            <div className="flex justify-between items-center px-1 pt-3 border-t border-border/30 mt-1">
+                                                <span className="text-[11px] font-black text-foreground uppercase tracking-[0.1em]">Total Gross</span>
+                                                <span className="text-base font-black text-foreground font-mono">{formatIDR(Number(detail.payrollItem.grossIncome))}</span>
                                             </div>
-                                        ))}
-                                        <div style={{ ...s.row, ...s.totalRow }}>
-                                            <span>Gross</span>
-                                            <span>{formatIDR(Number(detail.payrollItem.grossIncome))}</span>
                                         </div>
 
-                                        <div style={s.divider} />
+                                        <div className="h-px bg-border/20 w-full mb-6" />
 
-                                        <p style={s.secLabel}>Deductions</p>
-                                        {[
-                                            { label: "PPh 21", value: detail.payrollItem.pph21Amount },
-                                            { label: "BPJS Health", value: detail.payrollItem.bpjsKesEmployee },
-                                            { label: "BPJS JHT", value: detail.payrollItem.bpjsTkJhtEmployee },
-                                            { label: "BPJS JP", value: detail.payrollItem.bpjsTkJpEmployee },
-                                        ].map((row) => (
-                                            <div key={row.label} style={s.row}>
-                                                <span style={s.rowLabel}>{row.label}</span>
-                                                <span style={{ ...s.rowValue, color: "#f87171" }}>–{formatIDR(Number(row.value))}</span>
+                                        <p className="text-[10px] font-black text-primary uppercase tracking-[0.25em] mb-4 opacity-70">Deductions</p>
+                                        <div className="flex flex-col gap-3.5 mb-6">
+                                            {[
+                                                { label: "PPh 21 (Income Tax)", value: detail.payrollItem.pph21Amount },
+                                                { label: "BPJS Health", value: detail.payrollItem.bpjsKesEmployee },
+                                                { label: "BPJS JHT", value: detail.payrollItem.bpjsTkJhtEmployee },
+                                                { label: "BPJS JP", value: detail.payrollItem.bpjsTkJpEmployee },
+                                            ].map((row) => (
+                                                <div key={row.label} className="flex justify-between items-center px-1">
+                                                    <span className="text-[13px] text-muted-foreground font-medium">{row.label}</span>
+                                                    <span className="text-[13px] font-bold text-destructive font-mono">-{formatIDR(Number(row.value))}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="bg-gradient-to-br from-primary/10 to-indigo-500/10 rounded-[24px] p-5 flex justify-between items-center border border-primary/20 relative overflow-hidden group">
+                                            <div className="absolute -right-4 -bottom-4 text-primary opacity-[0.05] group-hover:rotate-12 transition-transform duration-700">
+                                                <Banknote size={80} />
                                             </div>
-                                        ))}
-
-                                        <div style={s.divider} />
-
-                                        <div style={s.netRow}>
-                                            <span style={s.netLabel}>Take Home Pay</span>
-                                            <span style={s.netValue}>{formatIDR(Number(detail.payrollItem.netSalary))}</span>
+                                            <div className="relative z-10">
+                                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1 opacity-80">Take Home Pay</p>
+                                                <p className="text-[24px] font-black text-foreground tracking-tighter font-mono">{formatIDR(Number(detail.payrollItem.netSalary))}</p>
+                                            </div>
+                                            <div className="relative z-10 opacity-40 bg-background/30 p-2.5 rounded-xl border border-border/50">
+                                                <Banknote size={24} className="text-primary" />
+                                            </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <p style={{ color: "#64748b", textAlign: "center" as const }}>Failed to load payslip details</p>
+                                    <p className="text-xs text-center text-muted-foreground py-10 uppercase font-black tracking-widest opacity-60">Failed to load payslip details</p>
                                 )}
                             </div>
                         )}
                     </>
                 )}
-
-                <div style={{ height: 80 }} />
             </div>
 
             <EssNav />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } } button:hover:not(:disabled) { filter: brightness(1.1); }`}</style>
         </div>
     );
 }
-
-const s: Record<string, any> = {
-    root: { minHeight: "100vh", background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)", fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)", position: "relative" },
-    orb: { position: "fixed", top: "-10%", right: "-5%", width: 300, height: 300, borderRadius: "50%", background: "rgba(99,102,241,0.15)", filter: "blur(80px)", pointerEvents: "none", zIndex: 0 },
-    center: { display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" },
-    spinner: { width: 36, height: 36, border: "3px solid rgba(99,102,241,0.3)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite" },
-    page: { position: "relative", zIndex: 1, padding: "20px 16px 0", maxWidth: 480, margin: "0 auto" },
-    pageTitle: { margin: "0 0 2px", fontSize: 26, fontWeight: 800, color: "#e0e7ff" },
-    pageSub: { margin: "0 0 20px", fontSize: 13, color: "#64748b" },
-    emptyCard: { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "40px 24px", display: "flex", flexDirection: "column", alignItems: "center" },
-    periodList: { display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 },
-    periodCard: { display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", cursor: "pointer", transition: "all 0.2s", textAlign: "left" as const, width: "100%" },
-    periodIcon: { fontSize: 24, flexShrink: 0 },
-    periodInfo: { flex: 1 },
-    periodName: { margin: "0 0 2px", fontSize: 14, fontWeight: 600, color: "#e0e7ff" },
-    periodNet: { margin: 0, fontSize: 12, color: "#64748b" },
-    periodArrow: { fontSize: 20, color: "#475569" },
-    detailCard: { background: "rgba(255,255,255,0.04)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 20, padding: "20px 16px", boxShadow: "0 8px 32px rgba(0,0,0,0.3)" },
-    detailLoading: { display: "flex", justifyContent: "center", padding: "24px 0" },
-    detailHeader: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 },
-    detailTitle: { margin: "0 0 2px", fontSize: 16, fontWeight: 700, color: "#e0e7ff" },
-    detailPeriod: { margin: 0, fontSize: 12, color: "#64748b" },
-    downloadBtn: { padding: "8px 14px", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", border: "none", borderRadius: 10, color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px rgba(99,102,241,0.4)" },
-    empInfo: { marginBottom: 12 },
-    empName: { margin: "0 0 2px", fontSize: 14, fontWeight: 700, color: "#e0e7ff" },
-    empRole: { margin: 0, fontSize: 12, color: "#64748b" },
-    divider: { height: 1, background: "rgba(255,255,255,0.06)", margin: "12px 0" },
-    secLabel: { margin: "0 0 8px", fontSize: 11, fontWeight: 600, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.08em" },
-    row: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", fontSize: 13 },
-    rowLabel: { color: "#94a3b8" },
-    rowValue: { color: "#cbd5e1", fontWeight: 500, fontFamily: "monospace" },
-    totalRow: { fontWeight: 700, color: "#e0e7ff", fontSize: 13, borderTop: "1px solid rgba(255,255,255,0.06)", marginTop: 4, paddingTop: 8 },
-    netRow: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))", borderRadius: 12, padding: "14px 12px", marginTop: 4 },
-    netLabel: { fontSize: 13, fontWeight: 700, color: "#a5b4fc" },
-    netValue: { fontSize: 18, fontWeight: 800, color: "#e0e7ff", fontFamily: "monospace" },
-};

@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { 
+    LogIn, 
+    AlertCircle, 
+    WifiOff, 
+    Smartphone, 
+    ShieldCheck, 
+    Key, 
+    Plus,
+    Download
+} from "lucide-react";
 
 export default function EssLoginPage() {
     const router = useRouter();
@@ -85,65 +95,72 @@ export default function EssLoginPage() {
     };
 
     return (
-        <div style={styles.root}>
-            {/* Background orbs */}
-            <div style={styles.orb1} />
-            <div style={styles.orb2} />
-            <div style={styles.orb3} />
-
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-transparent overflow-hidden font-sans">
             {/* Offline banner */}
             {isOffline && (
-                <div style={styles.offlineBanner}>
-                    <span style={{ fontSize: 14 }}>⚡</span>
-                    <span>You are offline — some features may not be available</span>
+                <div className="fixed top-0 left-0 right-0 bg-red-500 text-white p-3 flex items-center justify-center gap-2 text-xs font-black z-[100] backdrop-blur-md animate-in slide-in-from-top duration-300 uppercase tracking-widest">
+                    <WifiOff size={14} strokeWidth={2.5} />
+                    <span>System Offline — Remote access limited</span>
                 </div>
             )}
 
-            <div style={styles.container}>
-                {/* Logo */}
-                <div style={styles.logoSection}>
-                    <div style={styles.logoWrapper}>
-                        <Image
-                            src="/icons/icon-192x192.png"
-                            alt="MyHRIS"
-                            width={72}
-                            height={72}
-                            style={{ borderRadius: 18 }}
-                        />
+            <div className="w-full max-w-[400px] flex flex-col items-center gap-8 relative z-10 animate-in fade-in zoom-in-95 duration-700">
+                {/* Logo Section */}
+                <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="relative group">
+                        <div className="absolute -inset-4 bg-gradient-to-br from-primary/30 to-cyan-500/30 rounded-[36px] blur-2xl opacity-50 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse" />
+                        <div className="relative p-3 bg-gradient-to-br from-primary/30 to-cyan-500/30 rounded-[32px] shadow-2xl backdrop-blur-2xl border border-white/20">
+                            <Image
+                                src="/icons/icon-192x192.png"
+                                alt="MyHRIS"
+                                width={80}
+                                height={80}
+                                className="rounded-[24px] shadow-lg"
+                                priority
+                            />
+                        </div>
                     </div>
-                    <h1 style={styles.appName}>MyHRIS</h1>
-                    <p style={styles.appTagline}>Employee Self Service</p>
+                    <div className="flex flex-col gap-1 mt-2">
+                        <h1 className="text-5xl font-black bg-gradient-to-br from-primary via-indigo-500 to-cyan-400 bg-clip-text text-transparent tracking-tighter leading-none pb-2">MyHRIS</h1>
+                        <p className="text-[10px] uppercase tracking-[0.4em] text-muted-foreground font-black opacity-60">Professional Portal</p>
+                    </div>
                 </div>
 
                 {/* Login Card */}
-                <div style={styles.card}>
-                    <h2 style={styles.cardTitle}>Login to Your Account</h2>
-                    <p style={styles.cardSubtitle}>Use your Employee ID and PIN</p>
+                <div className="glass w-full rounded-[48px] p-9 shadow-2xl border-t border-white/10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
+                            Secure Login
+                        </h2>
+                        <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1.5 opacity-60">Authorized personnel only</p>
+                    </div>
 
                     {error && (
-                        <div style={styles.errorBox}>
-                            <span>⚠ {error}</span>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-[11px] text-red-500 mb-7 font-black uppercase tracking-widest flex items-center gap-2.5 animate-in slide-in-from-top-4 duration-300">
+                            <AlertCircle size={14} strokeWidth={3} /> {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleLogin} style={styles.form}>
-                        <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Employee ID</label>
+                    <form onSubmit={handleLogin} className="flex flex-col gap-7">
+                        <div className="flex flex-col gap-2.5">
+                            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/60 ml-2">Employee Identifier</label>
                             <input
                                 id="employee-number"
                                 type="text"
-                                placeholder="Example: EMP-0001"
+                                placeholder="e.g. EMP-0001"
                                 value={employeeNumber}
                                 onChange={(e) => setEmployeeNumber(e.target.value)}
-                                style={styles.input}
+                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-6 py-4.5 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-sans"
                                 autoComplete="username"
                                 autoCapitalize="characters"
                                 disabled={isLoading}
                             />
                         </div>
 
-                        <div style={styles.fieldGroup}>
-                            <label style={styles.label}>PIN (6 digits)</label>
+                        <div className="flex flex-col gap-2.5">
+                            <label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground/60 ml-2">Access PIN</label>
                             <input
                                 id="pin-input"
                                 type="password"
@@ -151,7 +168,7 @@ export default function EssLoginPage() {
                                 placeholder="••••••"
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                style={{ ...styles.input, letterSpacing: pin ? "0.5em" : "normal", fontSize: pin ? 22 : 16 }}
+                                className="w-full bg-muted/30 border border-border/50 rounded-2xl px-6 py-4.5 text-foreground font-black tracking-[0.8em] focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono text-center text-xl"
                                 autoComplete="current-password"
                                 maxLength={6}
                                 disabled={isLoading}
@@ -162,300 +179,59 @@ export default function EssLoginPage() {
                             id="login-button"
                             type="submit"
                             disabled={isLoading || isOffline}
-                            style={{
-                                ...styles.loginBtn,
-                                opacity: isLoading || isOffline ? 0.7 : 1,
-                                cursor: isLoading || isOffline ? "not-allowed" : "pointer",
-                            }}
+                            className="w-full mt-2 py-5 bg-gradient-to-r from-primary to-indigo-600 rounded-[24px] text-white font-black text-base uppercase tracking-[0.15em] shadow-xl shadow-primary/30 disabled:opacity-50 disabled:grayscale transition-all active:scale-[0.98] flex items-center justify-center gap-3 min-h-[64px]"
                         >
                             {isLoading ? (
-                                <span style={styles.loadingSpinner} />
+                                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                "Login"
+                                <><LogIn size={20} strokeWidth={3} /> Authentication</>
                             )}
                         </button>
                     </form>
 
-                    <p style={styles.helpText}>
-                        Default PIN: <strong style={{ color: "#a5b4fc" }}>123456</strong>
-                        {" "}&mdash; You will be asked to change it upon first login.
-                    </p>
+                    <div className="mt-9 pt-7 border-t border-border/50 text-center">
+                        <p className="text-[10px] text-muted-foreground/60 font-medium leading-relaxed uppercase tracking-widest">
+                            Initial PIN: <strong className="text-primary font-black">123456</strong>
+                            <br /><span className="opacity-70">Mandatory rotation required upon first access.</span>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Install PWA Banner */}
                 {showInstall && (
-                    <div style={styles.installBanner}>
-                        <div>
-                            <p style={{ margin: 0, fontWeight: 600, color: "#e0e7ff", fontSize: 14 }}>
-                                📲 Install MyHRIS
-                            </p>
-                            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#a5b4fc" }}>
-                                Install on main screen for quick access
-                            </p>
+                    <div className="w-full glass rounded-[32px] p-5 flex justify-between items-center border-primary/20 shadow-2xl shadow-primary/5 animate-in slide-in-from-bottom-8 duration-500">
+                        <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                                <Smartphone size={22} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-foreground tracking-tight uppercase">Native App Access</p>
+                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-tight opacity-60">Add to your workspace</p>
+                            </div>
                         </div>
                         <button
                             id="install-pwa-button"
                             onClick={handleInstall}
-                            style={styles.installBtn}
+                            className="h-11 px-6 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2"
                         >
-                            Install
+                            <Download size={14} strokeWidth={3} /> Install
                         </button>
                     </div>
                 )}
 
-                {/* Install instructions for iOS */}
-                <div style={styles.iosInstallHint}>
-                    <p style={{ margin: 0, fontSize: 12, color: "#64748b", textAlign: "center" }}>
-                        On iPhone/iPad: press{" "}
-                        <span style={{ color: "#6366f1" }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ verticalAlign: "middle" }}>
-                                <path d="M12 2L8 6h3v8h2V6h3L12 2zm-8 11v7h16v-7h-2v5H6v-5H4z" />
-                            </svg>
-                        </span>{" "}
-                        then <strong style={{ color: "#a5b4fc" }}>Add to Home Screen</strong>
+                {/* iOS Instructions */}
+                <div className="px-8 text-center">
+                    <p className="text-[10px] text-muted-foreground/60 leading-relaxed font-bold uppercase tracking-tight">
+                        On iOS: Select <span className="text-primary inline-flex items-center align-middle mx-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" strokeWidth="2.5"><path d="M12 2L8 6h3v8h2V6h3L12 2zm-8 11v7h16v-7h-2v5H6v-5H4z" /></svg></span> then activate <strong className="text-foreground tracking-widest">Add to Home Screen</strong>
                     </p>
                 </div>
 
-                <p style={styles.footerText}>© 2026 HRIS Pro &mdash; v1.0</p>
+                <div className="flex items-center gap-2 py-4">
+                    <ShieldCheck size={12} className="text-muted-foreground opacity-30" />
+                    <p className="text-[9px] text-muted-foreground/40 font-black uppercase tracking-[0.3em]">Corporate Framework v1.0.0</p>
+                </div>
             </div>
-
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                input::placeholder { color: #475569; }
-                input:focus { outline: none; border-color: #6366f1 !important; box-shadow: 0 0 0 3px rgba(99,102,241,0.2) !important; }
-                button:hover:not(:disabled) { filter: brightness(1.1); }
-            `}</style>
         </div>
     );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-    root: {
-        minHeight: "100vh",
-        background: "linear-gradient(135deg, #0f0f1a 0%, #1a1033 50%, #0a1628 100%)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px 16px",
-        position: "relative",
-        overflow: "hidden",
-        fontFamily: "var(--font-sans, Inter, system-ui, sans-serif)",
-    },
-    orb1: {
-        position: "fixed",
-        top: "-10%",
-        right: "-5%",
-        width: 350,
-        height: 350,
-        borderRadius: "50%",
-        background: "rgba(99,102,241,0.18)",
-        filter: "blur(80px)",
-        pointerEvents: "none",
-        zIndex: 0,
-        animation: "float1 8s ease-in-out infinite",
-    },
-    orb2: {
-        position: "fixed",
-        bottom: "-10%",
-        left: "-5%",
-        width: 280,
-        height: 280,
-        borderRadius: "50%",
-        background: "rgba(6,182,212,0.14)",
-        filter: "blur(80px)",
-        pointerEvents: "none",
-        zIndex: 0,
-    },
-    orb3: {
-        position: "fixed",
-        top: "40%",
-        left: "30%",
-        width: 200,
-        height: 200,
-        borderRadius: "50%",
-        background: "rgba(168,85,247,0.1)",
-        filter: "blur(60px)",
-        pointerEvents: "none",
-        zIndex: 0,
-    },
-    offlineBanner: {
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        background: "rgba(245,158,11,0.9)",
-        backdropFilter: "blur(8px)",
-        color: "#78350f",
-        padding: "10px 16px",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        fontSize: 13,
-        fontWeight: 600,
-        zIndex: 100,
-        justifyContent: "center",
-    },
-    container: {
-        width: "100%",
-        maxWidth: 400,
-        position: "relative",
-        zIndex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 24,
-    },
-    logoSection: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 8,
-    },
-    logoWrapper: {
-        padding: 4,
-        background: "linear-gradient(135deg, rgba(99,102,241,0.3), rgba(6,182,212,0.3))",
-        borderRadius: 22,
-        boxShadow: "0 0 40px rgba(99,102,241,0.3)",
-    },
-    appName: {
-        margin: 0,
-        fontSize: 32,
-        fontWeight: 800,
-        background: "linear-gradient(135deg, #a5b4fc, #67e8f9)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        letterSpacing: "-0.5px",
-    },
-    appTagline: {
-        margin: 0,
-        fontSize: 14,
-        color: "#64748b",
-        fontWeight: 500,
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-    },
-    card: {
-        width: "100%",
-        background: "rgba(255,255,255,0.04)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 20,
-        padding: "28px 24px",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
-    },
-    cardTitle: {
-        margin: "0 0 4px",
-        fontSize: 20,
-        fontWeight: 700,
-        color: "#e0e7ff",
-    },
-    cardSubtitle: {
-        margin: "0 0 20px",
-        fontSize: 13,
-        color: "#64748b",
-    },
-    errorBox: {
-        background: "rgba(239,68,68,0.12)",
-        border: "1px solid rgba(239,68,68,0.25)",
-        borderRadius: 10,
-        padding: "10px 14px",
-        marginBottom: 16,
-        fontSize: 13,
-        color: "#fca5a5",
-    },
-    form: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-    },
-    fieldGroup: {
-        display: "flex",
-        flexDirection: "column",
-        gap: 6,
-    },
-    label: {
-        fontSize: 12,
-        fontWeight: 600,
-        color: "#94a3b8",
-        letterSpacing: "0.05em",
-        textTransform: "uppercase",
-    },
-    input: {
-        width: "100%",
-        padding: "13px 14px",
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: 12,
-        color: "#e2e8f0",
-        fontSize: 16,
-        transition: "all 0.2s",
-        boxSizing: "border-box",
-    },
-    loginBtn: {
-        width: "100%",
-        padding: "14px",
-        background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-        border: "none",
-        borderRadius: 12,
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: 700,
-        letterSpacing: "0.02em",
-        cursor: "pointer",
-        transition: "all 0.2s",
-        marginTop: 4,
-        boxShadow: "0 4px 20px rgba(99,102,241,0.4)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: 50,
-    },
-    loadingSpinner: {
-        width: 20,
-        height: 20,
-        border: "2px solid rgba(255,255,255,0.3)",
-        borderTopColor: "#fff",
-        borderRadius: "50%",
-        display: "inline-block",
-        animation: "spin 0.8s linear infinite",
-    },
-    helpText: {
-        marginTop: 16,
-        fontSize: 12,
-        color: "#475569",
-        textAlign: "center" as const,
-        lineHeight: 1.5,
-    },
-    installBanner: {
-        width: "100%",
-        background: "rgba(99,102,241,0.12)",
-        border: "1px solid rgba(99,102,241,0.25)",
-        borderRadius: 14,
-        padding: "14px 16px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    installBtn: {
-        padding: "8px 16px",
-        background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-        border: "none",
-        borderRadius: 8,
-        color: "#fff",
-        fontSize: 13,
-        fontWeight: 600,
-        cursor: "pointer",
-        whiteSpace: "nowrap" as const,
-    },
-    iosInstallHint: {
-        padding: "4px 0",
-    },
-    footerText: {
-        margin: 0,
-        fontSize: 12,
-        color: "#334155",
-    },
-};
