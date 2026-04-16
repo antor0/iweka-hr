@@ -291,9 +291,7 @@
 
   --radius-2xl: calc(var(--radius) + 8px);
 
-  --radius-3xl: calc(var(--radius) + 12px);
-
-  --radius-4xl: calc(var(--radius) + 16px)
+  --radius-4xl: calc(var(--radius) + 16px);
 }
 
 /* ---------- Base Styles ---------- */
@@ -447,87 +445,90 @@ body {
     @apply bg-background text-foreground;
   }
 }
-/* ============================================
-   iOS Native ESS Overrides
-   ============================================ */
-.ess-pwa {
-  --primary: #007aff;
-  --primary-foreground: #ffffff;
-  --radius: 10px;
-  
-  /* System Backgrounds */
-  --ios-system-bg: #f2f2f7;
-  --ios-secondary-bg: #ffffff;
-  --ios-separator: rgba(60, 60, 67, 0.2);
-  --ios-label: #000000;
-  --ios-secondary-label: rgba(60, 60, 67, 0.6);
+@layer components {
+  /* ============================================
+     iOS Native ESS Overrides
+     ============================================ */
+  .ess-pwa {
+    --primary: #007aff;
+    --primary-foreground: #ffffff;
+    --radius: 10px;
+    
+    /* System Backgrounds */
+    --ios-system-bg: #f2f2f7;
+    --ios-secondary-bg: #ffffff;
+    --ios-separator: rgba(60, 60, 67, 0.2);
+    --ios-label: #000000;
+    --ios-secondary-label: rgba(60, 60, 67, 0.6);
+  }
+
+  .dark .ess-pwa {
+    --primary: #0a84ff; /* Brighter blue for dark mode */
+    --primary-foreground: #ffffff;
+    --ios-system-bg: #000000;
+    --ios-secondary-bg: #1c1c1e;
+    --ios-separator: rgba(84, 84, 88, 0.6);
+    --ios-label: #ffffff;
+    --ios-secondary-label: rgba(235, 235, 245, 0.6);
+    --background: #000000;
+  }
+
+  /* Scoped Layout Changes */
+  .ess-pwa {
+    background-color: var(--ios-system-bg) !important;
+    min-height: 100vh;
+  }
+
+  .ess-pwa .bg-orbs {
+    display: none !important;
+  }
+
+  /* iOS Specific Components */
+  .ios-list-group {
+    @apply mb-5;
+  }
+
+  .ios-list-header {
+    @apply px-5 py-1.5 text-[13px] font-semibold text-[var(--ios-secondary-label)] uppercase tracking-wide;
+  }
+
+  .ios-list-content {
+    @apply bg-[var(--ios-secondary-bg)] mx-4 rounded-2xl border border-[var(--ios-separator)] overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .dark .ios-list-content {
+    box-shadow: none;
+  }
+
+  .ios-cell {
+    @apply flex items-center gap-3 px-4 py-3 bg-[var(--ios-secondary-bg)] active:bg-muted/30 transition-colors duration-100 relative;
+  }
+
+  .ios-cell:not(:last-child)::after {
+    content: "";
+    @apply absolute bottom-0 right-0 left-4 h-[0.5px] bg-[var(--ios-separator)];
+  }
+
+  .ios-chevron {
+    @apply ml-auto text-[var(--ios-secondary-label)] opacity-30;
+  }
+
+  /* iOS Empty State */
+  .ios-empty-state {
+    @apply flex flex-col items-center justify-center py-16 gap-3;
+  }
+
+  .ios-empty-state-icon {
+    @apply w-16 h-16 rounded-full flex items-center justify-center bg-[var(--ios-separator)] text-[var(--ios-secondary-label)] opacity-60;
+  }
+
+  .ios-empty-state-text {
+    @apply text-[15px] font-medium text-[var(--ios-secondary-label)] opacity-70;
+  }
+
+  .ios-empty-state-subtext {
+    @apply text-[13px] text-[var(--ios-secondary-label)] opacity-50 text-center px-8;
+  }
 }
 
-.dark .ess-pwa {
-  --primary: #0a84ff; /* Brighter blue for dark mode */
-  --primary-foreground: #ffffff;
-  --ios-system-bg: #000000;
-  --ios-secondary-bg: #1c1c1e;
-  --ios-separator: rgba(84, 84, 88, 0.6);
-  --ios-label: #ffffff;
-  --ios-secondary-label: rgba(235, 235, 245, 0.6);
-  --background: #000000;
-}
-
-/* Scoped Layout Changes */
-.ess-pwa {
-  background-color: var(--ios-system-bg) !important;
-  min-height: 100vh;
-}
-
-.ess-pwa .bg-orbs {
-  display: none !important;
-}
-
-/* iOS Specific Components */
-.ios-list-group {
-  @apply mb-5;
-}
-
-.ios-list-header {
-  @apply px-5 py-1.5 text-[13px] font-semibold text-[var(--ios-secondary-label)] uppercase tracking-wide;
-}
-
-.ios-list-content {
-  @apply bg-[var(--ios-secondary-bg)] mx-4 rounded-2xl border border-[var(--ios-separator)] overflow-hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-}
-
-.dark .ios-list-content {
-  box-shadow: none;
-}
-
-.ios-cell {
-  @apply flex items-center gap-3 px-4 py-3 bg-[var(--ios-secondary-bg)] active:bg-muted/30 transition-colors duration-100 relative;
-}
-
-.ios-cell:not(:last-child)::after {
-  content: "";
-  @apply absolute bottom-0 right-0 left-4 h-[0.5px] bg-[var(--ios-separator)];
-}
-
-.ios-chevron {
-  @apply ml-auto text-[var(--ios-secondary-label)] opacity-30;
-}
-
-/* iOS Empty State */
-.ios-empty-state {
-  @apply flex flex-col items-center justify-center py-16 gap-3;
-}
-
-.ios-empty-state-icon {
-  @apply w-16 h-16 rounded-full flex items-center justify-center bg-[var(--ios-separator)] text-[var(--ios-secondary-label)] opacity-60;
-}
-
-.ios-empty-state-text {
-  @apply text-[15px] font-medium text-[var(--ios-secondary-label)] opacity-70;
-}
-
-.ios-empty-state-subtext {
-  @apply text-[13px] text-[var(--ios-secondary-label)] opacity-50 text-center px-8;
-}

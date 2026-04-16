@@ -15,7 +15,7 @@ services:
       #   migrate → (default) apply pending migrations + idempotent seed (safe for code updates)
       #   reset   → wipe ALL data, re-run migrations + full seed (clean slate)
       #   skip    → skip all DB ops (fastest restart, code-only update)
-      - DB_MODE=migrate
+      - DB_MODE=skip
     depends_on:
       db:
         condition: service_healthy
