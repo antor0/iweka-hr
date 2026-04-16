@@ -141,13 +141,7 @@ function SettingsContent() {
                 <div className="ios-list-group">
                     <h2 className="ios-list-header">Appearance</h2>
                     <div className="ios-list-content">
-                        <div className="ios-cell flex-col items-stretch py-4 gap-3">
-                            <div className="flex items-center gap-2 w-full">
-                                <div className="w-8 h-8 rounded-[8px] bg-[#AF52DE]/15 flex items-center justify-center">
-                                    <Paintbrush className="text-[#AF52DE]" size={16} />
-                                </div>
-                                <span className="text-[17px] font-medium text-[var(--ios-label)]">Theme Mode</span>
-                            </div>
+                        <div className="px-4 py-4">
                             <EssThemeToggle />
                         </div>
                     </div>
@@ -159,8 +153,8 @@ function SettingsContent() {
                     {message && (
                         <div className="px-4 mb-2">
                             <div className={`rounded-xl px-4 py-3 text-[13px] font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 ${message.type === "success"
-                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                    : "bg-red-500/10 text-red-600 dark:text-red-400"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : "bg-red-500/10 text-red-600 dark:text-red-400"
                                 }`}>
                                 {message.type === "success" ? <CheckCircle2 size={15} strokeWidth={2.5} /> : <AlertCircle size={15} strokeWidth={2.5} />}
                                 {message.text}
@@ -168,58 +162,56 @@ function SettingsContent() {
                         </div>
                     )}
                     <div className="ios-list-content">
-                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
-                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">Current PIN</label>
+                        <div className="ios-cell justify-between py-3.5">
+                            <label className="text-[17px] text-[var(--ios-label)]">Current PIN</label>
                             <input
                                 id="current-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={currentPin}
                                 onChange={e => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
+                                className="bg-transparent text-[17px] text-right text-[var(--ios-secondary-label)] focus:text-[var(--ios-label)] focus:outline-none w-24 font-mono tracking-widest"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
-                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">New 6-Digit PIN</label>
+                        <div className="ios-cell justify-between py-3.5">
+                            <label className="text-[17px] text-[var(--ios-label)]">New PIN</label>
                             <input
                                 id="new-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={newPin}
                                 onChange={e => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
+                                className="bg-transparent text-[17px] text-right text-[var(--ios-secondary-label)] focus:text-[var(--ios-label)] focus:outline-none w-24 font-mono tracking-widest"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="ios-cell flex flex-col items-stretch gap-0.5 py-2.5">
-                            <label className="text-[12px] font-medium text-[var(--ios-secondary-label)]">Confirm New PIN</label>
+                        <div className="ios-cell justify-between py-3.5">
+                            <label className="text-[17px] text-[var(--ios-label)]">Confirm PIN</label>
                             <input
                                 id="confirm-pin"
                                 type="password"
                                 inputMode="numeric"
                                 value={confirmPin}
                                 onChange={e => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                                className="w-full bg-transparent text-[22px] font-bold text-[var(--ios-label)] tracking-[0.35em] focus:outline-none py-1 font-mono"
+                                className="bg-transparent text-[17px] text-right text-[var(--ios-secondary-label)] focus:text-[var(--ios-label)] focus:outline-none w-24 font-mono tracking-widest"
                                 placeholder="••••••"
                                 maxLength={6}
                                 disabled={isSubmitting}
                             />
                         </div>
-                        <div className="ios-cell py-3">
-                            <button
-                                id="change-pin-btn"
-                                disabled={isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6}
-                                onClick={handleChangePin}
-                                className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-[17px] font-bold active:opacity-80 transition-all disabled:opacity-40"
-                            >
-                                {isSubmitting ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" /> : "Update PIN"}
-                            </button>
-                        </div>
+                        <button
+                            id="change-pin-btn"
+                            disabled={isSubmitting || currentPin.length < 6 || newPin.length < 6 || confirmPin.length < 6}
+                            onClick={handleChangePin}
+                            className="ios-cell w-full justify-center py-4 bg-transparent active:bg-muted text-primary font-bold text-[17px] disabled:opacity-30 disabled:active:bg-transparent"
+                        >
+                            {isSubmitting ? <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /> : "Update PIN"}
+                        </button>
                     </div>
                 </div>
 
