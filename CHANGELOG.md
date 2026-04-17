@@ -5,6 +5,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] — 2026-04-17
+
+### Added
+- **Global Search / Command Palette** (`⌘K` / `Ctrl+K`): A unified, keyboard-accessible command palette for the desktop dashboard replacing the previously non-functional topbar search input.
+  - Quick Navigation mode (no query): shows all sidebar modules as instantly selectable items.
+  - Live search mode (≥2 chars): debounced (300ms) API call returns results grouped by category — Employees, Departments, Positions, Leave Requests, Claims, and Payroll Runs.
+  - Results are permission-gated per the current user's role via the existing `hasPermission()` system.
+  - Click or keyboard-navigate (↑↓ Enter) to jump directly to any resource page.
+  - Glassmorphism dialog styled with existing `--glass-bg`, `--glass-border`, and `--glass-blur-lg` CSS tokens; gradient border via `::before` pseudo-element; `animate-slide-up` entrance.
+- **`GET /api/v1/search`**: New search endpoint performing parallel Prisma queries across 6 entities with `take: 5` per category and full permission gating.
+- **`CommandPalette` component** (`src/components/layout/command-palette.tsx`): Self-contained command menu component using `cmdk@^1.1.1` with `shouldFilter={false}` for async result control.
+- **cmdk-specific CSS overrides** added to `globals.css`: group heading styles, selected-item highlight, gradient border on dialog panel.
+
+### Changed
+- **Topbar search trigger**: Replaced static `<Input>` with a styled clickable button showing the current placeholder text and a `⌘K` keyboard shortcut badge; clicking opens the command palette.
+
+### Dependencies
+- `cmdk@^1.1.1` — Composable, accessible command menu for React (used by Vercel, Linear, shadcn/ui)
+
+## [1.2.0] — 2026-04-17
+
+### Added
+- **iOS-Native ESS Interface**: Implemented a comprehensive set of design overrides to provide an iOS-native look and feel for the ESS PWA.
+- **Mobile Design Tokens**: Integrated iOS-specific system backgrounds, secondary labels, and separator colors using OKLCH.
+- **iOS List Components**: Added specialized utility classes for iOS-style lists (`.ios-list-group`, `.ios-list-header`, `.ios-list-content`, `.ios-cell`) with native-feeling interaction states.
+- **PWA Empty States**: Built a polished, animated empty state component (`.ios-empty-state`) for mobile views.
+
+### Fixed
+- **Tailwind v4 CSS Compatibility**: Resolved "Unknown at rule @apply" issues in `globals.css` by wrapping custom components in `@layer components`.
+- **CSS Syntax**: Fixed a missing semicolon in the Tailwind v4 `@theme` block that was causing parsing ambiguity.
+
 ## [1.1.0] — 2026-04-16
 
 ### Added

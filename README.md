@@ -1,6 +1,6 @@
 # 🏢 DigiHR+ — Human Resource Information System
 
-A **production-grade, full-stack HRIS application** built for Indonesian companies. Features a stunning **Liquid Glass** design system, a complete payroll engine with PPh 21 & BPJS compliance, a full Applicant Tracking System (ATS) with drag-and-drop Kanban pipelines, performance management, a custom report builder, an official letter (surat) system with PDF support, and a real-time notification system with email integration — all powered by **Next.js 16**, **Prisma 7**, and **PostgreSQL**.
+A **production-grade, full-stack HRIS application** built for Indonesian companies. Features a stunning **Liquid Glass** design system, a complete payroll engine with PPh 21 & BPJS compliance, a full Applicant Tracking System (ATS) with drag-and-drop Kanban pipelines, performance management, a custom report builder, an official letter (surat) system with PDF support, a real-time notification system with email integration, and a **global ⌘K command palette** for instant search across employees, leaves, claims, and more — all powered by **Next.js 16**, **Prisma 7**, and **PostgreSQL**.
 
 ---
 
@@ -148,7 +148,8 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Platform User Management** | Full CRUD for system users with optional mapping to internal Employee profiles |
 | **Role-Based Access Control** | Granular matrix-based authorization securing both API endpoints and conditional UI sidebar tabs |
 | **JWT Session Management** | HTTP-only secure cookies with 7-day sliding expiry |
-| **Settings** | Company profile (incl. late penalty config), ESS theme switching (light/dark/system), RBAC, SMTP email, BPJS config, Tax config |
+| **Global Search / Command Palette** | ⌘K-triggered dialog searching across Employees, Departments, Leave Requests, Claims, and Payroll Runs; permission-gated results; Quick Navigation mode for keyboard-first module access |
+| **Settings** | Company profile (incl. late penalty config), ESS theme switching (light/dark/system), RBAC, SMTP email, BPJS config, Tax config, and iOS-native PWA overrides |
 
 ---
 
@@ -168,6 +169,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Validation** | Zod 4 |
 | **Email** | Nodemailer (SMTP — Gmail, Mailtrap, custom) |
 | **Drag & Drop** | `@dnd-kit/core` + `@dnd-kit/sortable` (Kanban pipeline) |
+| **Command Palette** | `cmdk` (keyboard-accessible global search dialog) |
 | **PDF/Print** | Browser native `print()` via compiled HTML templates |
 | **OCR** | Tesseract.js (receipt text extraction) |
 | **Runtime** | Node.js / Docker |
@@ -183,6 +185,7 @@ To maintain the project's signature **Liquid Glass** aesthetic, all new features
 *   **Color Persistence**: Always use CSS variables (tokens) from `globals.css` instead of raw hex codes.
 *   **Micro-animations**: Implement `animate-fade-in` and `animate-slide-up` for new page elements to ensure a premium feel.
 *   **Dark Mode**: Every component must be tested and fully functional in both light and dark themes using the standard token set.
+*   **iOS Native Overrides**: For the PWA module (`src/app/(ess)`), utilize the `@layer components` overrides in `globals.css` to ensure an authentic mobile platform experience.
 
 ---
 
@@ -239,6 +242,7 @@ src/
 │   │   │   └── page.tsx      # Settings multi-tab layout (incl. Late Penalty config)
 │   │   ├── surat-templates/  # Letter template HTML editor
 │   ├── api/v1/               # REST API routes
+│   │   ├── search/           # GET — global command palette search (6 entity types)
 │   │   ├── departments/      # Department-specific operations
 │   │   │   └── [id]/
 │   │   │       ├── schedule/    # Schedule generation & override
@@ -282,6 +286,7 @@ src/
 ├── components/
 │   ├── layout/
 │   │   ├── notification-bell.tsx  # Live notification dropdown
+│   │   ├── command-palette.tsx    # Global ⌘K search dialog (cmdk)
 │   │   ├── topbar.tsx
 │   │   └── sidebar.tsx
 │   ├── liquid-glass/         # Custom glass UI components
@@ -557,6 +562,11 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 | `POST` | `/claims/:id/items` | Add receipt item with image upload + OCR |
 | `DELETE` | `/claims/:id/items/:itemId` | Remove receipt item |
 | `POST` | `/claims/ocr` | Standalone OCR on a receipt image |
+
+### Search
+| Method | Endpoint | Description |
+|--------|----------|--------------|
+| `GET` | `/search?q=<query>` | Global search across Employees, Departments, Positions, Leave Requests, Claims, and Payroll Runs (permission-gated, ≤5 results per category) |
 
 ### Reports
 | Method | Endpoint | Description |

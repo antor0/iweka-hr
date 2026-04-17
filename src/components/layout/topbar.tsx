@@ -17,11 +17,13 @@ import {
 import { ThemeToggle } from "./theme-toggle";
 import { useRouter } from "next/navigation";
 import { NotificationBell } from "./notification-bell";
+import { CommandPalette } from "./command-palette";
 
 export function Topbar() {
     const router = useRouter();
     const [user, setUser] = React.useState<any>(null);
     const [isLoading, setIsLoading] = React.useState(true);
+    const [searchOpen, setSearchOpen] = React.useState(false);
 
     React.useEffect(() => {
         const fetchUser = async () => {
@@ -65,14 +67,21 @@ export function Topbar() {
         <header className="sticky top-0 z-30 glass-sidebar h-16 flex items-center justify-between px-6 border-b border-sidebar-border">
             {/* Search */}
             <div className="flex items-center gap-3 flex-1 max-w-md">
-                <div className="relative w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search employees, menu, or features..."
-                        className="pl-10 h-9 text-sm bg-transparent"
-                    />
-                </div>
+                <button 
+                    onClick={() => setSearchOpen(true)}
+                    className="relative w-full flex items-center justify-between h-9 px-3 rounded-xl border border-input bg-transparent hover:bg-accent/50 hover:text-accent-foreground text-sm text-muted-foreground transition-colors"
+                >
+                    <div className="flex items-center gap-2">
+                        <Search className="h-4 w-4" />
+                        <span>Search employees, menu, or features...</span>
+                    </div>
+                    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
+                        <span className="text-xs">⌘</span>K
+                    </kbd>
+                </button>
             </div>
+
+            <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
 
             {/* Right side */}
             <div className="flex items-center gap-2">

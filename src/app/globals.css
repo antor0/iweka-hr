@@ -532,3 +532,42 @@ body {
   }
 }
 
+/* ============================================
+   Command Palette (cmdk) Styling
+   ============================================ */
+.cmdk-dialog {
+  /* Hide default focus ring if any */
+}
+
+.cmdk-dialog [cmdk-group-heading] {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.5rem 0.25rem 0.5rem;
+}
+
+.cmdk-dialog [cmdk-item][data-selected="true"] {
+  background-color: var(--sidebar-item-active);
+  color: var(--primary);
+  /* The active state is handled via aria-selected in tailwind className inside the component */
+}
+
+.cmdk-dialog::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.3),
+      rgba(6, 182, 212, 0.3),
+      rgba(168, 85, 247, 0.2));
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  pointer-events: none;
+}
+
