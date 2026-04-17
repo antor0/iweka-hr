@@ -32,11 +32,22 @@ export function MobileHeader({ title, subtitle, showBack, rightAction }: MobileH
 
     return (
         <div className="flex flex-col w-full relative">
-            {/* Top Navigation Bar (Sticky) */}
-            <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-[100] transition-colors duration-300 ${
-                scrolled ? "bg-background/80 backdrop-blur-xl border-b border-[var(--ios-separator)]" : "bg-transparent"
-            }`} style={{ height: "calc(44px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)" }}>
-                <div className="h-[44px] flex items-center px-4 relative">
+            {/* Safe Area Cover — always opaque so status bar content is readable */}
+            <div
+                className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-[101] bg-[var(--ios-system-bg)]"
+                style={{ height: "env(safe-area-inset-top, 0px)" }}
+            />
+
+            {/* Navigation Bar (44px, below safe area) */}
+            <div
+                className={`fixed left-1/2 -translate-x-1/2 w-full max-w-[480px] z-[100] h-[44px] transition-colors duration-300 ${
+                    scrolled
+                        ? "bg-[var(--ios-system-bg)]/80 backdrop-blur-xl border-b border-[var(--ios-separator)]"
+                        : "bg-transparent"
+                }`}
+                style={{ top: "env(safe-area-inset-top, 0px)" }}
+            >
+                <div className="h-full flex items-center px-4 relative">
                     <div className="flex-1 flex items-center absolute left-4 z-10">
                         {showBack && (
                             <button 
