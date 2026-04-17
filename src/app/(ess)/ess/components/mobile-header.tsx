@@ -28,54 +28,56 @@ export function MobileHeader({ title, subtitle, showBack, rightAction }: MobileH
 
     // iOS Large Title logic:
     // Threshold for full collapse is roughly 44px
-    const collapseProgress = Math.min(1, scrollAmount / 44);
-    const titleOpacity = Math.max(0, (scrollAmount - 20) / 24);
+    const collapseProgress = Math.min(1, Math.max(0, scrollAmount / 44));
 
     return (
         <div className="flex flex-col w-full relative">
             {/* Top Navigation Bar (Sticky) */}
-            <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-[100] h-[44px] transition-all duration-300 ${
+            <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-[100] transition-colors duration-300 ${
                 scrolled ? "bg-background/80 backdrop-blur-xl border-b border-[var(--ios-separator)]" : "bg-transparent"
-            }`}>
-                <div className="h-full flex items-center px-4">
-                    <div className="flex-1 flex items-center">
+            }`} style={{ height: "calc(44px + env(safe-area-inset-top))", paddingTop: "env(safe-area-inset-top)" }}>
+                <div className="h-[44px] flex items-center px-4 relative">
+                    <div className="flex-1 flex items-center absolute left-4 z-10">
                         {showBack && (
                             <button 
                                 onClick={() => router.back()}
                                 className="flex items-center text-primary active:opacity-50 transition-opacity -ml-1"
                             >
-                                <ChevronLeft size={24} strokeWidth={2.5} />
-                                <span className="text-[17px] -ml-1">Back</span>
+                                <ChevronLeft size={28} strokeWidth={2.5} />
+                                <span className="text-[17px] -ml-1 font-medium">Back</span>
                             </button>
                         )}
                     </div>
                     
-                    <div className="flex-1 flex flex-col justify-center items-center">
-                        <span className={`text-[17px] font-semibold tracking-tight transition-opacity duration-200 ${
+                    <div className="flex-1 w-full flex flex-col justify-center items-center">
+                        <span className={`text-[17px] font-semibold tracking-tight transition-opacity duration-200 truncate px-12 ${
                             scrolled ? "opacity-100" : "opacity-0"
                         }`}>
                             {title}
                         </span>
                         {subtitle && scrolled && (
-                            <span className={`text-[11px] font-medium text-[var(--ios-secondary-label)] -mt-0.5 tracking-tight transition-opacity duration-200 opacity-100`}>
+                            <span className={`text-[11px] font-medium text-[var(--ios-secondary-label)] -mt-0.5 tracking-tight transition-opacity duration-200 opacity-100 truncate max-w-[200px]`}>
                                 {subtitle}
                             </span>
                         )}
                     </div>
 
-                    <div className="flex-1 flex justify-end">
+                    <div className="flex-1 flex justify-end absolute right-4 z-10">
                         {rightAction}
                     </div>
                 </div>
             </div>
 
+            {/* Spacer for Fixed Header */}
+            <div style={{ height: "calc(44px + env(safe-area-inset-top))", width: "100%" }} />
+
             {/* Large Title Area (Inline) */}
-            <div className="w-full pt-[44px] pb-2 px-5">
+            <div className="w-full pb-2 px-5">
                 <div 
                     className="transition-all origin-left flex flex-col"
                     style={{ 
                         opacity: 1 - collapseProgress,
-                        transform: `scale(${1 - collapseProgress * 0.1}) translateY(${-scrollAmount * 0.2}px)`,
+                        transform: `scale(${1 - collapseProgress * 0.05}) translateY(${-scrollAmount * 0.2}px)`,
                         visibility: collapseProgress === 1 ? 'hidden' : 'visible'
                     }}
                 >
