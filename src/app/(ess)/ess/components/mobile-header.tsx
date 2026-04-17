@@ -39,10 +39,7 @@ export function MobileHeader({ title, subtitle, showBack, rightAction }: MobileH
                         ? "bg-[var(--ios-system-bg)]/80 backdrop-blur-xl border-b border-[var(--ios-separator)]"
                         : "bg-transparent"
                 }`}
-                style={{ 
-                    height: "calc(44px + env(safe-area-inset-top, 0px))", 
-                    paddingTop: "env(safe-area-inset-top, 0px)" 
-                }}
+                style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
             >
                 <div className="h-[44px] flex items-center px-4 relative">
                     <div className="flex-1 flex items-center absolute left-4 z-10">
