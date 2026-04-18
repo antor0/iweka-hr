@@ -5,6 +5,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.1] — 2026-04-18
+
+### Added
+- **Custom Report Builder Export**: Added dual `.xlsx` and `.csv` download capability to the Custom Report builder, powered by the backend `ReportExportService`.
+
+### Changed
+- **Incentive & Bonus Report Fix**: Refactored the `getIncentiveBonusReport` service to query directly from the finalized `PayrollItem` ledger components JSON, ensuring 100% accuracy with actual payroll payout totals.
+
+---
+
+## [1.6.0] — 2026-04-18
+
+### Added
+- **Reports Module**: Comprehensive reporting engine supporting 26 distinct reports across 7 domains (Employee, Attendance, Leave, Payroll, Tax & BPJS, Recruitment, Claims & Surat).
+- **Report Download UI**: A unified ReportDownloadDialog handling date range, department filtering, spreadsheet generation, and format selection.
+- **`contractEndDate` Field**: Added to `Employee` schema, along with form UI handling, to support the "Contracts Expiring Soon" report.
+
+### Dependencies
+- `exceljs` — High performance spreadsheet Excel file generation
+- `file-saver` — Client-side file saving utility
+
+---
+
+## [1.5.0] — 2026-04-18
+
+### Added
+- **Candidate Detail Dialog**: View extended applicant profile data (expected salary, portfolio link, source) directly from the Kanban pipeline board.
+- **Interviewer Notes**: Ability to add, edit, and save notes for each applicant directly in the detail dialog.
+- **Webhook Apply Endpoint**: Added public `POST /api/v1/webhooks/recruitment/apply` to receive job applications from external corporate websites.
+- **API Spec**: Documented Webhook Apply API endpoint in `README.md`.
+
+## [1.4.0] — 2026-04-18
+
+### Added
+- **GPS Attendance Tracking**: Support for capturing and persisting GPS coordinates during mobile/web clock-in and clock-out operations.
+  - Recorded latitude and longitude are stored as precise `Decimal(10, 7)` values in the `Attendance` model.
+  - Admin Dashboard now displays "In Pos" and "Out Pos" columns with direct clickable Google Maps links to verify location.
+  - ESS Mobile UI displays a map pin icon in attendance history for records containing location data.
+- **Location Policy Enforcement**: New "Require Mobile Location" toggle in Attendance Settings.
+  - If enabled, the ESS API strictly enforces geolocation capture, rejecting clocking attempts without coordinates.
+  - Configured via `api/v1/attendance/settings` and persisted in `CompanyConfig`.
+- **`AttendanceSettingsModal`**: New admin component for managing global attendance policies.
+
+### Changed
+- **Dynamic OS Timezone Synchronization**: Replaced hardcoded UTC+7 (WIB) offsets with dynamic OS-based timezone detection across the entire attendance module.
+  - Correctly identifies "Today" using local system time via `toLocaleDateString`.
+  - Robust "Late" status calculation using native `getHours()` and `setHours()` relative to the local environment.
+- **Synchronized Lateness Logic**: Both ESS and Dashboard now share a unified calculation using `CompanyConfig.lateGracePeriodMins`.
+- **Resilient Geolocation**: Frontend now uses a two-step approach (High Accuracy → Low Accuracy fallback) with increased timeouts to handle desktop browsers without GPS hardware.
+
+### Fixed
+- **Early Morning Lateness Bug**: Resolved a timezone overflow issue where clocking in between midnight and 07:00 AM WIB was incorrectly flagged as "Late".
+- **Prisma Cache Inconsistency**: Fixed `PrismaClient` staleness issues after schema migration by forcing client regeneration and clearing environment caches.
+
+---
+
 ## [1.3.0] — 2026-04-17
 
 ### Added

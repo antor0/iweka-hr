@@ -14,11 +14,14 @@ import {
     Calendar,
     TrendingUp,
     Users,
-    Loader2
+    Loader2,
+    Settings,
+    MapPin
 } from "lucide-react";
 import { GlassStatCard } from "@/components/liquid-glass/glass-stat-card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClockInOutModal } from "./components/clock-in-out-modal";
+import { AttendanceSettingsModal } from "./components/attendance-settings-modal";
 
 const statusConfig: Record<string, { label: string; variant: "success" | "warning" | "destructive" | "secondary" }> = {
     ontime: { label: "On Time", variant: "success" },
@@ -32,6 +35,7 @@ export default function AttendancePage() {
     const [recap, setRecap] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [period, setPeriod] = useState("today");
 
     const fetchDashboard = async () => {
@@ -106,6 +110,9 @@ export default function AttendancePage() {
                             <SelectItem value="365d">Last 1 Year</SelectItem>
                         </SelectContent>
                     </Select>
+                    <Button size="icon" variant="outline" onClick={() => setIsSettingsOpen(true)}>
+                        <Settings className="h-4 w-4" />
+                    </Button>
                     <Button size="sm" onClick={() => setIsModalOpen(true)}>
                         <Clock className="h-4 w-4 mr-1.5" /> Clock In / Out
                     </Button>
@@ -147,7 +154,9 @@ export default function AttendancePage() {
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Employee</th>
                                     <th className="text-left text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Department</th>
                                     <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Clock In</th>
+                                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">In Pos</th>
                                     <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Clock Out</th>
+                                    <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Out Pos</th>
                                     <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Working Hours</th>
                                     <th className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider px-4 py-3">Status</th>
                                 </tr>
@@ -161,7 +170,7 @@ export default function AttendancePage() {
                                     </tr>
                                 ) : recap.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                                             No attendance records found for today.
                                         </td>
                                     </tr>
@@ -180,7 +189,35 @@ export default function AttendancePage() {
                                             <span className="font-mono text-sm">{att.clockIn}</span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
+                                            {att.clockInLat && att.clockInLng ? (
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-8 w-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10"
+                                                    onClick={() => window.open(`https://maps.google.com/?q=${att.clockInLat},${att.clockInLng}`, '_blank')}
+                                                >
+                                                    <MapPin className="h-4 w-4" />
+                                                </Button>
+                                            ) : (
+                                                <span className="text-muted-foreground">—</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
                                             <span className="font-mono text-sm">{att.clockOut}</span>
+                                        </td>
+                                        <td className="px-4 py-3 text-center">
+                                            {att.clockOutLat && att.clockOutLng ? (
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-8 w-8 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10"
+                                                    onClick={() => window.open(`https://maps.google.com/?q=${att.clockOutLat},${att.clockOutLng}`, '_blank')}
+                                                >
+                                                    <MapPin className="h-4 w-4" />
+                                                </Button>
+                                            ) : (
+                                                <span className="text-muted-foreground">—</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             <span className="font-mono text-sm">{att.hours}</span>
@@ -198,6 +235,7 @@ export default function AttendancePage() {
                 </CardContent>
             </Card>
             <ClockInOutModal open={isModalOpen} onOpenChange={setIsModalOpen} onSuccess={fetchDashboard} />
+            <AttendanceSettingsModal open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
         </div>
     );
 }

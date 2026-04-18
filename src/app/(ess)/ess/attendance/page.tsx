@@ -13,7 +13,8 @@ import {
     MoveRight,
     CalendarDays,
     CheckCircle,
-    ChevronRight
+    ChevronRight,
+    MapPin
 } from "lucide-react";
 import { MobileHeader } from "../components/mobile-header";
 import { OfflineBanner } from "../components/offline-banner";
@@ -24,6 +25,10 @@ interface AttendanceRecord {
     date: string;
     clockIn?: string;
     clockOut?: string;
+    clockInLat?: number;
+    clockInLng?: number;
+    clockOutLat?: number;
+    clockOutLng?: number;
     status: string;
     workHours?: number;
     source: string;
@@ -65,18 +70,56 @@ export default function EssAttendancePage() {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
+    const getLocation = (): Promise<GeolocationPosition | null> => {
+        return new Promise((resolve) => {
+            if (!("geolocation" in navigator)) { 
+                console.warn("Geolocation API not supported");
+                resolve(null); 
+                return; 
+            }
+            // Try high-accuracy first
+            navigator.geolocation.getCurrentPosition(
+                (pos) => resolve(pos),
+                (err1) => {
+                    console.warn("High-accuracy location failed:", err1.message || err1.code);
+                    // Fallback: low-accuracy
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => resolve(pos),
+                        (err2) => {
+                            console.warn("Low-accuracy location failed:", err2.message || err2.code);
+                            // We return null and let the API decide if it wants to reject the request based on company config
+                            resolve(null);
+                        },
+                        { timeout: 15000, enableHighAccuracy: false, maximumAge: 60000 }
+                    );
+                },
+                { timeout: 10000, enableHighAccuracy: true }
+            );
+        });
+    };
+
     const handleClock = async (action: "clock-in" | "clock-out") => {
         setIsActing(true);
         setMessage(null);
+
+        let lat: number | null = null;
+        let lng: number | null = null;
+
+        const pos = await getLocation();
+        if (pos) {
+            lat = pos.coords.latitude;
+            lng = pos.coords.longitude;
+        }
+
         try {
             const res = await fetch("/api/v1/ess/attendance", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action }),
+                body: JSON.stringify({ action, ...(lat !== null && { lat }), ...(lng !== null && { lng }) }),
             });
             const data = await res.json();
             if (res.ok) {
-                setMessage({ type: "success", text: action === "clock-in" ? "Clock In successful!" : "Clock Out successful!" });
+                setMessage({ type: "success", text: action === "clock-in" ? (lat ? "Clock In & Location recorded!" : "Clock In successful (No GPS)") : (lat ? "Clock Out & Location recorded!" : "Clock Out successful (No GPS)") });
                 await fetchData();
             } else {
                 setMessage({ type: "error", text: data.error || "Attendance failed" });
@@ -199,6 +242,12 @@ export default function EssAttendancePage() {
                             )}
                         </button>
                     )}
+                    
+                    {!isDone && (
+                        <p className="text-[12px] text-muted-foreground/80 mt-[-10px] text-center flex items-center justify-center gap-1">
+                            <MapPin size={10} /> Location access may be required
+                        </p>
+                    )}
                 </div>
 
                 {/* History List */}
@@ -215,8 +264,16 @@ export default function EssAttendancePage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className="text-[17px] font-normal text-[var(--ios-label)] truncate">{fmtDate(rec.date)}</p>
-                                            <p className="text-[13px] text-[var(--ios-secondary-label)] font-medium font-mono">
+                                            <p className="text-[13px] text-[var(--ios-secondary-label)] font-medium font-mono flex items-center gap-2 mt-0.5">
                                                 {rec.clockIn ? fmt(rec.clockIn) : "--:--"} — {rec.clockOut ? fmt(rec.clockOut) : "--:--"}
+                                                {(rec.clockInLat || rec.clockOutLat) && (
+                                                    <span className="text-blue-500 bg-blue-500/10 p-1 rounded-full cursor-pointer ml-1" onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        window.open(`https://maps.google.com/?q=${rec.clockInLat || rec.clockOutLat},${rec.clockInLng || rec.clockOutLng}`, '_blank');
+                                                    }}>
+                                                        <MapPin size={12} />
+                                                    </span>
+                                                )}
                                             </p>
                                         </div>
                                         <div className={`px-2 py-0.5 rounded-lg text-[13px] font-semibold ${sc.text}`}>

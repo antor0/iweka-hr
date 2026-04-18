@@ -28,7 +28,7 @@ const navItems = [
     },
     {
         id: "nav-income",
-        label: "Salary",
+        label: "My Payslip",
         href: "/ess/payslip",
         icon: (active: boolean) => <Wallet size={24} strokeWidth={active ? 2.5 : 2} />,
     },

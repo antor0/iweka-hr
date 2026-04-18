@@ -148,6 +148,15 @@ export class RecruitmentService {
         return app;
     }
 
+    static async updateApplication(id: string, payload: Partial<Application>, userId: string) {
+        const app = await prisma.application.update({
+            where: { id },
+            data: payload
+        });
+        AuditService.log(userId, "UPDATE", "Application", id, null, payload);
+        return app;
+    }
+
 
     // -------------------------------------------------------------
     // INTERVIEWS

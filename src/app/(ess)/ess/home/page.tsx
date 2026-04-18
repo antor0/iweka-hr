@@ -103,7 +103,7 @@ export default function EssHomePage() {
     const quickActions = [
         { id: "qa-payslip", label: "My Payslip", icon: <FileText size={20} className="text-[#5856D6]" />, href: "/ess/payslip" },
         { id: "qa-leave", label: "Leave Requests", icon: <Calendar size={20} className="text-[#34C759]" />, href: "/ess/leave" },
-        { id: "qa-claims", label: "Medical Claims", icon: <CreditCard size={20} className="text-[#FF9500]" />, href: "/ess/claims" },
+        { id: "qa-claims", label: "Claims", icon: <CreditCard size={20} className="text-[#FF9500]" />, href: "/ess/claims" },
         { id: "qa-settings", label: "App Settings", icon: <Settings size={20} className="text-[#8E8E93]" />, href: "/ess/settings" },
     ];
 

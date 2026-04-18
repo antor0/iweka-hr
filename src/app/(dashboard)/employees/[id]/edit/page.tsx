@@ -15,8 +15,9 @@ import { CreateEmployeeSchema } from "@/lib/validators/employee.schema";
 import { z } from "zod";
 
 type BaseEmployeeFormValues = z.infer<typeof CreateEmployeeSchema>;
-type EmployeeFormValues = Omit<BaseEmployeeFormValues, "hireDate"> & {
+type EmployeeFormValues = Omit<BaseEmployeeFormValues, "hireDate" | "contractEndDate"> & {
     hireDate: string;
+    contractEndDate?: string;
 };
 
 export default function EditEmployeePage() {
@@ -50,6 +51,11 @@ export default function EditEmployeePage() {
     const selectedDepartmentId = useWatch({
         control: form.control,
         name: "departmentId",
+    });
+
+    const selectedEmploymentType = useWatch({
+        control: form.control,
+        name: "employmentType",
     });
 
     // Fetch master data
@@ -114,6 +120,7 @@ export default function EditEmployeePage() {
                         gender: emp.gender,
                         maritalStatus: emp.maritalStatus,
                         hireDate: new Date(emp.hireDate).toISOString().split('T')[0],
+                        contractEndDate: emp.contractEndDate ? new Date(emp.contractEndDate).toISOString().split('T')[0] : undefined,
                         employmentStatus: emp.employmentStatus,
                         employmentType: emp.employmentType,
                         departmentId: emp.departmentId || "",
@@ -340,9 +347,16 @@ export default function EditEmployeePage() {
                                 </Select>
                             </div>
 
+                            {selectedEmploymentType === "CONTRACT" && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="contractEndDate">Contract End Date <span className="text-destructive">*</span></Label>
+                                    <Input id="contractEndDate" type="date" {...form.register("contractEndDate")} required={selectedEmploymentType === "CONTRACT"} />
+                                    {form.formState.errors.contractEndDate && <p className="text-xs text-destructive">{form.formState.errors.contractEndDate.message as string}</p>}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="space-y-2 md:col-span-2">
+                        <div className="space-y-2 md:col-span-2 mt-4">
                             <Label htmlFor="baseSalary">Basic Salary Override <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                             <Input
                                 id="baseSalary"

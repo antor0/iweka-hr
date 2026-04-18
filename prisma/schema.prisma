@@ -214,6 +214,8 @@ model Employee {
   locationId      String? @map("location_id")
   workTimeModelId String? @map("work_time_model_id")
 
+  contractEndDate DateTime? @map("contract_end_date") @db.Date
+
   baseSalary Decimal? @map("base_salary") @db.Decimal(15, 2) // Override grade midpoint if set
 
   bankName    String? @map("bank_name")
@@ -378,6 +380,10 @@ model Attendance {
   date          DateTime         @db.Date
   clockIn       DateTime?        @map("clock_in")
   clockOut      DateTime?        @map("clock_out")
+  clockInLat    Decimal?         @map("clock_in_lat")  @db.Decimal(10, 7)
+  clockInLng    Decimal?         @map("clock_in_lng")  @db.Decimal(10, 7)
+  clockOutLat   Decimal?         @map("clock_out_lat") @db.Decimal(10, 7)
+  clockOutLng   Decimal?         @map("clock_out_lng") @db.Decimal(10, 7)
   status        AttendanceStatus
   workHours     Decimal?         @map("work_hours") @db.Decimal(5, 2)
   overtimeHours Decimal?         @map("overtime_hours") @db.Decimal(5, 2)
@@ -1082,6 +1088,7 @@ model CompanyConfig {
   mainBank            String?  @map("main_bank")
   lateGracePeriodMins Int?     @default(15) @map("late_grace_period_mins")
   latePenaltyAmount   Decimal? @default(0) @map("late_penalty_amount") @db.Decimal(15, 2)
+  requireLocation     Boolean  @default(false) @map("require_location")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 

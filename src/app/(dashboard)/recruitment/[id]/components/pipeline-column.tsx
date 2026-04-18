@@ -9,9 +9,10 @@ import { ApplicationType } from "./pipeline-board";
 interface ColumnProps {
     columnId: ApplicationStatus;
     applications: ApplicationType[];
+    onUpdate: () => void;
 }
 
-export function Column({ columnId, applications }: ColumnProps) {
+export function Column({ columnId, applications, onUpdate }: ColumnProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: columnId,
         data: {
@@ -45,7 +46,7 @@ export function Column({ columnId, applications }: ColumnProps) {
                     strategy={verticalListSortingStrategy}
                 >
                     {applications.map((app) => (
-                        <CandidateCard key={app.id} app={app} />
+                        <CandidateCard key={app.id} app={app} onUpdate={onUpdate} />
                     ))}
                 </SortableContext>
             </div>

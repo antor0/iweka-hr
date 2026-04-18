@@ -4,6 +4,11 @@ import { z } from "zod";
 import { AttendanceStatus } from "@prisma/client";
 
 export class AttendanceService {
+    private static getTodayWIB(time: Date = new Date()) {
+        const wibTime = new Date(time.getTime() + (7 * 60 * 60 * 1000));
+        return new Date(Date.UTC(wibTime.getUTCFullYear(), wibTime.getUTCMonth(), wibTime.getUTCDate()));
+    }
+
     static async getAttendances(page = 1, limit = 10, employeeId?: string, startDate?: string, endDate?: string) {
         const skip = (page - 1) * limit;
 
@@ -70,8 +75,7 @@ export class AttendanceService {
     }
 
     static async clockIn(payload: z.infer<typeof ClockInSchema>) {
-        const today = new Date(payload.time);
-        today.setHours(0, 0, 0, 0);
+        const today = this.getTodayWIB(payload.time);
 
         const existing = await prisma.attendance.findFirst({
             where: { employeeId: payload.employeeId, date: today }
@@ -86,6 +90,8 @@ export class AttendanceService {
                 where: { id: existing.id },
                 data: {
                     clockIn: payload.time,
+                    clockInLat: payload.lat ?? null,
+                    clockInLng: payload.lng ?? null,
                     source: payload.source,
                     notes: payload.notes ? existing.notes + "\\n" + payload.notes : existing.notes
                 }
@@ -97,6 +103,8 @@ export class AttendanceService {
                 employeeId: payload.employeeId,
                 date: today,
                 clockIn: payload.time,
+                clockInLat: payload.lat ?? null,
+                clockInLng: payload.lng ?? null,
                 status: AttendanceStatus.PRESENT,
                 source: payload.source,
                 notes: payload.notes
@@ -105,8 +113,7 @@ export class AttendanceService {
     }
 
     static async clockOut(payload: z.infer<typeof ClockOutSchema>) {
-        const today = new Date(payload.time);
-        today.setHours(0, 0, 0, 0);
+        const today = this.getTodayWIB(payload.time);
 
         const existing = await prisma.attendance.findFirst({
             where: { employeeId: payload.employeeId, date: today }
@@ -131,6 +138,8 @@ export class AttendanceService {
             where: { id: existing.id },
             data: {
                 clockOut: payload.time,
+                clockOutLat: payload.lat ?? null,
+                clockOutLng: payload.lng ?? null,
                 workHours,
                 overtimeHours,
                 notes: payload.notes ? existing.notes + "\\n" + payload.notes : existing.notes
@@ -139,8 +148,7 @@ export class AttendanceService {
     }
 
     static async getDashboard(period: 'today' | '30d' | '365d' = 'today') {
-        const targetDate = new Date();
-        targetDate.setHours(0, 0, 0, 0);
+        const targetDate = this.getTodayWIB();
 
         let startDate = new Date(targetDate);
         let endDate = new Date(targetDate);
@@ -178,15 +186,25 @@ export class AttendanceService {
             orderBy: [{ date: 'desc' }, { clockIn: 'desc' }]
         });
 
-        const presentCount = attendances.filter(a => a.status === 'PRESENT').length;
-        const autoLateCount = attendances.filter(a => {
-            // Basic lateness logic: Clock-in after 08:00 AM
-            if (!a.clockIn) return false;
-            const timeToken = new Date(a.clockIn);
-            const hours = timeToken.getUTCHours() + 7; // WIB Timezone hack for demo
-            const mins = timeToken.getUTCMinutes();
-            return (hours > 8) || (hours === 8 && mins > 0);
-        }).length;
+        const config = await prisma.companyConfig.findUnique({
+            where: { id: "default" },
+            select: { lateGracePeriodMins: true }
+        });
+        const gracePeriod = config?.lateGracePeriodMins ?? 15;
+        const baseStartHour = 8;
+        const thresholdMins = baseStartHour * 60 + gracePeriod;
+
+        const isLateLocal = (d: Date | null) => {
+            if (!d) return false;
+            // Use local OS timezone hours and minutes
+            const h = d.getHours();
+            const m = d.getMinutes();
+            const minsSinceStartOfDay = h * 60 + m;
+            return minsSinceStartOfDay > thresholdMins;
+        };
+
+        const presentCount = attendances.filter(a => a.status === 'PRESENT' || a.status === 'LATE').length;
+        const autoLateCount = attendances.filter(a => isLateLocal(a.clockIn)).length;
 
         const leaves = await prisma.leaveRequest.count({
             where: {
@@ -207,18 +225,17 @@ export class AttendanceService {
 
         const todayList = attendances.map(a => {
             // Re-determine lateness for the table
-            let isLate = false;
-            if (a.clockIn) {
-                const h = a.clockIn.getUTCHours() + 7;
-                const m = a.clockIn.getUTCMinutes();
-                isLate = (h > 8) || (h === 8 && m > 0);
-            }
+            const isLate = isLateLocal(a.clockIn);
 
             return {
                 name: a.employee.fullName,
                 department: a.employee.department?.name || "-",
                 clockIn: formatTime(a.clockIn),
                 clockOut: formatTime(a.clockOut),
+                clockInLat: a.clockInLat ? Number(a.clockInLat) : null,
+                clockInLng: a.clockInLng ? Number(a.clockInLng) : null,
+                clockOutLat: a.clockOutLat ? Number(a.clockOutLat) : null,
+                clockOutLng: a.clockOutLng ? Number(a.clockOutLng) : null,
                 status: isLate ? "late" : a.status === "PRESENT" ? "ontime" : a.status.toLowerCase(),
                 hours: a.workHours ? `${a.workHours.toFixed(2)}h` : "-"
             };

@@ -30,7 +30,7 @@ export default function RequisitionDetailPage() {
 
     const fetchRequisition = async () => {
         try {
-            const res = await fetch(`/api/v1/recruitment/requisitions/${params.id}`);
+            const res = await fetch(`/api/v1/recruitment/requisitions/${params.id}`, { cache: 'no-store' });
             if (!res.ok) throw new Error("Failed to load");
             const { data } = await res.json();
             setRequisition(data);

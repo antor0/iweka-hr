@@ -3,7 +3,7 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
-echo "🚀 Starting HRIS Pro Setup..."
+echo "🚀 Starting DigiHR+ Setup..."
 
 if [ ! -f .env ]; then
   echo "⚠️  No .env file found! Please create a .env file with DATABASE_URL before running setup."

@@ -30,6 +30,11 @@ export const CreateApplicationSchema = z.object({
     notes: z.string().optional()
 });
 
+export const UpdateApplicationSchema = z.object({
+    notes: z.string().optional()
+});
+
+
 export const WebhookApplySchema = z.object({
     requisitionId: z.string().uuid(),
     firstName: z.string().min(1),

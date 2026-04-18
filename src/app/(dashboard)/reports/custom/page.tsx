@@ -4,7 +4,7 @@ import { useState } from "react";
 import { GlassCard } from "@/components/liquid-glass/glass-card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, Play, TableProperties, Settings2 } from "lucide-react";
+import { Download, Play, TableProperties, Settings2, FileSpreadsheet } from "lucide-react";
 
 const MODULES = {
     employees: {
@@ -123,32 +123,57 @@ export default function CustomReportPage() {
         }
     };
 
-    const exportCsv = () => {
-        if (previewData.length === 0) return;
-
-        const headers = selectedFields;
-        const csvRows = [];
-
-        csvRows.push(headers.join(","));
-
-        for (const row of previewData) {
-            const values = headers.map(header => {
-                const val = row[header];
-                const cleanVal = val === null || val === undefined ? "" : String(val);
-                return `"${cleanVal.replace(/"/g, '""')}"`;
-            });
-            csvRows.push(values.join(","));
+    const downloadReport = async (format: 'csv' | 'xlsx') => {
+        if (selectedFields.length === 0) {
+            setError("Please select at least one field.");
+            return;
         }
 
-        const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.setAttribute("hidden", "");
-        a.setAttribute("href", url);
-        a.setAttribute("download", `custom_report_${selectedModule}_${new Date().getTime()}.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        setLoading(true);
+        setError(null);
+
+        try {
+            const res = await fetch(`/api/v1/reports/custom?format=${format}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    module: selectedModule,
+                    fields: selectedFields,
+                    filters: {}
+                })
+            });
+
+            if (!res.ok) {
+                const json = await res.json().catch(() => null);
+                throw new Error(json?.error || "Failed to download report.");
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+
+            // Extract filename from Content-Disposition header if possible
+            const contentDisposition = res.headers.get("content-disposition");
+            let filename = `custom_report_${selectedModule}_${new Date().getTime()}.${format}`;
+            if (contentDisposition && contentDisposition.indexOf('filename=') !== -1) {
+                const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                if (filenameMatch && filenameMatch.length === 2) {
+                    filename = filenameMatch[1];
+                }
+            }
+
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (err: any) {
+            console.error(err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -208,15 +233,27 @@ export default function CustomReportPage() {
                                 {loading ? 'Generating...' : 'Run Report'}
                             </Button>
 
-                            <Button
-                                className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                variant="outline"
-                                onClick={exportCsv}
-                                disabled={previewData.length === 0}
-                            >
-                                <Download className="h-4 w-4" />
-                                Export CSV
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700"
+                                    variant="outline"
+                                    onClick={() => downloadReport('xlsx')}
+                                    disabled={previewData.length === 0 || loading}
+                                >
+                                    <FileSpreadsheet className="h-4 w-4" />
+                                    Excel
+                                </Button>
+
+                                <Button
+                                    className="flex-1 gap-2 text-foreground"
+                                    variant="outline"
+                                    onClick={() => downloadReport('csv')}
+                                    disabled={previewData.length === 0 || loading}
+                                >
+                                    <Download className="h-4 w-4" />
+                                    CSV
+                                </Button>
+                            </div>
                         </div>
                     </GlassCard>
                 </div>

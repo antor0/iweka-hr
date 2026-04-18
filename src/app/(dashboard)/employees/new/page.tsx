@@ -17,8 +17,9 @@ import Link from "next/link";
 import { CreateEmployeeSchema } from "@/lib/validators/employee.schema";
 
 type BaseEmployeeFormValues = z.infer<typeof CreateEmployeeSchema>;
-type EmployeeFormValues = Omit<BaseEmployeeFormValues, "hireDate"> & {
+type EmployeeFormValues = Omit<BaseEmployeeFormValues, "hireDate" | "contractEndDate"> & {
     hireDate: string;
+    contractEndDate?: string;
 };
 
 export default function AddEmployeePage() {
@@ -52,6 +53,11 @@ export default function AddEmployeePage() {
     const selectedDepartmentId = useWatch({
         control: form.control,
         name: "departmentId",
+    });
+
+    const selectedEmploymentType = useWatch({
+        control: form.control,
+        name: "employmentType",
     });
 
     // Fetch master data
@@ -291,6 +297,14 @@ export default function AddEmployeePage() {
                                         </Select>
                                     </div>
                                 </div>
+
+                                {selectedEmploymentType === EmploymentType.CONTRACT && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="contractEndDate">Contract End Date <span className="text-destructive">*</span></Label>
+                                        <Input id="contractEndDate" type="date" {...form.register("contractEndDate")} required={selectedEmploymentType === EmploymentType.CONTRACT} />
+                                        {form.formState.errors.contractEndDate && <p className="text-sm text-destructive">{form.formState.errors.contractEndDate.message as string}</p>}
+                                    </div>
+                                )}
 
                                 <div className="space-y-2 mt-6">
                                     <Label htmlFor="npwp">NPWP (Tax Number)</Label>

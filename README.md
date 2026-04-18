@@ -40,6 +40,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Approval Workflows** | Map Level-1 and Level-2 approvers per department per request type; 2-level enforced for budgeting |
 | **Grade per Position** | Associate one or more salary grades to each organizational position |
 | **Work Schedule** | Department-level shift generation (Regular & Shift models) with automatic round-robin rotation |
+| **Attendance Policy** | Configure global attendance rules: Late grace period and **Mobile Location Requirement** toggle |
 | **Timesheet Collation** | Automated schedule-vs-actual attendance collation; identifies Late, Absent, Present, and Holiday status |
 
 ### Employee Salary Detail *(New in v0.5)*
@@ -53,7 +54,8 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 ### Time & Attendance
 | Feature | Description |
 |---------|-------------|
-| **ESS Clock-In/Clock-Out** | Employee Self Service attendance via web with shift detection |
+| **ESS Clock-In/Clock-Out** | Employee Self Service attendance via web/PWA with shift detection |
+| **GPS Tracking** | Capture and persist coordinates (lat/lng) during clocking; viewable via clickable Google Maps links in Admin Dashboard |
 | **Overtime Calculation** | Auto-computed overtime hours per Indonesian labor law |
 | **Monthly Attendance Summary** | Aggregated attendance report per employee per pay period |
 
@@ -121,6 +123,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Job Requisitions Dashboard** | Create and manage approved headcount requests; live stat cards for active postings, candidates, interviews, and hires |
 | **Requisition Detail Page** | Per-job tabbed view: Pipeline, Candidates, and Details & Edit |
 | **Drag-and-Drop Kanban Pipeline** | Visual pipeline board powered by `@dnd-kit/core`; drag candidates between `NEW → SCREENING → INTERVIEW → OFFER → HIRED / REJECTED` stages with real-time backend persistence |
+| **Candidate Details & Notes** | View extended applicant profiles (portfolio, expected salary, source) directly from the Kanban board. Add and save interviewer notes per application |
 | **Candidate Pool Management** | Manually add candidates to the talent pool; apply existing candidates to specific jobs |
 | **Interview Scheduling** | Schedule structured interviews per candidate with interviewer selection, type, date/time, and duration |
 | **Inline Job Editing** | Edit job description and requirements directly on the detail page without a dialog |
@@ -137,9 +140,10 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 ### Reports & Analytics
 | Feature | Description |
 |---------|-------------|
-| **Pre-built Reports** | Employee headcount, attendance recap, monthly payslips, PPh 21 return, BPJS SIPP |
+| **26 Pre-built Reports** | Organized across Employee, Attendance, Leave, Payroll, Tax, Recruitment, and Claims domains |
+| **Export Formats** | Download any pre-built or custom report in high-quality Excel (`.xlsx`) or raw `.csv` formats |
+| **Report Download Dialog** | Unified interface for selecting reporting periods, filtering by department, and previewing datasets before download |
 | **Custom Report Builder** | Dynamic field selection across Employees, Attendance, Leave, and Payroll datasets |
-| **CSV Export** | One-click download of any custom report as a `.csv` file |
 
 ### System
 | Feature | Description |
@@ -168,6 +172,7 @@ After running the database seed (`npx prisma db seed`), the following accounts a
 | **Auth** | `jose` (JWT), `bcryptjs` (password hashing) |
 | **Validation** | Zod 4 |
 | **Email** | Nodemailer (SMTP — Gmail, Mailtrap, custom) |
+| **Data Export** | `exceljs` (XLSX), parsing logic (CSV) |
 | **Drag & Drop** | `@dnd-kit/core` + `@dnd-kit/sortable` (Kanban pipeline) |
 | **Command Palette** | `cmdk` (keyboard-accessible global search dialog) |
 | **PDF/Print** | Browser native `print()` via compiled HTML templates |
@@ -214,6 +219,10 @@ src/
 │   │   │   │       │   ├── timesheet-card.tsx
 │   │   │   │       │   └── work-models-card.tsx
 │   │   │   │       └── page.tsx      # Reorganized hierarchical layout
+│   │   │   └── page.tsx
+│   │   ├── attendance/       # Attendance tracking & policy settings
+│   │   │   ├── components/
+│   │   │   │   └── attendance-settings-modal.tsx
 │   │   │   └── page.tsx
 │   │   ├── payroll/          # Payroll runs
 │   │   │   └── [id]/         # Payroll run detail page (per-employee breakdown, status actions)
@@ -266,7 +275,8 @@ src/
 │   │   ├── settings/
 │   │   │   ├── bpjs/         # GET/POST — BPJS config; [id]/ PUT/DELETE
 │   │   │   ├── tax/          # GET/POST — Tax config; [id]/ PUT/DELETE
-│   │   │   ├── company/      # GET/PUT — Company config (incl. late penalty fields)
+│   │   │   ├── company/      # GET/PUT — Company config
+│   │   │   ├── attendance/   # GET/PUT — Attendance policy (GPS requirements)
 │   │   │   └── email/        # EmailConfig CRUD & test
 │   │   ├── performance/      # Cycles, appraisals, goals
 │   │   ├── recruitment/
@@ -554,6 +564,97 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 | `GET` | `/recruitment/stats` | Aggregate dashboard stats (postings, candidates, interviews, hires) |
 | `POST` | `/webhooks/recruitment/apply` | **Public** — receive application from corporate website (no auth) |
 
+### 🌐 Public Webhook: External Job Applications
+
+**`POST /api/v1/webhooks/recruitment/apply`**
+
+This is an **unauthenticated, public endpoint** designed to be called from a corporate website, job board, or third-party ATS integration. It accepts an applicant's personal details and maps them to an existing open Job Requisition inside DigiHR+.
+
+> **No API key or session cookie is required.** Ensure your corporate website calls this endpoint server-side to avoid exposing your HRIS URL in browser-visible code.
+
+#### 📥 Request Body
+
+```json
+{
+  "requisitionId": "string (UUID, required)",
+  "firstName": "string (required)",
+  "lastName": "string (required)",
+  "email": "string (email format, required)",
+  "phone": "string (optional)",
+  "resumeUrl": "string (URL, optional)",
+  "portfolioUrl": "string (URL, optional)",
+  "expectedSalary": "number (optional)",
+  "source": "string (optional, default: \"Corporate Website\")"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `requisitionId` | `string` (UUID) | ✅ Yes | The ID of the target Job Requisition (must be in `OPEN` status). Obtain from `GET /api/v1/recruitment/requisitions`. |
+| `firstName` | `string` | ✅ Yes | Applicant's first name |
+| `lastName` | `string` | ✅ Yes | Applicant's last name |
+| `email` | `string` | ✅ Yes | Applicant's email. Used for idempotent candidate lookup — if a candidate with this email already exists, their profile is updated rather than duplicated. |
+| `phone` | `string` | No | Applicant's phone number |
+| `resumeUrl` | `string` (URL) | No | Direct link to the applicant's resume/CV (e.g. hosted on your corporate CDN or Google Drive) |
+| `portfolioUrl` | `string` (URL) | No | Portfolio or personal website URL |
+| `expectedSalary` | `number` | No | Expected gross monthly salary in IDR |
+| `source` | `string` | No | Traffic source or referral (e.g. `"LinkedIn"`, `"Jobstreet"`, `"Referral"`). Defaults to `"Corporate Website"`. |
+
+#### 📤 Response
+
+**Success — `201 Created`**
+```json
+{
+  "success": true,
+  "data": {
+    "applicationId": "uuid",
+    "candidateId": "uuid"
+  },
+  "message": "Application received successfully"
+}
+```
+
+**Error — `400 Bad Request`** (validation failure, duplicate application, or closed requisition)
+```json
+{
+  "success": false,
+  "error": "Requisition is not open for applications"
+}
+```
+
+**Error — `404 Not Found`** (requisition ID does not exist)
+```json
+{
+  "success": false,
+  "error": "Requisition not found"
+}
+```
+
+#### ⚙️ Behavior
+
+- **Idempotent Candidate Creation**: If a `Candidate` record with the same `email` already exists, it will be **updated** (not duplicated) with the latest submitted info.
+- **Duplicate Application Guard**: If the candidate has already applied to the same requisition, a `400` error is returned. Idempotency is enforced at the `(requisitionId, candidateId)` level.
+- **Transactional**: Both the `Candidate` upsert and `Application` creation happen in a single database transaction — either both succeed or neither is saved.
+- **Initial Status**: All webhook-submitted applications enter the pipeline at `NEW` status and are immediately visible in the Kanban pipeline board.
+- **Gate Check**: The endpoint validates that the target `JobRequisition` exists and has `status = "OPEN"` before accepting any submission.
+
+#### 💡 Integration Example (cURL)
+
+```bash
+curl -X POST https://your-hris-domain.com/api/v1/webhooks/recruitment/apply \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requisitionId": "531a024a-7937-4005-a5f2-76039b2ccccc",
+    "firstName": "Budi",
+    "lastName": "Santoso",
+    "email": "budi@email.com",
+    "phone": "08123456789",
+    "resumeUrl": "https://cdn.yoursite.com/resumes/budi-cv.pdf",
+    "expectedSalary": 8000000,
+    "source": "Jobstreet"
+  }'
+```
+
 ### Claims
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -571,7 +672,8 @@ All endpoints are prefixed with `/api/v1/` and require a valid session cookie (e
 ### Reports
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/reports/custom` | Generate a custom data export |
+| `GET` | `/reports/:domain/:slug` | Generate specific report (e.g. `/reports/attendance/monthly`). Supports `?format=xlsx\|csv` |
+| `POST` | `/reports/custom` | Generate a custom data export. Supports `?format=xlsx\|csv` |
 
 ---
 
@@ -584,7 +686,8 @@ This system is purpose-built for Indonesian labor law compliance:
 - **BPJS Ketenagakerjaan**: JHT, JKK, JKM, JP with 2024 salary caps
 - **PTKP Brackets**: TK/0–3 and K/0–3 status support
 - **Leave Entitlements**: 12-day annual leave, Maternity (90 days), and more per UU No. 13/2003
-- **Timezone Robustness**: Optimized for WIB (+07:00) with UTC-safe date handling, preventing "previous-day" shifts in attendance and scheduling.
+- **Dynamic Timezone Sync**: Automatically detects and uses the OS/local timezone for all attendance calculations, preventing date-shifting errors in locales like WIB (+07:00).
+- **Location Auditing**: GPS-backed attendance verification for mobile/hybrid workforces.
 
 ---
 

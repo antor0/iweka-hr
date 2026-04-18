@@ -14,6 +14,7 @@ export const CreateEmployeeSchema = z.object({
     bpjsKesNumber: z.string().optional(),
     bpjsTkNumber: z.string().optional(),
     hireDate: z.string().transform((str) => new Date(str)),
+    contractEndDate: z.string().transform((str) => new Date(str)).optional(),
     employmentStatus: z.nativeEnum(EmploymentStatus),
     employmentType: z.nativeEnum(EmploymentType),
     departmentId: z.string().optional(),
